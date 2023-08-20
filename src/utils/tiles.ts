@@ -14,8 +14,8 @@ export const tile2lat = (y: number, zoom: number) => {
   return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)))
 }
 
-export const lng2pixel = (lng: number, zoom: number, pixelsPertile: number) => {
-  return Math.pow(2, zoom + Math.log2(pixelsPertile / 2)) * (lng / 180 + 1)
+export const lng2pixel = (lng: number, zoom: number, pixelsPerTile: number) => {
+  return Math.pow(2, zoom + Math.log2(pixelsPerTile / 2)) * (lng / 180 + 1)
 }
 
 export const lat2pixel = (lat: number, zoom: number, pixelsPerTile: number) => {
