@@ -1,52 +1,52 @@
-*This repository is a reworking of sysoppl/Cities-Skylines-heightmap-generator in Nuxt3.*
+*This repository is a Nuxt3 reworking of sysoppl/Cities-Skylines-heightmap-generator.*
 # Terraining - Heightmap Generator
 
-**Online heightmap generator for "Cities: Skylines".**  
+**An online heightmap generator for "Cities: Skylines".**  
 **https://terraining.ateliernonta.com**
 
 ## Features
 
-- Take a square area from the map, ranging in size from 17.28 to 69.12 km.
-- Download 16bit grayscale PNG and map images.
+- Select a square area from the map, ranging in size from 17.28 to 69.12 km.
+- Download 16bit grayscale PNG heightmap and map images.
 
 ## How to
 
-1. Select area that you want to download.
-1. Customize the settings in the setting panel to your preference.
-1. Download the height map or map image.
+1. Choose the area you want to download.
+1. Customize the settings in the settings panel according to your preferences.
+1. Download the heightmap or map image.
 
 ## Setting panel
 
-- **Lng & Lat**: You can move by changing the values.
-- **Min & Max Height**: The refresh button at the bottom of the panel allows you to retrieve the minimum and maximum elevations for the current area. However, interpolation is applied based on the map size, causing slight variations in the values.
-- **Map Size**: You can set a size ranging from 17.28 meters to 62.12 km square.
-- **Sea Level**: All elevations below the set height will be adjusted to 0 m.
-- **Adjust Level**: Sea level will automatically adjust to match the minimum height.
-- **Height Ratio**: Set the ratio of vertical distance to horizntal distance.
-- **Height Scale**: Set the proportion relative to the actual height.  
-*‡Height Ratio and Height Scale are interrelated and also connected to the map size. You can lock either one of them.*
-- **Elev. Type**: This parameter is for automatically configuring Height Ratio and Height Scale.
-  * Manual: This will not perform automatic adjustments.
-  * Limit: If the maximum elevation exceeds 1,023.98 m, it will be adjusted to fit within that range.
-  * Maxi.: The maximum elevation will be automatically adjusted to always remain at 1,023.98 m.
-- **Water Depth**: Adjusts the water depth.
-- **Littoral Length**: Adjusts the distance of the littoral zone. Increasing it will create a gentle slope from the coastline to the seabed.
-- **Littoral Editor**: Configure the shape of the littoral slope.
-- **Smoothing & Sharpen**: Set the range for making it smooth and the range for making it sharpen.
+- **Lng & Lat**: Adjust your position by changing the values.
+- **Min & Max Height**: Use the refresh button at the bottom to retrieve current area's minimum and maximum elevations. Note that slight variations in values may occur due to interpolation based on map size.
+- **Map Size**: Set size between 17.28 and 62.12 km square.
+- **Sea Level**: Elevations below this height are adjusted to 0 m.
+- **Adjust Level**: Sea level automatically matches minimum height.
+- **Height Ratio**: Define vertical-to-horizontal distance ratio.
+- **Height Scale**: Set proportion relative to actual height.
+*‡Height Ratio and Height Scale are Interrelated and linked to map size. You can lock one.*
+- **Elev. Type**: Auto-configures Height Ratio and Height Scale.
+  * Manual: No automatic adjustments.
+  * Limit: Adjusts maximum elevation to 1,023.98 m if exceeded.
+  * Maxi.: Sets maximum elevation at 1,023.98 m.
+- **Water Depth**: Adjusts water depth.
+- **Littoral Length**: Changes littoral zone distance. Increasing creates a gentle slope from coast to seabed.
+- **Littoral Editor**: Configure littoral slope shape.
+- **Smoothing & Sharpen**: Set smoothing and sharpening ranges for terrain.
 
 ## Control panel
 
-- Download the following data.
-  * Heightmap with 16bit grayscale PNG
+- Download the following data:
+  * Heightmap in 16bit grayscale PNG format
   * Map image
   * OSM data
-- Visualize the smooth area and sharpen area on the map. Please note that due to Mapbox specifications, the representation is approximate.
-- Move to the position of the grid.
+- Visualize smooth and sharpen areas on the map. Keep in mind that, due to Mapbox specifications, the representation is approximate.
+- Navigate to the grid position.
 
 ## Current known issues
 
-- The sharpen effect is almost non-existent.
+- The sharpen effect is nearly imperceptible.
 
 ## Plans
 
-- Compatibility with Cities: Skylines II.
+- Achieve compatibility with Cities: Skylines II.
