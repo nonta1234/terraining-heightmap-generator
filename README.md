@@ -23,7 +23,7 @@
 - **Sea Level**: Elevations below this height are adjusted to 0 m.
 - **Adjust Level**: Sea level automatically matches minimum height.
 - **Height Ratio**: Define vertical-to-horizontal distance ratio.
-- **Height Scale**: Set proportion relative to actual height.
+- **Height Scale**: Set proportion relative to actual height.  
 *‡Height Ratio and Height Scale are Interrelated and linked to map size. You can lock one.*
 - **Elev. Type**: Auto-configures Height Ratio and Height Scale.
   * Manual: No automatic adjustments.
