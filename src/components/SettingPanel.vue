@@ -167,7 +167,7 @@ onMounted(() => {
 
 
 <template>
-  <div id="info-panel">
+  <div id="setting-panel">
     <section class="header">
       <button class="menu-bar fab" @click="changeVisibillity">
         <font-awesome-icon v-if="!visibillity" :icon="['fas', 'bars']" class="fa-fw fa-lg" />
@@ -244,7 +244,7 @@ onMounted(() => {
 
 
 <style lang="scss" scoped>
-  #info-panel {
+  #setting-panel {
     position: absolute;
     top: 10px;
     left: 10px;
