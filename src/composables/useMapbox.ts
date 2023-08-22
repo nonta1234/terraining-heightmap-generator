@@ -48,7 +48,7 @@ const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'to
   ] as Position
 }
 
-const getGrid = (lng: number, lat: number, size: number) => {
+const getGrid = (lng: number, lat: number, size: number, angle: number) => {
   const extent = getExtent(lng, lat, size * 1.05 / 2, size * 1.05 / 2)
   const gridArea = turf.squareGrid(
     [extent.topleft[0], extent.topleft[1], extent.bottomright[0], extent.bottomright[1]],
@@ -76,6 +76,11 @@ const getGrid = (lng: number, lat: number, size: number) => {
     ],
   )
 
+  turf.transformRotate(gridArea, angle, { pivot: [lng, lat], mutate: true })
+  turf.transformRotate(gridArea, angle, { pivot: [lng, lat], mutate: true })
+  turf.transformRotate(gridArea, angle, { pivot: [lng, lat], mutate: true })
+  turf.transformRotate(gridArea, angle, { pivot: [lng, lat], mutate: true })
+
   const grid: Grid = { gridArea, playArea, centerArea, cornerPoints, sideLines }
   return grid
 }
@@ -84,22 +89,22 @@ const getGrid = (lng: number, lat: number, size: number) => {
 export const setLngLat = (mapbox: Ref<Mapbox>, lnglat: LngLat, panTo: boolean) => {
   const _lng = ((lnglat[0] + 540) % 360) - 180
   let _lat = lnglat[1]
-  if (lnglat[1] > 85.05112878) {
-    _lat = 85.05112878
-  } else if (lnglat[1] < -85.05112878) {
-    _lat = -85.05112878
+  if (lnglat[1] > 85) {
+    _lat = 85
+  } else if (lnglat[1] < -85) {
+    _lat = -85
   }
 
   mapbox.value.isUpdating = true
   mapbox.value.settings.lng = _lng
   mapbox.value.settings.lat = _lat
-  mapbox.value.grid = getGrid(_lng, _lat, mapbox.value.settings.size);
+  mapbox.value.grid = getGrid(_lng, _lat, mapbox.value.settings.size, mapbox.value.settings.angle);
+
   (mapbox.value.map?.getSource('grid') as GeoJSONSource).setData(mapbox.value.grid.gridArea);
   (mapbox.value.map?.getSource('play') as GeoJSONSource).setData(mapbox.value.grid.playArea);
   (mapbox.value.map?.getSource('center') as GeoJSONSource).setData(mapbox.value.grid.centerArea);
   (mapbox.value.map?.getSource('corner') as GeoJSONSource).setData(mapbox.value.grid.cornerPoints);
   (mapbox.value.map?.getSource('side') as GeoJSONSource).setData(mapbox.value.grid.sideLines)
-
 
   mapbox.value.isUpdating = false
   if (panTo) {
@@ -126,6 +131,7 @@ export const createMapInstance = () => {
     mapbox.value.settings.lng,
     mapbox.value.settings.lat,
     mapbox.value.settings.size,
+    mapbox.value.settings.angle,
   )
 
   mapbox.value.settings = useDefineSettings().value

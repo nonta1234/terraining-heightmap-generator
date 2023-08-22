@@ -6,6 +6,7 @@ const defineSettings = () => {
   store.lat = store.lat || initialValue.lat
   store.zoom = store.zoom || initialValue.zoom
   store.size = store.size || initialValue.size
+  store.angle = store.angle || initialValue.angle
   store.seaLevel = store.seaLevel || initialValue.seaLevel
   store.adjLevel = typeof store.adjLevel === 'undefined' ? initialValue.adjLevel : store.adjLevel
   store.vertScale = store.vertScale || initialValue.vScale

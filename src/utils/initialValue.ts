@@ -23,6 +23,7 @@ export const initialValue = {
   lat:        40.78280,
   zoom:       10,
   size:       17.28,
+  angle:      0,
   seaLevel:   0,
   adjLevel:   false,
   vScale:     1.00,

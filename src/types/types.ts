@@ -18,6 +18,7 @@ export interface Settings {
   lat:        number;
   zoom:       number;
   size:       number;
+  angle:      number;
   seaLevel:   number;
   adjLevel:   boolean;
   vertScale:  number;
