@@ -18,7 +18,7 @@ pub struct PngImage {
 }
 
 #[wasm_bindgen]
-pub fn encode_16g(buffer: JsValue) ->  Result<JsValue, JsValue> {
+pub fn encode_16g(buffer: JsValue) -> Result<JsValue, JsValue> {
   let _buffer: ImageBuffer = serde_wasm_bindgen::from_value(buffer)?;
   let mut png_data = PngImage { data: Vec::new() };
   {
