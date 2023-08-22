@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { NavigationControl } from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { FeatureCollection, Feature, Geometry, GeoJsonProperties } from 'geojson'
-
-type T = Feature<Geometry, GeoJsonProperties>
-type S = FeatureCollection<Geometry, GeoJsonProperties>
-
 
 const mapbox = useMapbox()
 const { isMobile } = useDevice()
@@ -45,15 +40,23 @@ onMounted(() => {
   function addSource() {
     mapbox.value.map?.addSource('grid', {
       type: 'geojson',
-      data: mapbox.value.grid?.gridArea as S,
+      data: mapbox.value.grid?.gridArea,
     })
     mapbox.value.map?.addSource('play', {
       type: 'geojson',
-      data: mapbox.value.grid?.playArea as T,
+      data: mapbox.value.grid?.playArea,
     })
     mapbox.value.map?.addSource('center', {
       type: 'geojson',
-      data: mapbox.value.grid!.centerArea as T,
+      data: mapbox.value.grid!.centerArea,
+    })
+    mapbox.value.map?.addSource('corner', {
+      type: 'geojson',
+      data: mapbox.value.grid!.cornerPoints,
+    })
+    mapbox.value.map?.addSource('side', {
+      type: 'geojson',
+      data: mapbox.value.grid!.sideLines,
     })
     mapbox.value.map?.addSource('contours', {
       type: 'vector',
@@ -107,8 +110,25 @@ onMounted(() => {
         'fill-opacity': 0.2,
       },
     })
+    mapbox.value.map?.addLayer({
+      id: 'cornerPoints',
+      type: 'circle',
+      source: 'corner',
+      paint: {
+        'circle-radius': 10,
+        'circle-color': '#F84C4C',
+      },
+    })
+    mapbox.value.map?.addLayer({
+      id: 'sideLines',
+      type: 'line',
+      source: 'side',
+      paint: {
+        'line-width': 7,
+        'line-color': '#F84C4C',
+      },
+    })
   }
-
 
   function addEffectLayer() {
     mapbox.value.map?.addLayer({
@@ -144,7 +164,6 @@ onMounted(() => {
     mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')
     mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
   }
-
 
   function addController() {
     mapbox.value.map?.addControl(

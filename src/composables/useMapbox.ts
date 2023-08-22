@@ -1,10 +1,7 @@
 import { Map, GeoJSONSource } from 'mapbox-gl'
 import * as turf from '@turf/turf'
-import { FeatureCollection, Feature, BBox, Geometry, GeoJsonProperties } from 'geojson'
+import { Feature, BBox, GeoJsonProperties, Position, Polygon } from 'geojson'
 import { Mapbox, Grid, LngLat } from '~/types/types'
-
-type T = Feature<Geometry, GeoJsonProperties>
-type S = FeatureCollection<Geometry, GeoJsonProperties>
 
 
 export const getExtent = (lng: number, lat: number, topleftSize: number, bottomrightSize: number) => {
@@ -18,7 +15,7 @@ export const getExtent = (lng: number, lat: number, topleftSize: number, bottomr
 
 // -> Figure 1
 
-const getPlayAreaBBox = (features: turf.helpers.Feature<turf.helpers.Polygon, GeoJsonProperties>[]) => {
+const getPlayAreaBBox = (features: Feature<Polygon, GeoJsonProperties>[]) => {
   const pBox = [
     features[20].geometry.coordinates[0][0][0],
     features[20].geometry.coordinates[0][0][1],
@@ -28,7 +25,7 @@ const getPlayAreaBBox = (features: turf.helpers.Feature<turf.helpers.Polygon, Ge
   return pBox as BBox
 }
 
-const getCenterAreaBBox = (features: turf.helpers.Feature<turf.helpers.Polygon, GeoJsonProperties>[]) => {
+const getCenterAreaBBox = (features: Feature<Polygon, GeoJsonProperties>[]) => {
   const cBox = [
     features[40].geometry.coordinates[0][0][0],
     features[40].geometry.coordinates[0][0][1],
@@ -38,16 +35,48 @@ const getCenterAreaBBox = (features: turf.helpers.Feature<turf.helpers.Polygon, 
   return cBox as BBox
 }
 
+const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'topleft' | 'topright' | 'bottomright' | 'bottomleft') => {
+  const corner = {
+    topleft: 0,
+    topright: 1,
+    bottomright: 2,
+    bottomleft: 3,
+  }
+  return [
+    feature.geometry.coordinates[0][corner[position]][0],
+    feature.geometry.coordinates[0][corner[position]][1],
+  ] as Position
+}
+
 const getGrid = (lng: number, lat: number, size: number) => {
   const extent = getExtent(lng, lat, size * 1.05 / 2, size * 1.05 / 2)
-  const gridArea = turf.squareGrid<GeoJsonProperties>(
+  const gridArea = turf.squareGrid(
     [extent.topleft[0], extent.topleft[1], extent.bottomright[0], extent.bottomright[1]],
     size / 9,
     { units: 'kilometers' },
   )
-  const playArea = turf.bboxPolygon<GeoJsonProperties>(getPlayAreaBBox(gridArea.features))
-  const centerArea =  turf.bboxPolygon<GeoJsonProperties>(getCenterAreaBBox(gridArea.features))
-  const grid: Grid = { gridArea, playArea, centerArea }
+  const playArea = turf.bboxPolygon(getPlayAreaBBox(gridArea.features))
+  const centerArea =  turf.bboxPolygon(getCenterAreaBBox(gridArea.features))
+
+  const cornerPoints = turf.multiPoint(
+    [
+      getPosition(gridArea.features[0], 'topleft'),
+      getPosition(gridArea.features[8], 'topright'),
+      getPosition(gridArea.features[80], 'bottomright'),
+      getPosition(gridArea.features[72], 'bottomleft'),
+    ],
+  )
+
+  const sideLines = turf.multiLineString(
+    [
+      [getPosition(gridArea.features[0], 'topleft'), getPosition(gridArea.features[8], 'topright')],
+      [getPosition(gridArea.features[8], 'topright'), getPosition(gridArea.features[80], 'bottomright')],
+      [getPosition(gridArea.features[80], 'bottomright'), getPosition(gridArea.features[72], 'bottomleft')],
+      [getPosition(gridArea.features[72], 'bottomleft'), getPosition(gridArea.features[0], 'topleft')],
+    ],
+  )
+
+  const grid: Grid = { gridArea, playArea, centerArea, cornerPoints, sideLines }
   return grid
 }
 
@@ -65,9 +94,13 @@ export const setLngLat = (mapbox: Ref<Mapbox>, lnglat: LngLat, panTo: boolean) =
   mapbox.value.settings.lng = _lng
   mapbox.value.settings.lat = _lat
   mapbox.value.grid = getGrid(_lng, _lat, mapbox.value.settings.size);
-  (mapbox.value.map?.getSource('grid') as GeoJSONSource).setData(mapbox.value.grid.gridArea as S);
-  (mapbox.value.map?.getSource('play') as GeoJSONSource).setData(mapbox.value.grid.playArea as T);
-  (mapbox.value.map?.getSource('center') as GeoJSONSource).setData(mapbox.value.grid.centerArea as T)
+  (mapbox.value.map?.getSource('grid') as GeoJSONSource).setData(mapbox.value.grid.gridArea);
+  (mapbox.value.map?.getSource('play') as GeoJSONSource).setData(mapbox.value.grid.playArea);
+  (mapbox.value.map?.getSource('center') as GeoJSONSource).setData(mapbox.value.grid.centerArea);
+  (mapbox.value.map?.getSource('corner') as GeoJSONSource).setData(mapbox.value.grid.cornerPoints);
+  (mapbox.value.map?.getSource('side') as GeoJSONSource).setData(mapbox.value.grid.sideLines)
+
+
   mapbox.value.isUpdating = false
   if (panTo) {
     mapbox.value.map?.panTo([mapbox.value.settings.lng, mapbox.value.settings.lat])
@@ -139,7 +172,7 @@ export const useMapbox = () => {
  *    +---+---+---+---+---+---+---+---+---+
  *
  *    4
- *    0---3
+ *    0---1
  *    |   |
- *    1---2
+ *    3---2
  */
