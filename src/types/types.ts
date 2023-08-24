@@ -11,6 +11,7 @@ export interface Grid {
   centerArea:   Feature<Polygon, GeoJsonProperties>;
   cornerPoints: Feature<MultiPoint, GeoJsonProperties>;
   sideLines:    Feature<MultiLineString, GeoJsonProperties>;
+  direction:    Feature<MultiLineString, GeoJsonProperties>;
 }
 
 export interface Settings {

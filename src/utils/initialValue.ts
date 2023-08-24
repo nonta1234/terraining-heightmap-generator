@@ -1,6 +1,6 @@
 export const mapStyle = {
   streets:    'mapbox://styles/mapbox/streets-v12',
-  outdoors:   'mapbox://styles/mapbox/outdoors-v12',
+  outdoors:   'mapbox://styles/mapbox/outdoors-v12?optimize=true',
   satStreets: 'mapbox://styles/mapbox/satellite-streets-v12',
   satellite:  'mapbox://styles/mapbox/satellite-v9',
   light:      'mapbox://styles/mapbox/light-v11',

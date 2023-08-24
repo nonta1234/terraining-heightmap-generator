@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { NavigationControl } from 'mapbox-gl'
+import * as turf from '@turf/turf'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 const mapbox = useMapbox()
@@ -58,6 +59,10 @@ onMounted(() => {
       type: 'geojson',
       data: mapbox.value.grid!.sideLines,
     })
+    mapbox.value.map?.addSource('direction', {
+      type: 'geojson',
+      data: mapbox.value.grid!.direction,
+    })
     mapbox.value.map?.addSource('contours', {
       type: 'vector',
       url: 'mapbox://mapbox.mapbox-terrain-v2',
@@ -87,9 +92,9 @@ onMounted(() => {
       type: 'fill',
       source: 'grid',
       paint: {
-        'fill-color': 'rgba(128, 128, 128, 0.25)',
+        'fill-color': 'rgba(128, 128, 128, 0.5)',
         'fill-outline-color': 'black',
-        'fill-opacity': 1,
+        'fill-opacity': 0.5,
       },
     })
     mapbox.value.map?.addLayer({
@@ -98,7 +103,7 @@ onMounted(() => {
       source: 'play',
       paint: {
         'fill-color': 'green',
-        'fill-opacity': 0.25,
+        'fill-opacity': 0.23,
       },
     })
     mapbox.value.map?.addLayer({
@@ -111,21 +116,35 @@ onMounted(() => {
       },
     })
     mapbox.value.map?.addLayer({
-      id: 'cornerPoints',
-      type: 'circle',
-      source: 'corner',
-      paint: {
-        'circle-radius': 10,
-        'circle-color': '#F84C4C',
-      },
-    })
-    mapbox.value.map?.addLayer({
       id: 'sideLines',
       type: 'line',
       source: 'side',
       paint: {
         'line-width': 7,
-        'line-color': '#F84C4C',
+        'line-color': '#1E90FF',
+        'line-opacity': 0,
+      },
+    })
+    mapbox.value.map?.addLayer({
+      id: 'cornerPoints',
+      type: 'circle',
+      source: 'corner',
+      filter: ['all', ['!=', 'meta', 'midpoint']],
+      paint: {
+        'circle-color': '#1E90FF',
+        'circle-radius': 10,
+        'circle-blur': 1,
+        'circle-opacity': 0,
+      },
+    })
+    mapbox.value.map?.addLayer({
+      id: 'directionMarker',
+      type: 'line',
+      source: 'direction',
+      paint: {
+        'line-width': 0.5,
+        'line-color': 'black',
+        'line-opacity': 0.7,
       },
     })
   }
@@ -184,15 +203,41 @@ onMounted(() => {
     mapbox.value.map?.off('touchmove', onMove)
   }
 
+  let prevAngle = 0
+
+  function onRotateStart(e: any) {
+    const point1 = [mapbox.value.settings.lng, mapbox.value.settings.lat]
+    const point2 = [e.lngLat.lng, e.lngLat.lat]
+    prevAngle = turf.rhumbBearing(point1, point2)
+  }
+
+  function onRotate(e: any) {
+    const point1 = [mapbox.value.settings.lng, mapbox.value.settings.lat]
+    const point2 = [e.lngLat.lng, e.lngLat.lat]
+    const currentAngle = turf.rhumbBearing(point1, point2)
+    const delta = currentAngle - prevAngle
+    mapbox.value.settings.angle = ((delta + mapbox.value.settings.angle + 540) % 360) - 180
+
+    setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+
+    mapbox.value.settings.angle = getGridAngle()
+    prevAngle = currentAngle
+  }
+
+  function onRotateEnd() {
+    mapbox.value.settings.angle = getGridAngle()
+    mapCanvas.style.cursor = ''
+    mapbox.value.map?.off('mousemove', onRotate)
+    mapbox.value.map?.off('touchmove', onRotate)
+  }
+
   function setMouse() {
     mapbox.value.map?.on('mouseenter', 'centerArea', () => {
       mapbox.value.map!.setPaintProperty('centerArea', 'fill-opacity', 0.3)
-      mapbox.value.map!.setPaintProperty('centerArea', 'fill-color', 'blue')
       mapCanvas.style.cursor = 'move'
     })
 
     mapbox.value.map?.on('mouseleave', 'centerArea', () => {
-      mapbox.value.map!.setPaintProperty('centerArea', 'fill-color', 'blue')
       mapbox.value.map!.setPaintProperty('centerArea', 'fill-opacity', 0.2)
       mapCanvas.style.cursor = ''
     })
@@ -209,6 +254,33 @@ onMounted(() => {
       e.preventDefault()
       mapbox.value.map!.on('touchmove', onMove)
       mapbox.value.map!.once('touchend', onUp)
+    })
+
+    mapbox.value.map?.on('mouseenter', 'cornerPoints', () => {
+      mapbox.value.map!.setPaintProperty('cornerPoints', 'circle-radius', 20)
+      mapbox.value.map!.setPaintProperty('cornerPoints', 'circle-opacity', 0.4)
+      mapCanvas.style.cursor = 'move'
+    })
+
+    mapbox.value.map?.on('mouseleave', 'cornerPoints', () => {
+      mapbox.value.map!.setPaintProperty('cornerPoints', 'circle-radius', 10)
+      mapbox.value.map!.setPaintProperty('cornerPoints', 'circle-opacity', 0)
+      mapCanvas.style.cursor = ''
+    })
+
+    mapbox.value.map?.on('mousedown', 'cornerPoints', (e) => {
+      e.preventDefault()
+      onRotateStart(e)
+      mapbox.value.map!.on('mousemove', onRotate)
+      mapbox.value.map!.once('mouseup', onRotateEnd)
+    })
+
+    mapbox.value.map?.on('touchstart', 'cornerPoints', (e) => {
+      if (e.points.length !== 1) { return }
+      e.preventDefault()
+      onRotateStart(e)
+      mapbox.value.map!.on('touchmove', onRotate)
+      mapbox.value.map!.once('touchend', onRotateEnd)
     })
   }
 })
