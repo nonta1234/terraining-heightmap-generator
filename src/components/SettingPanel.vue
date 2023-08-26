@@ -129,7 +129,7 @@ const onSizeChange = (value: number) => {
   mapbox.value.settings.size = value
   if (mapbox.value.settings.fixedRatio) { ratio.value = tmpRatio }
   setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], true)
-  useEvent('map:changeMapSize', mapbox.value.settings.size)
+  useEvent('map:changeMapSize', value)
 }
 
 const onTypeChange = (e: Event) => {

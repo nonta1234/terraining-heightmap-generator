@@ -51,9 +51,9 @@ onMounted(() => {
       type: 'geojson',
       data: mapbox.value.grid!.centerArea,
     })
-    mapbox.value.map?.addSource('corner', {
+    mapbox.value.map?.addSource('rotate', {
       type: 'geojson',
-      data: mapbox.value.grid!.cornerPoints,
+      data: mapbox.value.grid!.rotateArea,
     })
     mapbox.value.map?.addSource('side', {
       type: 'geojson',
@@ -119,23 +119,25 @@ onMounted(() => {
       id: 'sideLines',
       type: 'line',
       source: 'side',
+      layout: {
+        'line-join': 'miter',
+      },
       paint: {
-        'line-width': 7,
+        'line-width': 10,
         'line-color': '#1E90FF',
+        'line-blur': 1,
         'line-opacity': 0,
       },
     })
     mapbox.value.map?.addLayer({
-      id: 'cornerPoints',
-      type: 'circle',
-      source: 'corner',
-      filter: ['all', ['!=', 'meta', 'midpoint']],
+      id: 'rotateArea',
+      type: 'fill',
+      source: 'rotate',
       paint: {
-        'circle-color': '#1E90FF',
-        'circle-radius': 10,
-        'circle-blur': 1,
-        'circle-opacity': 0,
+        'fill-color': 'blue',
+        'fill-opacity': 0.1,
       },
+      layout: {},
     })
     mapbox.value.map?.addLayer({
       id: 'directionMarker',
@@ -197,15 +199,16 @@ onMounted(() => {
     setLngLat(mapbox, [e.lngLat.lng, e.lngLat.lat], false)
   }
 
-  function onUp(e: any) {
-    setLngLat(mapbox, [e.lngLat.lng, e.lngLat.lat], false)
+  function onUp() {
     mapbox.value.map?.off('mousemove', onMove)
     mapbox.value.map?.off('touchmove', onMove)
   }
 
+  let enterRotateArea = false
   let prevAngle = 0
 
   function onRotateStart(e: any) {
+    mapbox.value.map?.scrollZoom.disable()
     const point1 = [mapbox.value.settings.lng, mapbox.value.settings.lat]
     const point2 = [e.lngLat.lng, e.lngLat.lat]
     prevAngle = turf.rhumbBearing(point1, point2)
@@ -229,9 +232,63 @@ onMounted(() => {
     mapCanvas.style.cursor = ''
     mapbox.value.map?.off('mousemove', onRotate)
     mapbox.value.map?.off('touchmove', onRotate)
+    mapbox.value.map?.scrollZoom.enable()
+  }
+
+  let lineString: turf.Feature<turf.LineString>
+
+  function getFarthestLineString(coordinates: turf.Position[][], point: turf.Coord) {
+    let farthestLineString: any
+    let maxDistance = 0
+
+    for (let i = 0; i < coordinates.length; i++) {
+      const line = turf.lineString(coordinates[i])
+      const distance = turf.pointToLineDistance(point, line)
+      if (distance > maxDistance) {
+        maxDistance = distance
+        farthestLineString = line
+      }
+    }
+    return farthestLineString
+  }
+
+  function onResizeStart(e: any) {
+    mapbox.value.map?.scrollZoom.disable()
+    const features = mapbox.value.map?.queryRenderedFeatures(e.point, {
+      layers: ['sideLines'],
+    })
+    if (features!.length > 0) {
+      const lineStringGeometry = features![0].geometry
+      if (lineStringGeometry.type === 'MultiLineString') {
+        lineString = getFarthestLineString(lineStringGeometry.coordinates, [e.lngLat.lng, e.lngLat.lat])
+      }
+    }
+  }
+
+  function onResize(e: any) {
+    let distance = turf.pointToLineDistance([e.lngLat.lng, e.lngLat.lat], lineString, { units: 'kilometers' })
+    if (distance < 17.28) { distance = 17.28 }
+    if (distance > 69.12) { distance = 69.12 }
+    const tmpRatio = mapbox.value.settings.vertScale / 17.28 * mapbox.value.settings.size
+    mapbox.value.settings.size = distance
+    if (mapbox.value.settings.fixedRatio) {
+      mapbox.value.settings.vertScale = tmpRatio * 17.28 / mapbox.value.settings.size
+    }
+    setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+    useEvent('map:changeMapSize', mapbox.value.settings.size)
+  }
+
+  function onResizeEnd() {
+    mapCanvas.style.cursor = ''
+    mapbox.value.map?.off('mousemove', onResize)
+    mapbox.value.map?.off('touchmove', onResize)
+    mapbox.value.map?.scrollZoom.disable()
+    useEvent('map:changeMapSize', mapbox.value.settings.size)
+    mapbox.value.map?.scrollZoom.enable()
   }
 
   function setMouse() {
+    // centerArea - move
     mapbox.value.map?.on('mouseenter', 'centerArea', () => {
       mapbox.value.map!.setPaintProperty('centerArea', 'fill-opacity', 0.3)
       mapCanvas.style.cursor = 'move'
@@ -256,31 +313,67 @@ onMounted(() => {
       mapbox.value.map!.once('touchend', onUp)
     })
 
-    mapbox.value.map?.on('mouseenter', 'cornerPoints', () => {
-      mapbox.value.map!.setPaintProperty('cornerPoints', 'circle-radius', 20)
-      mapbox.value.map!.setPaintProperty('cornerPoints', 'circle-opacity', 0.4)
+    // rotateArea - rotate
+    mapbox.value.map?.on('mouseenter', 'rotateArea', () => {
+      enterRotateArea = true
+      mapbox.value.map!.setPaintProperty('sideLines', 'line-opacity', 0)
+      mapbox.value.map!.setPaintProperty('rotateArea', 'fill-opacity', 0.2)
       mapCanvas.style.cursor = 'move'
     })
 
-    mapbox.value.map?.on('mouseleave', 'cornerPoints', () => {
-      mapbox.value.map!.setPaintProperty('cornerPoints', 'circle-radius', 10)
-      mapbox.value.map!.setPaintProperty('cornerPoints', 'circle-opacity', 0)
+    mapbox.value.map?.on('mouseleave', 'rotateArea', () => {
+      mapbox.value.map!.setPaintProperty('rotateArea', 'fill-opacity', 0.1)
       mapCanvas.style.cursor = ''
+      enterRotateArea = false
     })
 
-    mapbox.value.map?.on('mousedown', 'cornerPoints', (e) => {
+    mapbox.value.map?.on('mousedown', 'rotateArea', (e) => {
       e.preventDefault()
       onRotateStart(e)
       mapbox.value.map!.on('mousemove', onRotate)
       mapbox.value.map!.once('mouseup', onRotateEnd)
     })
 
-    mapbox.value.map?.on('touchstart', 'cornerPoints', (e) => {
+    mapbox.value.map?.on('touchstart', 'rotateArea', (e) => {
       if (e.points.length !== 1) { return }
       e.preventDefault()
       onRotateStart(e)
       mapbox.value.map!.on('touchmove', onRotate)
       mapbox.value.map!.once('touchend', onRotateEnd)
+    })
+
+    // sideLines - resize
+    mapbox.value.map?.on('mouseenter', 'sideLines', () => {
+      if (!enterRotateArea) {
+        mapbox.value.map!.setPaintProperty('sideLines', 'line-width', 5)
+        mapbox.value.map!.setPaintProperty('sideLines', 'line-opacity', 0.3)
+        mapCanvas.style.cursor = 'move'
+      }
+    })
+
+    mapbox.value.map?.on('mouseleave', 'sideLines', () => {
+      mapbox.value.map!.setPaintProperty('sideLines', 'line-opacity', 0)
+      mapbox.value.map!.setPaintProperty('sideLines', 'line-width', 10)
+      mapCanvas.style.cursor = ''
+    })
+
+    mapbox.value.map?.on('mousedown', 'sideLines', (e) => {
+      if (!enterRotateArea) {
+        e.preventDefault()
+        onResizeStart(e)
+        mapbox.value.map!.on('mousemove', onResize)
+        mapbox.value.map!.once('mouseup', onResizeEnd)
+      }
+    })
+
+    mapbox.value.map?.on('touchstart', 'sideLines', (e) => {
+      if (!enterRotateArea) {
+        if (e.points.length !== 1) { return }
+        e.preventDefault()
+        onResizeStart(e)
+      mapbox.value.map!.on('touchmove', onResize)
+      mapbox.value.map!.once('touchend', onResizeEnd)
+      }
     })
   }
 })
