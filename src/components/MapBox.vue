@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { NavigationControl } from 'mapbox-gl'
 import * as turf from '@turf/turf'
+import { NavigationControl } from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 const mapbox = useMapbox()
-const { isMobile } = useDevice()
 const { debugMode } = useDebug()
+const { isMobile } = useDevice()
+
+type GridState = 'none' | 'isMove' | 'isRotate' | 'isResize'
+
+let gridState: GridState = 'none'
+
+let prevAngle = 0
 
 onMounted(() => {
   createMapInstance()
@@ -20,14 +26,19 @@ onMounted(() => {
     addSource()
     addTerrain()
     addEffectLayer()
-    addLayer()
     addController()
+    addLayer()
     setMouse()
     if (debugMode.value) { mapbox.value.map!.showTileBoundaries = true }
   })
 
   mapbox.value.map?.on('idle', () => {
     saveSettings(mapbox.value.settings)
+  })
+
+  mapbox.value.map?.on('rotate', () => {
+    const pitch = mapbox.value.map!.getPitch()
+    console.log(`scale(${1 / Math.pow(Math.cos(pitch * (Math.PI / 180)), 0.5)}) rotateX(${pitch}deg) rotateZ(${-mapbox.value.map!.getBearing()}deg)`)
   })
 
   mapbox.value.map?.on('click', (e) => {
@@ -134,8 +145,8 @@ onMounted(() => {
       type: 'fill',
       source: 'rotate',
       paint: {
-        'fill-color': 'blue',
-        'fill-opacity': 0.1,
+        'fill-color': 'rgba(0, 0, 0, 0)',
+        'fill-outline-color': 'blue',
       },
       layout: {},
     })
@@ -186,7 +197,13 @@ onMounted(() => {
     mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
   }
 
-  function addController() {
+  const addResetGridDirection = () => {
+    mapbox.value.map?.addControl(
+      new ResetGridDirection(), isMobile ? 'top-right' : 'bottom-right',
+    )
+  }
+
+  const addNavigationControl = () => {
     mapbox.value.map?.addControl(
       new NavigationControl({
         visualizePitch: true,
@@ -195,19 +212,45 @@ onMounted(() => {
     )
   }
 
+  const addHomeButton = () => {
+    mapbox.value.map?.addControl(
+      new HomeButton(), isMobile ? 'top-right' : 'bottom-right',
+    )
+  }
+
+  const addEffectArea = () => {
+    mapbox.value.map?.addControl(
+      new EffectedArea(), isMobile ? 'top-right' : 'bottom-right',
+    )
+  }
+
+  function addController() {
+    if (isMobile) {
+      addHomeButton()
+      addNavigationControl()
+      addResetGridDirection()
+      addEffectArea()
+    } else {
+      addEffectArea()
+      addResetGridDirection()
+      addNavigationControl()
+      addHomeButton()
+    }
+  }
+
   function onMove(e: any) {
     setLngLat(mapbox, [e.lngLat.lng, e.lngLat.lat], false)
   }
 
-  function onUp() {
+  function onUp(e: any) {
+    setLngLat(mapbox, [e.lngLat.lng, e.lngLat.lat], false)
     mapbox.value.map?.off('mousemove', onMove)
     mapbox.value.map?.off('touchmove', onMove)
+    gridState = 'none'
   }
 
-  let enterRotateArea = false
-  let prevAngle = 0
-
   function onRotateStart(e: any) {
+    gridState = 'isRotate'
     mapbox.value.map?.scrollZoom.disable()
     const point1 = [mapbox.value.settings.lng, mapbox.value.settings.lat]
     const point2 = [e.lngLat.lng, e.lngLat.lat]
@@ -228,11 +271,13 @@ onMounted(() => {
   }
 
   function onRotateEnd() {
+    setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
     mapbox.value.settings.angle = getGridAngle()
     mapCanvas.style.cursor = ''
     mapbox.value.map?.off('mousemove', onRotate)
     mapbox.value.map?.off('touchmove', onRotate)
     mapbox.value.map?.scrollZoom.enable()
+    gridState = 'none'
   }
 
   let lineString: turf.Feature<turf.LineString>
@@ -253,6 +298,7 @@ onMounted(() => {
   }
 
   function onResizeStart(e: any) {
+    gridState = 'isResize'
     mapbox.value.map?.scrollZoom.disable()
     const features = mapbox.value.map?.queryRenderedFeatures(e.point, {
       layers: ['sideLines'],
@@ -279,12 +325,13 @@ onMounted(() => {
   }
 
   function onResizeEnd() {
+    setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
     mapCanvas.style.cursor = ''
     mapbox.value.map?.off('mousemove', onResize)
     mapbox.value.map?.off('touchmove', onResize)
-    mapbox.value.map?.scrollZoom.disable()
     useEvent('map:changeMapSize', mapbox.value.settings.size)
     mapbox.value.map?.scrollZoom.enable()
+    gridState = 'none'
   }
 
   function setMouse() {
@@ -300,55 +347,59 @@ onMounted(() => {
     })
 
     mapbox.value.map?.on('mousedown', 'centerArea', (e) => {
-      e.preventDefault()
-      mapCanvas.style.cursor = 'grab'
-      mapbox.value.map!.on('mousemove', onMove)
-      mapbox.value.map!.once('mouseup', onUp)
+      if (gridState === 'none') {
+        e.preventDefault()
+        mapCanvas.style.cursor = 'grab'
+        mapbox.value.map!.on('mousemove', onMove)
+        mapbox.value.map!.once('mouseup', onUp)
+        gridState = 'isMove'
+      }
     })
 
     mapbox.value.map?.on('touchstart', 'centerArea', (e) => {
-      if (e.points.length !== 1) { return }
-      e.preventDefault()
-      mapbox.value.map!.on('touchmove', onMove)
-      mapbox.value.map!.once('touchend', onUp)
+      if (gridState === 'none') {
+        if (e.points.length !== 1) { return }
+        e.preventDefault()
+        mapbox.value.map!.on('touchmove', onMove)
+        mapbox.value.map!.once('touchend', onUp)
+      }
     })
 
     // rotateArea - rotate
     mapbox.value.map?.on('mouseenter', 'rotateArea', () => {
-      enterRotateArea = true
-      mapbox.value.map!.setPaintProperty('sideLines', 'line-opacity', 0)
-      mapbox.value.map!.setPaintProperty('rotateArea', 'fill-opacity', 0.2)
+      mapbox.value.map!.setPaintProperty('rotateArea', 'fill-color', 'rgba(0, 0, 0, 0)')
       mapCanvas.style.cursor = 'move'
     })
 
     mapbox.value.map?.on('mouseleave', 'rotateArea', () => {
-      mapbox.value.map!.setPaintProperty('rotateArea', 'fill-opacity', 0.1)
+      mapbox.value.map!.setPaintProperty('rotateArea', 'fill-color', 'rgba(0, 0, 0, 0)')
       mapCanvas.style.cursor = ''
-      enterRotateArea = false
     })
 
     mapbox.value.map?.on('mousedown', 'rotateArea', (e) => {
-      e.preventDefault()
-      onRotateStart(e)
-      mapbox.value.map!.on('mousemove', onRotate)
-      mapbox.value.map!.once('mouseup', onRotateEnd)
+      if (gridState === 'none') {
+        e.preventDefault()
+        onRotateStart(e)
+        mapbox.value.map!.on('mousemove', onRotate)
+        mapbox.value.map!.once('mouseup', onRotateEnd)
+      }
     })
 
     mapbox.value.map?.on('touchstart', 'rotateArea', (e) => {
-      if (e.points.length !== 1) { return }
-      e.preventDefault()
-      onRotateStart(e)
-      mapbox.value.map!.on('touchmove', onRotate)
-      mapbox.value.map!.once('touchend', onRotateEnd)
+      if (gridState === 'none') {
+        if (e.points.length !== 1) { return }
+        e.preventDefault()
+        onRotateStart(e)
+        mapbox.value.map!.on('touchmove', onRotate)
+        mapbox.value.map!.once('touchend', onRotateEnd)
+      }
     })
 
     // sideLines - resize
     mapbox.value.map?.on('mouseenter', 'sideLines', () => {
-      if (!enterRotateArea) {
-        mapbox.value.map!.setPaintProperty('sideLines', 'line-width', 5)
-        mapbox.value.map!.setPaintProperty('sideLines', 'line-opacity', 0.3)
-        mapCanvas.style.cursor = 'move'
-      }
+      mapbox.value.map!.setPaintProperty('sideLines', 'line-width', 5)
+      mapbox.value.map!.setPaintProperty('sideLines', 'line-opacity', 0.3)
+      mapCanvas.style.cursor = 'move'
     })
 
     mapbox.value.map?.on('mouseleave', 'sideLines', () => {
@@ -358,7 +409,7 @@ onMounted(() => {
     })
 
     mapbox.value.map?.on('mousedown', 'sideLines', (e) => {
-      if (!enterRotateArea) {
+      if (gridState === 'none') {
         e.preventDefault()
         onResizeStart(e)
         mapbox.value.map!.on('mousemove', onResize)
@@ -367,7 +418,7 @@ onMounted(() => {
     })
 
     mapbox.value.map?.on('touchstart', 'sideLines', (e) => {
-      if (!enterRotateArea) {
+      if (gridState === 'none') {
         if (e.points.length !== 1) { return }
         e.preventDefault()
         onResizeStart(e)
@@ -386,11 +437,50 @@ onMounted(() => {
 </template>
 
 
-<style scoped>
+<style lang="scss" scoped>
   #map {
     position: absolute;
     top: 0;
     bottom: 0;
     width: 100%;
+  }
+  :deep(.mapboxgl-ctrl-group) {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    button {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: none;
+      outline: none;
+      overflow: hidden;
+      display: block;
+      width: 41px;
+      height: 41px;
+      color: $textColor;
+      background: transparent;
+      text-align: center;
+      border-radius: 100%;
+      margin-bottom: 10px;
+      svg {
+        margin: auto;
+      }
+      border: solid 1px $textColor;
+      @include grass-button;
+      &:hover {
+        color: aquamarine;
+        border: solid 1px aquamarine;
+      }
+    }
+  }
+  :deep(.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon) {
+    background-image: url("../assets/svg/zoomin.svg");
+  }
+  :deep(.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon) {
+    background-image: url("../assets/svg/zoomout.svg");
+  }
+  :deep(.mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon) {
+    background-image: url("../assets/svg/compass.svg");
   }
 </style>

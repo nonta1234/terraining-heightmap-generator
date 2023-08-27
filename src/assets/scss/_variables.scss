@@ -22,6 +22,14 @@ $borderColor: rgba(255, 255, 255, .3);
     5px 10px 20px 0 rgba(0, 0, 0, .24);
 }
 
+@mixin grass-button {
+  background: linear-gradient(to bottom right, rgba(5, 6, 40, .1), rgba(5, 6, 40, .2));
+  -webkit-backdrop-filter: blur(5px) saturate(50%) brightness(50%);
+  backdrop-filter: blur(5px) saturate(50%) brightness(50%);
+  box-shadow:
+    1px 3px 6px 0 rgba(0, 0, 0, .22),
+    5px 10px 20px 0 rgba(0, 0, 0, .24);
+}
 
 // shadow
 @mixin shadow-panel {

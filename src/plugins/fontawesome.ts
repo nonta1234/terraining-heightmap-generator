@@ -6,8 +6,6 @@ import {
   faArrowsRotate,
   faFileArrowDown,
   faFileImage,
-  faMountainSun,
-  faHouse,
   faThumbtack,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -19,8 +17,6 @@ export default defineNuxtPlugin((nuxtApp) => {
     faArrowsRotate,
     faFileArrowDown,
     faFileImage,
-    faMountainSun,
-    faHouse,
     faThumbtack,
   )
   nuxtApp.vueApp.component('font-awesome-icon', FontAwesomeIcon)
