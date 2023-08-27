@@ -20,7 +20,7 @@ function parseBoolean(str: string): boolean {
   <div id="map-container">
     <MapBox>
       <SettingPanel />
-      <ControlPanel />
+      <DownloadPanel />
       <LittoralEditor v-show="visibillity" />
     </MapBox>
     <canvas v-show="debugMode" id="tile-canvas"></canvas>
