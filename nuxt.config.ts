@@ -7,7 +7,7 @@ import wasmpack from 'vite-plugin-wasm-pack'
 const token = process.env.NODE_ENV !== 'production' ? process.env.TOKEN : process.env.PUBLIC_TOKEN
 
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  devtools: { enabled: false },
   ssr: false,
   typescript: {
     strict: true,
@@ -74,7 +74,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: {
-        lang: 'ja',
+        lang: 'en',
         prefix: 'og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# website: http://ogp.me/ns/website#',
       },
       title: 'Terraining - Heightmap Generator for Cities:Skylines',
