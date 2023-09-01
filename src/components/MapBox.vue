@@ -36,11 +36,6 @@ onMounted(() => {
     saveSettings(mapbox.value.settings)
   })
 
-  mapbox.value.map?.on('rotate', () => {
-    const pitch = mapbox.value.map!.getPitch()
-    console.log(`scale(${1 / Math.pow(Math.cos(pitch * (Math.PI / 180)), 0.5)}) rotateX(${pitch}deg) rotateZ(${-mapbox.value.map!.getBearing()}deg)`)
-  })
-
   mapbox.value.map?.on('click', (e) => {
     setLngLat(mapbox, [e.lngLat.lng, e.lngLat.lat], true)
   })
@@ -473,6 +468,9 @@ onMounted(() => {
         border: solid 1px aquamarine;
       }
     }
+  }
+  :deep(.mapboxgl-ctrl) {
+    margin-bottom: 0;
   }
   :deep(.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon) {
     background-image: url("../assets/svg/zoomin.svg");
