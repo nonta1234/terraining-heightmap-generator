@@ -142,8 +142,7 @@ const debug = () => {
   }
   .is-mobile {
     bottom: 2.25rem;
-    left: 10px;
-    width: calc(100vw - 20px);
+    right: 10px;
   }
   .is-desktop {
     top: 10px;
