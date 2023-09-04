@@ -42,7 +42,8 @@ export const initialValue = {
 }
 
 export const mapSizePixels = 1081
-export const mapSizePixelsWithBuffer = 1083
+export const mapSizePixelsWithBuffer = mapSizePixels + 2
+export const circumradius = mapSizePixelsWithBuffer + 1
 
 export const mapFases = mapSizePixels - 1
 
