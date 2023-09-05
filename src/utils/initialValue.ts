@@ -1,3 +1,6 @@
+import { GridInfo, LittoralArray } from '~/types/types'
+
+
 export const mapStyle = {
   streets:    'mapbox://styles/mapbox/streets-v12',
   outdoors:   'mapbox://styles/mapbox/outdoors-v12?optimize=true',
@@ -7,8 +10,9 @@ export const mapStyle = {
   dark:       'mapbox://styles/mapbox/dark-v11',
 }
 
-export interface LittoralArray {
-  [index: string]: number[]
+export const gridInfo: GridInfo = {
+  cs1: { mapPixels: 1081, size: 17.28, cell: 9, playCell: 5 },
+  cs2: { mapPixels: 1576, size: 12.6, cell: 7, playCell: 3 },
 }
 
 export const littoralArray: LittoralArray = {
@@ -39,12 +43,10 @@ export const initialValue = {
   shrpThres:  0,
   shrpFade:   0,
   style:      mapStyle.outdoors,
+  gridInfo:   gridInfo.cs1,
 }
 
-export const mapSizePixels = 1081
-export const mapSizePixelsWithBuffer = mapSizePixels + 2
-export const circumradius = mapSizePixelsWithBuffer + 1
-
-export const mapFases = mapSizePixels - 1
-
+// export const mapSizePixels = gridInfo.cs1.mapPixels
+// export const mapSizePixelsWithBuffer = mapSizePixels + 2
+// export const mapFases = mapSizePixels - 1
 export const streamDepth = 10

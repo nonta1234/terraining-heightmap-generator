@@ -1,9 +1,25 @@
 import { Map, LngLatLike } from 'mapbox-gl'
 import { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolygon, MultiLineString } from 'geojson'
 
+
 export type LngLat = Extract<LngLatLike, [number, number]>;
 
 export type HeightCalcType = 'manual' | 'limit' | 'maximize';
+
+export type GridInfoData = {
+  mapPixels: number
+  size:      number
+  cell:      number
+  playCell:  number
+}
+
+export interface GridInfo {
+  [index: string]: GridInfoData
+}
+
+export interface LittoralArray {
+  [index: string]: number[]
+}
 
 export interface Grid {
   gridArea:     FeatureCollection<Polygon, GeoJsonProperties>;
@@ -34,6 +50,7 @@ export interface Settings {
   sharpen:    number;
   shrpThres:  number;
   shrpFade:   number;
+  gridInfo:   GridInfoData;
 }
 
 export interface Mapbox {
