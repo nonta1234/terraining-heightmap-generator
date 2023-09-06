@@ -21,7 +21,7 @@ const defineSettings = () => {
   store.sharpen = store.sharpen || initialValue.sharpen
   store.shrpThres = store.shrpThres || initialValue.shrpThres
   store.shrpFade = store.shrpFade || initialValue.shrpFade
-  store.gridInfo = typeof store.gridInfo === 'undefined' ? initialValue.gridInfo : store.gridInfo
+  store.gridInfo = store.gridInfo || initialValue.gridInfo
   return store
 }
 

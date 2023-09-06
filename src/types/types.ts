@@ -50,7 +50,7 @@ export interface Settings {
   sharpen:    number;
   shrpThres:  number;
   shrpFade:   number;
-  gridInfo:   GridInfoData;
+  gridInfo:   string;
 }
 
 export interface Mapbox {

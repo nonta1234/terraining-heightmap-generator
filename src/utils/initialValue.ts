@@ -12,7 +12,7 @@ export const mapStyle = {
 
 export const gridInfo: GridInfo = {
   cs1: { mapPixels: 1081, size: 17.28, cell: 9, playCell: 5 },
-  cs2: { mapPixels: 1576, size: 12.6, cell: 7, playCell: 3 },
+  cs2: { mapPixels: 1576, size: 12.6, cell: 21, playCell: 3 },
 }
 
 export const littoralArray: LittoralArray = {
@@ -43,7 +43,7 @@ export const initialValue = {
   shrpThres:  0,
   shrpFade:   0,
   style:      mapStyle.outdoors,
-  gridInfo:   gridInfo.cs1,
+  gridInfo:   'cs1',
 }
 
 // export const mapSizePixels = gridInfo.cs1.mapPixels
