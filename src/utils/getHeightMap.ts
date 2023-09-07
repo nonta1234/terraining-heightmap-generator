@@ -9,14 +9,16 @@ type T = {
 export const getHeightMap = async () => {
   const mapbox = useMapbox()
 
-  const mapPixels = mapSizePixelsWithBuffer + 1   // 1084px
+  const mapSizePixelsWithBuffer = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 2  // 1083px (cs1)
+  const mapPixels = mapSizePixelsWithBuffer + 1   // 1084px (cs1)
+  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1
   const tmpAreaSize = mapbox.value.settings.size / mapFases * mapPixels
   const pixelsPerTile = 512  // number of pixels in terrain-tiles
 
   // considering rotation, set area using circumscribed extent
 
   // in high latitudes, calculate the zoom level
-  // at which the edge length of a map becomes 1085px or more
+  // at which the edge length of a map becomes 1083px or more
 
   const { topleft, bottomright } = getExtent(
     mapbox.value.settings.lng,
@@ -88,7 +90,9 @@ export const getHeightMap = async () => {
   const cosTheta = Math.cos(-mapbox.value.settings.angle * Math.PI / 180)
   const sinTheta = Math.sin(-mapbox.value.settings.angle * Math.PI / 180)
 
-  const halfSize = (mapSizePixelsWithBuffer - 1) / 2
+  const halfSize = (mapSizePixelsWithBuffer - 1) / 2  // 541px (cs1)
+
+  // affine transformation & bilinear interpolation
 
   for (let y = 0; y < mapSizePixelsWithBuffer; y++) {
     for (let x = 0; x < mapSizePixelsWithBuffer; x++) {
@@ -127,12 +131,14 @@ export const getHeightMap = async () => {
    *
    * bilinear interpolation
    *
+   * 1 - x = d
+   *
    *      eX   dX
-   *     --------
+   *    0--------
    * eY |        |
    *    |     .__|
    * dY |     |  |
-   *     --------
+   *     --------1
   */
 
   // functions ---------------------------------------------------------------------------------------
