@@ -61,8 +61,8 @@ export const getCitiesMap = async () => {
     shrpFade: mapbox.value.settings.shrpFade,
     depth: mapbox.value.settings.depth,
     streamDepth,
-    mapSizePixels,
-    mapSizePixelsWithBuffer,
+    mapSizePixels: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+    mapSizePixelsWithBuffer: mapSpec[mapbox.value.settings.gridInfo].mapPixels + 2,
   }
 
   const citiesMap = await calcMap(messageData) as Uint8ClampedArray

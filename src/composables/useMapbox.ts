@@ -9,7 +9,7 @@ let playCell = [0, 0, 0, 0]   // topleft, bottomleft, bottomright, topright
 let cornerCell = [0, 0, 0, 0]
 
 export const setGridInfo = (gridInfoString: string) => {
-  const gridInfoValue = gridInfo[gridInfoString]
+  const gridInfoValue = mapSpec[gridInfoString]
   endCell = gridInfoValue.cell * gridInfoValue.cell - 1
   centerCell = endCell / 2
   const gap = (gridInfoValue.cell - gridInfoValue.playCell) / 2
@@ -127,7 +127,7 @@ const getGrid = (lng: number, lat: number, size: number, angle: number) => {
   const extent = getExtent(lng, lat, size * 1.03 / 2, size * 1.03 / 2)
   const gridArea = turf.squareGrid(
     [extent.topleft[0], extent.topleft[1], extent.bottomright[0], extent.bottomright[1]],
-    size / gridInfo[mapbox.value.settings.gridInfo].cell,
+    size / mapSpec[mapbox.value.settings.gridInfo].cell,
     { units: 'kilometers' },
   )
 

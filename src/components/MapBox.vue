@@ -308,12 +308,12 @@ onMounted(() => {
 
   function onResize(e: any) {
     let distance = turf.pointToLineDistance([e.lngLat.lng, e.lngLat.lat], lineString, { units: 'kilometers' })
-    if (distance < 17.28) { distance = 17.28 }
-    if (distance > 69.12) { distance = 69.12 }
-    const tmpRatio = mapbox.value.settings.vertScale / 17.28 * mapbox.value.settings.size
+    if (distance < gridInfo[mapbox.value.settings.gridInfo].size) { distance = gridInfo[mapbox.value.settings.gridInfo].size }
+    if (distance > gridInfo[mapbox.value.settings.gridInfo].size * 4) { distance = gridInfo[mapbox.value.settings.gridInfo].size * 4 }
+    const tmpRatio = mapbox.value.settings.vertScale / gridInfo[mapbox.value.settings.gridInfo].size * mapbox.value.settings.size
     mapbox.value.settings.size = distance
     if (mapbox.value.settings.fixedRatio) {
-      mapbox.value.settings.vertScale = tmpRatio * 17.28 / mapbox.value.settings.size
+      mapbox.value.settings.vertScale = tmpRatio * gridInfo[mapbox.value.settings.gridInfo].size / mapbox.value.settings.size
     }
     setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
     useEvent('map:changeMapSize', mapbox.value.settings.size)
