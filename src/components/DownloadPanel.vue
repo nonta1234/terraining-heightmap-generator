@@ -17,7 +17,11 @@ const getPngHeightMap = async () => {
   try {
     await init()
     const citiesMap = await getCitiesMap()
-    const png = await encode_16g({ width: mapSizePixels, height: mapSizePixels, data: new Uint8Array(citiesMap) })
+    const png = await encode_16g({
+      width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+      height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+      data: new Uint8Array(citiesMap),
+    })
     download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png.data)
     saveSettings(mapbox.value.settings)
   } catch (e: any) {
