@@ -10,7 +10,7 @@ export const mapStyle = {
   dark:       'mapbox://styles/mapbox/dark-v11',
 }
 
-export const gridInfo: GridInfo = {
+export const mapSpec: GridInfo = {
   cs1: { mapPixels: 1081, size: 17.28, cell: 9, playCell: 5 },
   cs2: { mapPixels: 1576, size: 12.6, cell: 21, playCell: 3 },
 }
