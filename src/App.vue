@@ -24,7 +24,6 @@ function parseBoolean(str: string): boolean {
       <LittoralEditor v-show="visibillity" />
     </MapBox>
     <canvas v-show="debugMode" id="tile-canvas"></canvas>
-    <canvas v-show="debugMode" id="water-map-canvas"></canvas>
   </div>
 </template>
 
@@ -37,21 +36,11 @@ function parseBoolean(str: string): boolean {
   }
   #tile-canvas {
     position: absolute;
-    bottom: 300px;
-    right: 60px;
+    bottom: 40px;
+    right: 80px;
     width: 250px;
     height: 250px;
     z-index: 5;
-    background-color: white;
-    @include shadow-panel;
-  }
-  #water-map-canvas {
-    position: absolute;
-    bottom: 30px;
-    right: 60px;
-    width: 250px;
-    height: 250px;
-    z-index: 10;
     background-color: white;
     @include shadow-panel;
   }
