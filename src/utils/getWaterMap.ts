@@ -15,15 +15,19 @@ type Position = {
 export const getWaterMap = async () => {
   const mapbox = useMapbox()
 
-  const mapPixels = mapSizePixelsWithBuffer
-  const waterAreaSize = mapbox.value.settings.size / mapFases * mapPixels
+  const mapSizePixelsWithBuffer = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 2  // 1083px (cs1)
+
+  const tmpMapPixels = Math.ceil((mapSizePixelsWithBuffer + 1) * Math.SQRT2)
+
+  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1
+  const waterAreaSize = mapbox.value.settings.size / mapFases * tmpMapPixels
   const pixelsPerTile = 4096  // number of pixels in vector-tiles
 
   const { topleft, bottomright } = getExtent(
     mapbox.value.settings.lng,
     mapbox.value.settings.lat,
-    mapbox.value.settings.size / mapFases * Math.floor(mapPixels / 2),
-    mapbox.value.settings.size / mapFases * Math.ceil(mapPixels / 2),
+    waterAreaSize / 2,
+    waterAreaSize / 2,
   )
 
   let referenceLat: number
@@ -34,7 +38,7 @@ export const getWaterMap = async () => {
     referenceLat = bottomright[1]
   }
 
-  const zoom = calculateZoomLevel(referenceLat, waterAreaSize, mapPixels, pixelsPerTile) + 1
+  const zoom = calculateZoomLevel(referenceLat, waterAreaSize, tmpMapPixels, pixelsPerTile) + 1
 
   const x = lng2tile(topleft[0], zoom)
   const y = lat2tile(topleft[1], zoom)
@@ -57,7 +61,7 @@ export const getWaterMap = async () => {
   const offsetY = posY0 - tilePosY
 
   const mapPixelsOnTile = Math.sqrt(mapWidth * mapWidth + mapHeight * mapHeight) / Math.SQRT2
-  const scale = mapPixels / mapPixelsOnTile
+  const scale = tmpMapPixels / mapPixelsOnTile
 
   const tiles = new Array<Promise<T>>(Math.pow(tileCount, 2))
 
@@ -65,9 +69,9 @@ export const getWaterMap = async () => {
   // waterCanvas setting -----------------------------------------------------------------------------
 
   const waterCanvas = ref<HTMLCanvasElement>()
-  waterCanvas.value = document.getElementById('water-map-canvas') as HTMLCanvasElement
-  waterCanvas.value.width = mapPixels
-  waterCanvas.value.height = mapPixels
+  waterCanvas.value = document.createElement('canvas')
+  waterCanvas.value.width = tmpMapPixels
+  waterCanvas.value.height = tmpMapPixels
 
   const waterCtx = waterCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
   waterCtx.globalCompositeOperation = 'source-over'
@@ -79,8 +83,8 @@ export const getWaterMap = async () => {
 
   const littCanvas = ref<HTMLCanvasElement>()
   littCanvas.value = document.createElement('canvas')
-  littCanvas.value.width = mapPixels
-  littCanvas.value.height = mapPixels
+  littCanvas.value.width = tmpMapPixels
+  littCanvas.value.height = tmpMapPixels
 
   const littCtx = littCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
   littCtx.fillStyle = '#000000'
@@ -92,8 +96,8 @@ export const getWaterMap = async () => {
 
   const tmpLittCanvas = ref<HTMLCanvasElement>()
   tmpLittCanvas.value = document.createElement('canvas')
-  tmpLittCanvas.value.width = mapPixels
-  tmpLittCanvas.value.height = mapPixels
+  tmpLittCanvas.value.width = tmpMapPixels
+  tmpLittCanvas.value.height = tmpMapPixels
 
   const tmpLittCtx = tmpLittCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
   tmpLittCtx.globalCompositeOperation = 'lighten'
@@ -103,8 +107,8 @@ export const getWaterMap = async () => {
 
   const waterwayCanvas = ref<HTMLCanvasElement>()
   waterwayCanvas.value = document.createElement('canvas')
-  waterwayCanvas.value.width = mapPixels
-  waterwayCanvas.value.height = mapPixels
+  waterwayCanvas.value.width = tmpMapPixels
+  waterwayCanvas.value.height = tmpMapPixels
 
   const waterwayCtx = waterwayCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
   waterwayCtx.fillStyle = '#FFFFFF'
@@ -131,7 +135,7 @@ export const getWaterMap = async () => {
   // functions ---------------------------------------------------------------------------------------
 
   function getColorFromValue(value: number) {
-    const intValue = Math.floor(value * 255)
+    const intValue = Math.min(255, Math.round(value * 255))
     const hex = intValue.toString(16).padStart(2, '0')
     const colorCode = '#' + hex + hex + hex
     return colorCode
@@ -284,17 +288,53 @@ export const getWaterMap = async () => {
   }
 
 
+  // result canvas -----------------------------------------------------------------------------------
+
+  const resultWater = ref<HTMLCanvasElement>()
+  resultWater.value = document.createElement('canvas')
+  resultWater.value.width = mapSizePixelsWithBuffer
+  resultWater.value.height = mapSizePixelsWithBuffer
+
+  const resultWaterCtx = waterCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
+  resultWaterCtx.globalCompositeOperation = 'source-over'
+
+  const resulWaterway = ref<HTMLCanvasElement>()
+  resulWaterway.value = document.createElement('canvas')
+  resulWaterway.value.width = mapSizePixelsWithBuffer
+  resulWaterway.value.height = mapSizePixelsWithBuffer
+
+  const resulWaterwayCtx = waterwayCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
+  resulWaterwayCtx.globalCompositeOperation = 'source-over'
+
+  // transpose & rotate ------------------------------------------------------------------------------
+
+  const halfSize = (mapSizePixelsWithBuffer - 1) / 2
+
+  resultWaterCtx.translate(halfSize, halfSize)
+  resultWaterCtx.rotate(-mapbox.value.settings.angle * (Math.PI / 180))
+
+  resultWaterCtx.drawImage(waterCanvas.value, -waterCanvas.value.width / 2, -waterCanvas.value.height / 2)
+
+  waterwayCtx.translate(halfSize, halfSize)
+  waterwayCtx.rotate(-mapbox.value.settings.angle * (Math.PI / 180))
+
+  resulWaterwayCtx.drawImage(waterwayCanvas.value, -waterwayCanvas.value.width / 2, -waterwayCanvas.value.height / 2)
+
+
   // decode data -------------------------------------------------------------------------------------
 
-  const waterPixelData = waterCtx.getImageData(0, 0, mapPixels, mapPixels).data
-  const waterwayPixelData = waterwayCtx.getImageData(0, 0, mapPixels, mapPixels).data
+  const waterPixelData = resultWaterCtx.getImageData(0, 0, mapSizePixelsWithBuffer, mapSizePixelsWithBuffer).data
+  const waterwayPixelData = resulWaterwayCtx.getImageData(0, 0, mapSizePixelsWithBuffer, mapSizePixelsWithBuffer).data
 
   const waterMap = decodeData(waterPixelData)
   const waterwayMap = decodeData(waterwayPixelData)
 
   clearCanvas(littCtx)
   clearCanvas(tmpLittCtx)
+  clearCanvas(waterCtx)
   clearCanvas(waterwayCtx)
+  clearCanvas(resultWaterCtx)
+  clearCanvas(resulWaterwayCtx)
 
   return { waterMap, waterwayMap }
 }
