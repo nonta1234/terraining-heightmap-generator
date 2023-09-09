@@ -51,3 +51,14 @@ export const height2TerrainRGB = (height: number) => {
   const b = h & 0xFF
   return { r, g, b }
 }
+
+
+export const decodeElevation = (arr: Uint8ClampedArray) => {
+  const elevs = new Array<number>(arr.length / 4)
+  let arrIndex = 0
+  for (let i = 0; i < elevs.length; i++) {
+    elevs[i] = terrainRGB2Height(arr[arrIndex], arr[arrIndex + 1], arr[arrIndex + 2])
+    arrIndex += 4
+  }
+  return elevs
+}

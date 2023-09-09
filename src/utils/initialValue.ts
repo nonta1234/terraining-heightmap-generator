@@ -1,6 +1,5 @@
 import { GridInfo, LittoralArray } from '~/types/types'
 
-
 export const mapStyle = {
   streets:    'mapbox://styles/mapbox/streets-v12',
   outdoors:   'mapbox://styles/mapbox/outdoors-v12?optimize=true',
@@ -23,30 +22,28 @@ export const littoralArray: LittoralArray = {
 }
 
 export const initialValue = {
-  lng:        -73.96530,
-  lat:        40.78280,
-  zoom:       10,
-  size:       17.28,
-  angle:      0,
-  seaLevel:   0,
-  adjLevel:   false,
-  vScale:     1.00,
-  fixedRatio: true,
-  type:       'manual',
-  depth:      30,
-  littoral:   160,
-  littArray:  littoralArray.sine,
-  smoothing:  0,
-  smthThres:  0,
-  smthFade:   0,
-  sharpen:    0,
-  shrpThres:  0,
-  shrpFade:   0,
-  style:      mapStyle.outdoors,
-  gridInfo:   'cs1',
+  lng:           -73.96530,
+  lat:           40.78280,
+  zoom:          10,
+  size:          17.28,
+  angle:         0,
+  seaLevel:      0,
+  adjLevel:      false,
+  vScale:        1.00,
+  fixedRatio:    true,
+  type:          'manual',
+  depth:         30,
+  littoral:      160,
+  littArray:     littoralArray.sine,
+  smoothing:     0,
+  smthThres:     0,
+  smthFade:      0,
+  sharpen:       0,
+  shrpThres:     0,
+  shrpFade:      0,
+  style:         mapStyle.outdoors,
+  gridInfo:      'cs1',
+  interpolation: 'bicubic',
 }
 
-// export const mapSizePixels = gridInfo.cs1.mapPixels
-// export const mapSizePixelsWithBuffer = mapSizePixels + 2
-// export const mapFases = mapSizePixels - 1
 export const streamDepth = 10

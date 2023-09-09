@@ -22,6 +22,7 @@ const defineSettings = () => {
   store.shrpThres = store.shrpThres || initialValue.shrpThres
   store.shrpFade = store.shrpFade || initialValue.shrpFade
   store.gridInfo = store.gridInfo || initialValue.gridInfo
+  store.interpolation = store.interpolation || initialValue.interpolation
   return store
 }
 
