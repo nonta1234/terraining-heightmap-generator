@@ -298,13 +298,13 @@ export const getWaterMap = async () => {
   const resultWaterCtx = waterCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
   resultWaterCtx.globalCompositeOperation = 'source-over'
 
-  const resulWaterway = ref<HTMLCanvasElement>()
-  resulWaterway.value = document.createElement('canvas')
-  resulWaterway.value.width = mapSizePixelsWithBuffer
-  resulWaterway.value.height = mapSizePixelsWithBuffer
+  const resultWaterway = ref<HTMLCanvasElement>()
+  resultWaterway.value = document.createElement('canvas')
+  resultWaterway.value.width = mapSizePixelsWithBuffer
+  resultWaterway.value.height = mapSizePixelsWithBuffer
 
-  const resulWaterwayCtx = waterwayCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
-  resulWaterwayCtx.globalCompositeOperation = 'source-over'
+  const resultWaterwayCtx = waterwayCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
+  resultWaterwayCtx.globalCompositeOperation = 'source-over'
 
   // transpose & rotate ------------------------------------------------------------------------------
 
@@ -318,13 +318,13 @@ export const getWaterMap = async () => {
   waterwayCtx.translate(halfSize, halfSize)
   waterwayCtx.rotate(-mapbox.value.settings.angle * (Math.PI / 180))
 
-  resulWaterwayCtx.drawImage(waterwayCanvas.value, -waterwayCanvas.value.width / 2, -waterwayCanvas.value.height / 2)
+  resultWaterwayCtx.drawImage(waterwayCanvas.value, -waterwayCanvas.value.width / 2, -waterwayCanvas.value.height / 2)
 
 
   // decode data -------------------------------------------------------------------------------------
 
   const waterPixelData = resultWaterCtx.getImageData(0, 0, mapSizePixelsWithBuffer, mapSizePixelsWithBuffer).data
-  const waterwayPixelData = resulWaterwayCtx.getImageData(0, 0, mapSizePixelsWithBuffer, mapSizePixelsWithBuffer).data
+  const waterwayPixelData = resultWaterwayCtx.getImageData(0, 0, mapSizePixelsWithBuffer, mapSizePixelsWithBuffer).data
 
   const waterMap = decodeData(waterPixelData)
   const waterwayMap = decodeData(waterwayPixelData)
@@ -334,7 +334,7 @@ export const getWaterMap = async () => {
   clearCanvas(waterCtx)
   clearCanvas(waterwayCtx)
   clearCanvas(resultWaterCtx)
-  clearCanvas(resulWaterwayCtx)
+  clearCanvas(resultWaterwayCtx)
 
   return { waterMap, waterwayMap }
 }
