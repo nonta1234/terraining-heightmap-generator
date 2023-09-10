@@ -1,46 +1,38 @@
 <script setup lang="ts">
-interface Props {
-  modal: boolean;
-}
+const mapbox = useMapbox()
 
-const props = withDefaults(defineProps<Props>(), {
-  modal: false,
+const heightmapTypeRef = ref<HTMLSelectElement>()
+const interpolationRef = ref<HTMLSelectElement>()
+
+onMounted(() => {
+  heightmapTypeRef.value!.value = mapbox.value.settings.gridInfo
+  interpolationRef.value!.value = mapbox.value.settings.interpolation
 })
-
-const resetEl = ref<HTMLSelectElement>()
 
 const close = () => {
-  useEvent('map:leModal')
-}
-
-useListen('modal:pointDragged', () => {
-  if (resetEl.value && resetEl.value!.value !== 'Reset Slope') {
-    resetEl.value!.value = 'Reset Slope'
-  }
-})
-
-const reset = (e: Event) => {
-  const value = (e.target as HTMLSelectElement).value
-  const mapbox = useMapbox()
-  mapbox.value.settings.littArray = JSON.parse(JSON.stringify(littoralArray[value]))
-  useEvent('modal:changeLittArray')
+  useEvent('map:cpModal')
+  setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
 }
 </script>
 
 
 <template>
-  <ModalWindow :modal="props.modal">
-    <div id="littoral-editor">
-      <header>Littoral Editor</header>
-      <GridCanvas />
-      <div class="footer">
+  <ModalWindow>
+    <div id="config-panel">
+      <header>Configuration</header>
+      <div class="main">
         <label class="select">
-          <select ref="resetEl" name="reset" @change="reset">
-            <option hidden disabled selected class="msg">Reset Slope</option>
-            <option value="linear">Linear</option>
-            <option value="sine">Sine</option>
-            <option value="cubic">Cubic</option>
-            <option value="quint">Quint</option>
+          Heightmap Type&ThinSpace;:
+          <select ref="heightmapTypeRef" v-model="mapbox.settings.gridInfo" name="heightmapType">
+            <option value="cs1">Cities: Skylines</option>
+            <!--<option value="cs2">Cities: Skylines II</option>-->
+          </select>
+        </label>
+        <label class="select">
+          Interpolation&ThinSpace;:
+          <select ref="interpolationRef" v-model="mapbox.settings.interpolation" name="interpolation">
+            <option value="bilinear">Bilinear</option>
+            <option value="bicubic">Bicubic</option>
           </select>
         </label>
         <button class="close" @click="close">CLOSE</button>
@@ -55,14 +47,11 @@ const reset = (e: Event) => {
     font-size: 1rem;
     text-align: center;
     font-weight: 700;
-    padding: .5rem 0 .125rem;
+    padding: .5rem 0 .75rem;
     line-height: 1;
   }
-  .footer {
-    display: flex;
-    padding: 0 1rem 1rem 1rem;
-    justify-content: space-between;
-    position: relative;
+  .main {
+    padding: 0 1rem 1rem;
   }
   button, select {
     -webkit-appearance: none;
@@ -84,6 +73,7 @@ const reset = (e: Event) => {
     border: solid 1px $borderColor;
     background-color: rgba(255, 255, 255, .1);
     color: $textColor;
+    margin: 1.5rem 0 0 auto;
     cursor: pointer;
     &:hover, &:focus {
       color: aquamarine;
@@ -91,7 +81,7 @@ const reset = (e: Event) => {
     }
   }
   select {
-    width: 8rem;
+    width: 10.5rem;
     border-radius: .25rem;
     color: $textColor;
     padding-left: .5rem;
@@ -105,9 +95,12 @@ const reset = (e: Event) => {
     }
   }
   .select {
+    width: 20rem;
     position: relative;
-    display: inline-flex;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    margin-bottom: 1rem;
     &::after {
       position: absolute;
       right: .5rem;

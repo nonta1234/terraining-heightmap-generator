@@ -9,10 +9,10 @@ export type HeightCalcType = 'manual' | 'limit' | 'maximize';
 export type Interpolation = 'bilinear' | 'bicubic';
 
 export type GridInfoData = {
-  mapPixels: number
-  size:      number
-  cell:      number
-  playCell:  number
+  mapPixels: number;
+  size:      number;
+  cell:      number;
+  playCell:  number;
 }
 
 export interface GridInfo {

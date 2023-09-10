@@ -7,7 +7,11 @@ import {
   faFileArrowDown,
   faFileImage,
   faThumbtack,
+  faGear,
 } from '@fortawesome/free-solid-svg-icons'
+import {
+  faCircleQuestion,
+} from '@fortawesome/free-regular-svg-icons'
 
 export default defineNuxtPlugin((nuxtApp) => {
   config.autoAddCss = false
@@ -18,6 +22,8 @@ export default defineNuxtPlugin((nuxtApp) => {
     faFileArrowDown,
     faFileImage,
     faThumbtack,
+    faCircleQuestion,
+    faGear,
   )
   nuxtApp.vueApp.component('font-awesome-icon', FontAwesomeIcon)
 })

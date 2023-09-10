@@ -1,4 +1,12 @@
 <script setup lang="ts">
+interface Props {
+  modal: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modal: false,
+})
+
 const { isMobile } = useDevice()
 
 const bottomPosition = ref('50%')
@@ -13,7 +21,12 @@ if (isMobile) {
 
 <template>
   <transition name="modal" appear>
-    <div class="modal">
+    <div v-if="props.modal" class="modal-wrapper">
+      <div class="panel opaque">
+        <slot />
+      </div>
+    </div>
+    <div v-else :class="['panel', isMobile ? 'opaque' : 'grass']">
       <slot />
     </div>
   </transition>
@@ -21,7 +34,7 @@ if (isMobile) {
 
 
 <style lang="scss" scoped>
-  .modal {
+  .panel {
     position: absolute;
     bottom: v-bind(bottomPosition);
     left: 50%;
@@ -34,9 +47,20 @@ if (isMobile) {
     overflow: hidden;
     user-select: none;
     max-width: calc(100vw - 20px);
+  }
+  .grass {
     @include grass;
   }
-
+  .opaque {
+    @include opaque;
+  }
+  .modal-wrapper {
+    position: absolute;
+    height: 100dvh;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 20;
+  }
   .modal-enter-from, .modal-leave-to {
     opacity: 0;
     filter: blur(0.5rem);

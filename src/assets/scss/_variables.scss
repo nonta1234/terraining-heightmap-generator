@@ -31,6 +31,17 @@ $borderColor: rgba(255, 255, 255, .3);
     5px 10px 20px 0 rgba(0, 0, 0, .24);
 }
 
+@mixin opaque {
+  background: linear-gradient(to bottom right, #36364D, #3A3A40);
+  border-top: solid 1px rgba(0, 0, 0, .1);
+  border-left: solid 1px rgba(0, 0, 0, .1);
+  border-right: solid 1px rgba(0, 0, 0, .2);
+  border-bottom: solid 1px rgba(0, 0, 0, .2);
+  box-shadow:
+  1px 3px 6px 0 rgba(0, 0, 0, .22),
+  5px 10px 20px 0 rgba(0, 0, 0, .24);
+}
+
 // shadow
 @mixin shadow-panel {
   box-shadow:

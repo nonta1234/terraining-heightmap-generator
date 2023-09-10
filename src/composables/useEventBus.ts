@@ -4,9 +4,10 @@ import { LngLat } from '~/types/types'
 type ApplicationEvents = {
   'map:changeLngLat': LngLat;
   'map:changeMapSize': number;
-  'map:modal': void;
-  'map:changeLittArray': void;
-  'editor:pointDragged': void;
+  'map:leModal': void;
+  'map:cpModal': void;
+  'modal:changeLittArray': void;
+  'modal:pointDragged': void;
   'debug:operate': void;
 };
 

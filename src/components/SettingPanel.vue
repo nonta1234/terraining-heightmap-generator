@@ -148,10 +148,10 @@ const onTypeChange = (e: Event) => {
 const modalButtonText = ref('OPEN')
 
 const modal = () => {
-  useEvent('map:modal')
+  useEvent('map:leModal')
 }
 
-useListen('map:modal', () => {
+useListen('map:leModal', () => {
   if (modalButtonText.value === 'OPEN') {
     modalButtonText.value = 'CLOSE'
   } else {

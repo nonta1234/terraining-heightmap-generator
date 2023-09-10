@@ -1,8 +1,13 @@
 <script setup lang="ts">
-const visibillity = ref(false)
+const littEditVisi = ref(false)
+const ConfigPanelVisi = ref(false)
 
-useListen('map:modal', () => {
-  visibillity.value = !visibillity.value
+useListen('map:leModal', () => {
+  littEditVisi.value = !littEditVisi.value
+})
+
+useListen('map:cpModal', () => {
+  ConfigPanelVisi.value = !ConfigPanelVisi.value
 })
 
 const { debugMode, updateDebugMode } = useDebug()
@@ -21,7 +26,8 @@ function parseBoolean(str: string): boolean {
     <MapBox>
       <SettingPanel />
       <DownloadPanel />
-      <LittoralEditor v-show="visibillity" />
+      <LittoralEditor v-show="littEditVisi" :modal="false" />
+      <ConfigurationPanel v-show="ConfigPanelVisi" :modal="true" />
     </MapBox>
     <canvas v-show="debugMode" id="tile-canvas"></canvas>
   </div>

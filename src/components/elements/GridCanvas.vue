@@ -28,12 +28,12 @@ const points: Array<circle> = []
 let selectedPoint = -1
 
 
-useListen('map:modal', () => {
+useListen('map:leModal', () => {
   drawGrid(gCtx.value!)
   drawPoints(oCtx.value!)
 })
 
-useListen('map:changeLittArray', () => {
+useListen('modal:changeLittArray', () => {
   drawPoints(oCtx.value!)
 })
 
@@ -132,7 +132,7 @@ const mouseMove = (e: MouseEvent) => {
       value = Math.min(Math.max(value, 0), clientHeight.value)
       mapbox.value.settings.littArray[selectedPoint] = (clientHeight.value - value) / clientHeight.value
       drawPoints(oCtx.value!)
-      useEvent('editor:pointDragged')
+      useEvent('modal:pointDragged')
     }
   }
 }
@@ -146,7 +146,7 @@ const touchMove = (e: TouchEvent) => {
       value = Math.min(Math.max(value, 0), clientHeight.value)
       mapbox.value.settings.littArray[selectedPoint] = (clientHeight.value - value) / clientHeight.value
       drawPoints(oCtx.value!)
-      useEvent('editor:pointDragged')
+      useEvent('modal:pointDragged')
     }
   }
 }

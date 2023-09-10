@@ -8,6 +8,7 @@ type T = {
 // bilinear interpolation ----------------------------------------------------------------------------
 
 const getHeightMapBilinear = async () => {
+  const t0 = window.performance.now()
   const mapbox = useMapbox()
 
   const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 2  // 1083px (cs1)
@@ -158,6 +159,8 @@ const getHeightMapBilinear = async () => {
     return tileCtx.getImageData(0, 0, tileCanvas.value!.width, tileCanvas.value!.height)
   }
 
+  const t = window.performance.now()
+  console.log('bilinear: ', t - t0)
   return heightMap
 }
 
@@ -165,6 +168,7 @@ const getHeightMapBilinear = async () => {
 // bicubic interpolation -----------------------------------------------------------------------------
 
 const getHeightMapBicubic = async () => {
+  const t0 = window.performance.now()
   const mapbox = useMapbox()
 
   const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 2  // 1083px (cs1)
@@ -317,6 +321,8 @@ const getHeightMapBicubic = async () => {
     return res
   }
 
+  const t = window.performance.now()
+  console.log('bicubic: ', t - t0)
   return heightMap
 }
 

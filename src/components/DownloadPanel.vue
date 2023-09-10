@@ -88,6 +88,16 @@ const getOsmData = async () => {
 }
 
 
+const modal = () => {
+  useEvent('map:cpModal')
+}
+
+
+const toRepository = () => {
+  window.open('https://github.com/nonta1234/terraining-heightmap-generator', '_blank')
+}
+
+
 function getBoundsLngLat() {
   const bounds = getExtent(mapbox.value.settings.lng, mapbox.value.settings.lat, mapbox.value.settings.size / 2, mapbox.value.settings.size / 2)
   const minLng = Math.min(bounds.topleft[0], bounds.bottomright[0])
@@ -129,6 +139,8 @@ const debug = () => {
       <li><button ref="pngButton" title="Download PNG height map" @click="getPngHeightMap"><font-awesome-icon :icon="['fas', 'file-arrow-down']" class="fa-fw fa-2xl" /></button></li>
       <li><button ref="imgButton" title="Download map image" @click="getMapImage"><font-awesome-icon :icon="['fas', 'file-image']" class="fa-fw fa-2xl" /></button></li>
       <li><button ref="osmButton" title="Download OSM data" class="osm" @click="getOsmData"><OsmLogo /></button></li>
+      <li><button title="Configuration" @click="modal"><font-awesome-icon :icon="['fas', 'gear']" class="fa-fw fa-2xl" /></button></li>
+      <li><button title="https://github.com/nonta1234/terraining-heightmap-generator" @click="toRepository"><font-awesome-icon :icon="['far', 'circle-question']" class="fa-fw fa-2xl" /></button></li>
     </ul>
   </div>
 </template>
@@ -147,6 +159,7 @@ const debug = () => {
   .is-mobile {
     bottom: 2.25rem;
     right: 10px;
+    width: calc(100vw - 20px);
   }
   .is-desktop {
     top: 10px;
