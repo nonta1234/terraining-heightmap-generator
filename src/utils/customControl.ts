@@ -27,7 +27,11 @@ export class ResetGridDirection {
     div.innerHTML = `<button type="button" aria-label="Reset grid direction" aria-disabled="false" title="Reset grid direction">
       <svg xmlns="http://www.w3.org/2000/svg" height="19px" viewBox="0 0 448 512" fill="#F1F3F4"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M384 96V224H256V96H384zm0 192V416H256V288H384zM192 224H64V96H192V224zM64 288H192V416H64V288zM64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64z"/></svg>
       </button>`
-    div.addEventListener('contextmenu', e => e.preventDefault())
+    div.addEventListener('contextmenu', (e) => {
+      e.preventDefault()
+      const mapbox = useMapbox()
+      mapbox.value.map?.setBearing(mapbox.value.settings.angle)
+    })
     div.addEventListener('click', () => {
       const mapbox = useMapbox()
       mapbox.value.settings.angle = 0
@@ -57,8 +61,6 @@ export class EffectedArea {
     div.addEventListener('click', () => {
       const button = document.getElementById('effected-area-svg')
       button?.setAttribute('fill', '#F1F3F4')
-
-
       this._visibility = !this._visibility
       const mapbox = useMapbox()
       if (this._visibility) {
