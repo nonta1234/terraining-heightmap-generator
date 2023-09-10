@@ -7,6 +7,7 @@
 ## Features
 
 - Select a square area from the map, ranging in size from 17.28 to 69.12 km.
+- Freely rotate the square area.
 - Download 16bit grayscale PNG heightmap and map images.
 
 ## How to
@@ -45,7 +46,7 @@
 
 ## Current known issues
 
-- The sharpen effect is nearly imperceptible.
+- The effect is nearly imperceptible.
 
 ## Plans
 
