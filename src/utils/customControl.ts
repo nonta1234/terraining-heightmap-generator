@@ -30,10 +30,29 @@ export class ResetGridDirection {
     div.addEventListener('contextmenu', (e) => {
       e.preventDefault()
       const mapbox = useMapbox()
-      mapbox.value.map?.setBearing(mapbox.value.settings.angle)
+      mapbox.value.map?.easeTo({
+        bearing: mapbox.value.settings.angle,
+        easing: ease,
+        duration: 1000,
+      })
+      saveSettings(mapbox.value.settings)
     })
     div.addEventListener('click', () => {
       const mapbox = useMapbox()
+      const startAngle = getGridAngle()
+      const startTime = Date.now()
+      const duration = 1000
+
+      const rotateAnimation = () => {
+        const progress = Math.min(1, (Date.now() - startTime) / duration)
+        mapbox.value.settings.angle = startAngle * (1 - ease(progress))
+        setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+        if (progress < 1) {
+          requestAnimationFrame(rotateAnimation)
+        }
+      }
+
+      rotateAnimation()
       mapbox.value.settings.angle = 0
       setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
       saveSettings(mapbox.value.settings)
@@ -79,4 +98,9 @@ export class EffectedArea {
   }
 
   onRemove() {}
+}
+
+
+function ease(x: number): number {
+  return 1 - Math.pow(1 - x, 3)
 }
