@@ -18,6 +18,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       token,
+      gtag: '',
     },
   },
   css: [
