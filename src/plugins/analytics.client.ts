@@ -1,16 +1,9 @@
-import VueGtag from 'vue-gtag'
-
+import VueGtag from 'vue-gtag-next'
 export default defineNuxtPlugin((nuxtApp) => {
-  const router = useRouter()
   const config = useRuntimeConfig()
-
-  nuxtApp.vueApp.use(
-    VueGtag,
-    {
-      appName: 'Terraining - Heightmap Generator',
-      pageTrackerScreenviewEnabled: true,
-      config: { id: config.public.gtag },
+  nuxtApp.vueApp.use(VueGtag, {
+    property: {
+      id: config.public.gtag,
     },
-    router,
-  )
+  })
 })
