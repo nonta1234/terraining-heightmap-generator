@@ -1,32 +1,29 @@
 import { FetchError } from 'ofetch'
+import * as turf from '@turf/turf'
+import { Mapbox } from '~/types/types'
 
 type T = {
   data: globalThis.Ref<Blob | null>;
   error: globalThis.Ref<FetchError<any> | null>;
 }
 
-// bilinear interpolation ----------------------------------------------------------------------------
 
-const getHeightMapBilinear = async () => {
-  const t0 = window.performance.now()
-  const mapbox = useMapbox()
-
-  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 2  // 1083px (cs1)
-  const calcPixels = resultPixels + 1   // 1084px (cs1)
-  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1
+const getInitParameter = (mapbox: Ref<Mapbox>) => {
+  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4  // 1085px (cs1)
+  const calcPixels = resultPixels + 5                                         // 1090px (cs1)
+  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1      // 1080px (cs1)
   const tmpAreaSize = mapbox.value.settings.size / mapFases * calcPixels
-  const pixelsPerTile = 512  // number of pixels in terrain-tiles
+  const pixelsPerTile = 512   // number of pixels in terrain-tiles
+  return { resultPixels, calcPixels, tmpAreaSize, pixelsPerTile }
+}
 
-  // considering rotation, set area using circumscribed extent
 
-  // in high latitudes, calculate the zoom level
-  // at which the edge length of a map becomes 1083px or more
-
+const getExtentData = (mapbox: Ref<Mapbox>, areaSize: number) => {
   const { topleft, bottomright } = getExtent(
     mapbox.value.settings.lng,
     mapbox.value.settings.lat,
-    tmpAreaSize * Math.SQRT2 / 2,
-    tmpAreaSize * Math.SQRT2 / 2,
+    areaSize * Math.SQRT2 / 2,
+    areaSize * Math.SQRT2 / 2,
   )
 
   let referenceLat: number
@@ -37,13 +34,16 @@ const getHeightMapBilinear = async () => {
     referenceLat = bottomright[1]
   }
 
-  const zoom = calculateZoomLevel(referenceLat, tmpAreaSize, calcPixels, pixelsPerTile)
+  return { topleft, bottomright, referenceLat }
+}
 
-  const x = lng2tile(topleft[0], zoom)
-  const y = lat2tile(topleft[1], zoom)
+
+const getTileInfo = (mapbox: Ref<Mapbox>, topleft: turf.Position, bottomright: turf.Position, zoom: number, pixelsPerTile: number, calcPixels: number) => {
+  const tileX = lng2tile(topleft[0], zoom)
+  const tileY = lat2tile(topleft[1], zoom)
   const x2 = lng2tile(bottomright[0], zoom)
   const y2 = lat2tile(bottomright[1], zoom)
-  const tileCount = Math.max(x2 - x + 1, y2 - y + 1)
+  const tileCount = Math.max(x2 - tileX + 1, y2 - tileY + 1)
 
   const posX0 = lng2pixel(topleft[0], zoom, pixelsPerTile)
   const posY0 = lat2pixel(topleft[1], zoom, pixelsPerTile)
@@ -55,8 +55,8 @@ const getHeightMapBilinear = async () => {
   const mapWidth = posX1 - posX0
   const mapHeight = posY1 - posY0
 
-  const tilePosX = x * pixelsPerTile
-  const tilePosY = y * pixelsPerTile
+  const tilePosX = tileX * pixelsPerTile
+  const tilePosY = tileY * pixelsPerTile
 
   const tilePixels = tileCount * pixelsPerTile
   const mapPixelsOnTile = Math.sqrt(mapWidth * mapWidth + mapHeight * mapHeight) / Math.SQRT2
@@ -64,6 +64,19 @@ const getHeightMapBilinear = async () => {
 
   const offsetX = centerX - tilePosX
   const offsetY = centerY - tilePosY
+
+  return { tileX, tileY, tileCount, tilePixels, scale, offsetX, offsetY }
+}
+
+
+// bilinear interpolation ----------------------------------------------------------------------------
+
+const getHeightMapBilinear = async () => {
+  const mapbox = useMapbox()
+  const { resultPixels, calcPixels, tmpAreaSize, pixelsPerTile } = getInitParameter(mapbox)
+  const { topleft, bottomright, referenceLat } = getExtentData(mapbox, tmpAreaSize)
+  const zoom = calculateZoomLevel(referenceLat, tmpAreaSize, calcPixels, pixelsPerTile)
+  const { tileX, tileY, tileCount, tilePixels, scale, offsetX, offsetY } = getTileInfo(mapbox, topleft, bottomright, zoom, pixelsPerTile, calcPixels)
 
   const tiles = new Array<Promise<T>>(Math.pow(tileCount, 2))
 
@@ -78,7 +91,7 @@ const getHeightMapBilinear = async () => {
 
   for (let i = 0; i < tileCount; i++) {
     for (let j = 0; j < tileCount; j++) {
-      tiles[j + i * tileCount] = useFetchTerrainTiles(zoom, x + j, y + i)
+      tiles[j + i * tileCount] = useFetchTerrainTiles(zoom, tileX + j, tileY + i)
     }
   }
 
@@ -121,7 +134,7 @@ const getHeightMapBilinear = async () => {
     }
   }
 
-  /*
+  /**
    * affine transformation
    *
    * a, b: offset x, y
@@ -141,7 +154,7 @@ const getHeightMapBilinear = async () => {
    *    |     .__|
    * dY |     |  |
    *     --------1
-  */
+   */
 
   async function processTiles(list: PromiseSettledResult<T>[]) {
     const tilePromises = list.map(async (tile, index) => {
@@ -159,8 +172,6 @@ const getHeightMapBilinear = async () => {
     return tileCtx.getImageData(0, 0, tileCanvas.value!.width, tileCanvas.value!.height)
   }
 
-  const t = window.performance.now()
-  console.log('bilinear: ', t - t0)
   return heightMap
 }
 
@@ -168,62 +179,11 @@ const getHeightMapBilinear = async () => {
 // bicubic interpolation -----------------------------------------------------------------------------
 
 const getHeightMapBicubic = async () => {
-  const t0 = window.performance.now()
   const mapbox = useMapbox()
-
-  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 2  // 1083px (cs1)
-  const calcPixels = resultPixels + 5   // 1088px (cs1)
-  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1
-  const tmpAreaSize = mapbox.value.settings.size / mapFases * calcPixels
-  const pixelsPerTile = 512  // number of pixels in terrain-tiles
-
-  // considering rotation, set area using circumscribed extent
-
-  // in high latitudes, calculate the zoom level
-  // at which the edge length of a map becomes 1083px or more
-
-  const { topleft, bottomright } = getExtent(
-    mapbox.value.settings.lng,
-    mapbox.value.settings.lat,
-    tmpAreaSize * Math.SQRT2 / 2,
-    tmpAreaSize * Math.SQRT2 / 2,
-  )
-
-  let referenceLat: number
-
-  if (Math.abs(topleft[1]) >= Math.abs(bottomright[1])) {
-    referenceLat = topleft[1]
-  } else {
-    referenceLat = bottomright[1]
-  }
-
+  const { resultPixels, calcPixels, tmpAreaSize, pixelsPerTile } = getInitParameter(mapbox)
+  const { topleft, bottomright, referenceLat } = getExtentData(mapbox, tmpAreaSize)
   const zoom = calculateZoomLevel(referenceLat, tmpAreaSize, calcPixels, pixelsPerTile)
-
-  const x = lng2tile(topleft[0], zoom)
-  const y = lat2tile(topleft[1], zoom)
-  const x2 = lng2tile(bottomright[0], zoom)
-  const y2 = lat2tile(bottomright[1], zoom)
-  const tileCount = Math.max(x2 - x + 1, y2 - y + 1)
-
-  const posX0 = lng2pixel(topleft[0], zoom, pixelsPerTile)
-  const posY0 = lat2pixel(topleft[1], zoom, pixelsPerTile)
-  const posX1 = lng2pixel(bottomright[0], zoom, pixelsPerTile)
-  const posY1 = lat2pixel(bottomright[1], zoom, pixelsPerTile)
-  const centerX = lng2pixel(mapbox.value.settings.lng, zoom, pixelsPerTile)
-  const centerY = lat2pixel(mapbox.value.settings.lat, zoom, pixelsPerTile)
-
-  const mapWidth = posX1 - posX0
-  const mapHeight = posY1 - posY0
-
-  const tilePosX = x * pixelsPerTile
-  const tilePosY = y * pixelsPerTile
-
-  const tilePixels = tileCount * pixelsPerTile
-  const mapPixelsOnTile = Math.sqrt(mapWidth * mapWidth + mapHeight * mapHeight) / Math.SQRT2
-  const scale = mapPixelsOnTile / (calcPixels * Math.SQRT2)
-
-  const offsetX = centerX - tilePosX
-  const offsetY = centerY - tilePosY
+  const { tileX, tileY, tileCount, tilePixels, scale, offsetX, offsetY } = getTileInfo(mapbox, topleft, bottomright, zoom, pixelsPerTile, calcPixels)
 
   const tiles = new Array<Promise<T>>(Math.pow(tileCount, 2))
 
@@ -238,7 +198,7 @@ const getHeightMapBicubic = async () => {
 
   for (let i = 0; i < tileCount; i++) {
     for (let j = 0; j < tileCount; j++) {
-      tiles[j + i * tileCount] = useFetchTerrainTiles(zoom, x + j, y + i)
+      tiles[j + i * tileCount] = useFetchTerrainTiles(zoom, tileX + j, tileY + i)
     }
   }
 
@@ -321,8 +281,6 @@ const getHeightMapBicubic = async () => {
     return res
   }
 
-  const t = window.performance.now()
-  console.log('bicubic: ', t - t0)
   return heightMap
 }
 
