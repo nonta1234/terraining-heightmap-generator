@@ -35,10 +35,7 @@ const calcMap = (data: MessageData) => {
 
 export const getCitiesMap = async () => {
   const mapbox = useMapbox()
-  // get map data
   const tmpHeightMap = await getHeightMap()
-  // getCSV(tmpHeightMap, 1083)
-
   const { waterMap, waterwayMap } = await getWaterMap()
   const { min, max } = getMinMaxHeight(tmpHeightMap)
 
