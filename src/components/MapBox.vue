@@ -129,7 +129,7 @@ onMounted(() => {
         'line-join': 'miter',
       },
       paint: {
-        'line-width': 10,
+        'line-width': isMobile ? 20 : 10,
         'line-color': '#1E90FF',
         'line-blur': 1,
         'line-opacity': 0,
