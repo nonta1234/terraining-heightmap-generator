@@ -14,12 +14,9 @@ type Position = {
 
 export const getWaterMap = async () => {
   const mapbox = useMapbox()
-
-  const mapSizePixelsWithBuffer = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 2  // 1083px (cs1)
-
-  const tmpMapPixels = Math.ceil((mapSizePixelsWithBuffer + 1) * Math.SQRT2)
-
-  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1
+  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4  // 1085px (cs1)
+  const tmpMapPixels = Math.ceil((resultPixels + 1) * Math.SQRT2)             // 1086√2px (cs1)
+  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1      // 1080px (cs1)
   const waterAreaSize = mapbox.value.settings.size / mapFases * tmpMapPixels
   const pixelsPerTile = 4096  // number of pixels in vector-tiles
 
@@ -292,23 +289,23 @@ export const getWaterMap = async () => {
 
   const resultWater = ref<HTMLCanvasElement>()
   resultWater.value = document.createElement('canvas')
-  resultWater.value.width = mapSizePixelsWithBuffer
-  resultWater.value.height = mapSizePixelsWithBuffer
+  resultWater.value.width = resultPixels
+  resultWater.value.height = resultPixels
 
   const resultWaterCtx = waterCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
   resultWaterCtx.globalCompositeOperation = 'source-over'
 
   const resultWaterway = ref<HTMLCanvasElement>()
   resultWaterway.value = document.createElement('canvas')
-  resultWaterway.value.width = mapSizePixelsWithBuffer
-  resultWaterway.value.height = mapSizePixelsWithBuffer
+  resultWaterway.value.width = resultPixels
+  resultWaterway.value.height = resultPixels
 
   const resultWaterwayCtx = waterwayCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
   resultWaterwayCtx.globalCompositeOperation = 'source-over'
 
   // transpose & rotate ------------------------------------------------------------------------------
 
-  const halfSize = (mapSizePixelsWithBuffer - 1) / 2
+  const halfSize = (resultPixels - 1) / 2
 
   resultWaterCtx.translate(halfSize, halfSize)
   resultWaterCtx.rotate(-mapbox.value.settings.angle * (Math.PI / 180))
@@ -323,8 +320,8 @@ export const getWaterMap = async () => {
 
   // decode data -------------------------------------------------------------------------------------
 
-  const waterPixelData = resultWaterCtx.getImageData(0, 0, mapSizePixelsWithBuffer, mapSizePixelsWithBuffer).data
-  const waterwayPixelData = resultWaterwayCtx.getImageData(0, 0, mapSizePixelsWithBuffer, mapSizePixelsWithBuffer).data
+  const waterPixelData = resultWaterCtx.getImageData(0, 0, resultPixels, resultPixels).data
+  const waterwayPixelData = resultWaterwayCtx.getImageData(0, 0, resultPixels, resultPixels).data
 
   const waterMap = decodeData(waterPixelData)
   const waterwayMap = decodeData(waterwayPixelData)
