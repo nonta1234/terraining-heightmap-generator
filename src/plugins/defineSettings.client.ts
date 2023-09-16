@@ -2,25 +2,25 @@ import { Settings } from '~/types/types'
 
 const defineSettings = () => {
   const store: Settings = JSON.parse(localStorage.getItem('map-settings')!) || {}
-  store.lng = store.lng || initialValue.lng
-  store.lat = store.lat || initialValue.lat
-  store.zoom = store.zoom || initialValue.zoom
-  store.size = store.size || initialValue.size
-  store.angle = store.angle || initialValue.angle
-  store.seaLevel = store.seaLevel || initialValue.seaLevel
+  store.lng = typeof store.lng === 'undefined' ? initialValue.lng : store.lng
+  store.lat = typeof store.lat === 'undefined' ? initialValue.lat : store.lat
+  store.zoom = typeof store.zoom === 'undefined' ? initialValue.zoom : store.zoom
+  store.size = typeof store.size === 'undefined' ? initialValue.size : store.size
+  store.angle = typeof store.angle === 'undefined' ? initialValue.angle : store.angle
+  store.seaLevel = typeof store.seaLevel === 'undefined' ? initialValue.seaLevel : store.seaLevel
   store.adjLevel = typeof store.adjLevel === 'undefined' ? initialValue.adjLevel : store.adjLevel
-  store.vertScale = store.vertScale || initialValue.vScale
+  store.vertScale = typeof store.vertScale === 'undefined' ? initialValue.vScale : store.vertScale
   store.fixedRatio = typeof store.fixedRatio === 'undefined' ? initialValue.fixedRatio : store.fixedRatio
   store.type = store.type || initialValue.type
-  store.depth = store.depth || initialValue.depth
-  store.littoral = store.littoral || initialValue.littoral
+  store.depth = typeof store.depth === 'undefined' ? initialValue.depth : store.depth
+  store.littoral = typeof store.littoral === 'undefined' ? initialValue.littoral : store.littoral
   store.littArray = store.littArray || initialValue.littArray
-  store.smoothing = store.smoothing || initialValue.smoothing
-  store.smthThres = store.smthThres || initialValue.smthThres
-  store.smthFade = store.smthFade || initialValue.smthFade
-  store.sharpen = store.sharpen || initialValue.sharpen
-  store.shrpThres = store.shrpThres || initialValue.shrpThres
-  store.shrpFade = store.shrpFade || initialValue.shrpFade
+  store.smoothing = typeof store.smoothing === 'undefined' ? initialValue.smoothing : store.smoothing
+  store.smthThres = typeof store.smthThres === 'undefined' ? initialValue.smthThres : store.smthThres
+  store.smthFade = typeof store.smthFade === 'undefined' ? initialValue.smthFade : store.smthFade
+  store.sharpen = typeof store.sharpen === 'undefined' ? initialValue.sharpen : store.sharpen
+  store.shrpThres = typeof store.shrpThres === 'undefined' ? initialValue.shrpThres : store.shrpThres
+  store.shrpFade = typeof store.shrpFade === 'undefined' ? initialValue.shrpFade : store.shrpFade
   store.gridInfo = store.gridInfo || initialValue.gridInfo
   store.interpolation = store.interpolation || initialValue.interpolation
   return store
