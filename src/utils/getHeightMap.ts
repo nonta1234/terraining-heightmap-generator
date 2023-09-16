@@ -9,7 +9,7 @@ type T = {
 
 
 const getInitParameter = (mapbox: Ref<Mapbox>) => {
-  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4  // 1085px (cs1)
+  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4  // 1085px (cs1) 1081 + 4
   const calcPixels = resultPixels + 5                                         // 1090px (cs1)
   const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1      // 1080px (cs1)
   const tmpAreaSize = mapbox.value.settings.size / mapFases * calcPixels
@@ -105,7 +105,7 @@ const getHeightMapBilinear = async () => {
   const cosTheta = Math.cos(-mapbox.value.settings.angle * Math.PI / 180)
   const sinTheta = Math.sin(-mapbox.value.settings.angle * Math.PI / 180)
 
-  const halfSize = (resultPixels - 1) / 2  // 541px (cs1)
+  const halfSize = (resultPixels - 1) / 2  // 542px (cs1)
 
   // affine transformation & bilinear interpolation
 
@@ -212,7 +212,7 @@ const getHeightMapBicubic = async () => {
   const cosTheta = Math.cos(-mapbox.value.settings.angle * Math.PI / 180)
   const sinTheta = Math.sin(-mapbox.value.settings.angle * Math.PI / 180)
 
-  const halfSize = (resultPixels - 1) / 2  // 541px (cs1)
+  const halfSize = (resultPixels - 1) / 2  // 542px (cs1)
 
   // affine transformation & bicubic interpolation
 
