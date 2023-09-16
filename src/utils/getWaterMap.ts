@@ -14,8 +14,8 @@ type Position = {
 
 export const getWaterMap = async () => {
   const mapbox = useMapbox()
-  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4  // 1085px (cs1)
-  const tmpMapPixels = Math.ceil((resultPixels + 1) * Math.SQRT2)             // 1086√2px (cs1)
+  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4  // 1085px (cs1) 1081 + 4
+  const tmpMapPixels = Math.ceil((resultPixels + 1) * Math.SQRT2)             // 1086√2 px (cs1)
   const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1      // 1080px (cs1)
   const waterAreaSize = mapbox.value.settings.size / mapFases * tmpMapPixels
   const pixelsPerTile = 4096  // number of pixels in vector-tiles
@@ -305,7 +305,7 @@ export const getWaterMap = async () => {
 
   // transpose & rotate ------------------------------------------------------------------------------
 
-  const halfSize = (resultPixels - 1) / 2
+  const halfSize = (resultPixels - 1) / 2   // 542px (cs1)
 
   resultWaterCtx.translate(halfSize, halfSize)
   resultWaterCtx.rotate(-mapbox.value.settings.angle * (Math.PI / 180))
