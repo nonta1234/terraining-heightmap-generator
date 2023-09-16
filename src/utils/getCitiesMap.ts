@@ -59,7 +59,7 @@ export const getCitiesMap = async () => {
     depth: mapbox.value.settings.depth,
     streamDepth,
     mapSizePixels: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-    mapSizePixelsWithBuffer: mapSpec[mapbox.value.settings.gridInfo].mapPixels + 2,
+    mapSizePixelsWithBuffer: mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4,
   }
 
   const citiesMap = await calcMap(messageData) as Uint8ClampedArray
