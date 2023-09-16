@@ -46,7 +46,7 @@
 
 ## Current known issues
 
-- The effect is nearly imperceptible.
+- The static map image still does not support rotation.
 
 ## Plans
 
