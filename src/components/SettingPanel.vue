@@ -229,7 +229,7 @@ onMounted(() => {
       </div>
       <div class="section">
         <ul>
-          <li><label>Sharpen&ThinSpace;:</label><NumberInput v-model="mapbox.settings.sharpen" :max="500" :min="0" :step="1" /><span>%</span></li>
+          <li><label>Sharpen&ThinSpace;:</label><NumberInput v-model="mapbox.settings.sharpen" :max="200" :min="0" :step="1" /><span>%</span></li>
           <li><label>Threshold&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpThres" :max="10000" :min="0" :step="1" /><span>m</span></li>
           <li><label>Fade&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpFade" :max="1000" :min="0" :step="1" /><span>m</span></li>
         </ul>
