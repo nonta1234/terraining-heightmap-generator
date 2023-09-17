@@ -50,12 +50,12 @@ const displayValue = computed({
   set: (val) => { _value.value = val },
 })
 
-const handleFocus = (e: Event) => {
+const onFocus = (e: Event) => {
   const value = (e.target as HTMLInputElement).value
   _value.value = parseFloat(value)
 }
 
-const handleInput = (e: Event) => {
+const onInput = (e: Event) => {
   const value = (e.target as HTMLInputElement).value
   if (!Number.isNaN(parseFloat(value))) {
     displayValue.value = parseFloat(value)
@@ -89,8 +89,8 @@ const handleChange = () => {
     :max="max"
     :min="min"
     :step="step"
-    @focus="handleFocus"
-    @input="handleInput"
+    @focus="onFocus"
+    @input="onInput"
     @keydown.enter="handleChange"
     @blur="handleChange"
   />
