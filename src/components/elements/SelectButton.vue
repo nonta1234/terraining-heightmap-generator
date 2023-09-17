@@ -16,10 +16,6 @@ const select = ref<HTMLSelectElement>()
 const isActive = ref(false)
 const isFocus = ref(false)
 
-onMounted(() => {
-  select.value!.selectedIndex = -1
-})
-
 const startIconRotation = () => {
   label.value?.classList.add('rotate')
 }
@@ -43,13 +39,13 @@ const onMouseleave = () => {
 const onFocus = () => {
   isFocus.value = true
   isActive.value = true
-  select.value!.selectedIndex = -1
+  select.value!.selectedIndex = 0
 }
 
 const onBlur = () => {
   isFocus.value = false
   isActive.value = false
-  select.value!.selectedIndex = -1
+  select.value!.selectedIndex = 0
 }
 
 defineExpose({
@@ -69,6 +65,7 @@ defineExpose({
       @focus="onFocus"
       @blur="onBlur"
     >
+      <option value="" disabled>Select style</option>
       <option v-for="item in props.list" :key="item.value" :value="item.value">{{ item.text }}</option>
     </select>
   </div>
@@ -97,6 +94,9 @@ defineExpose({
     }
   }
   select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     position: absolute;
     top: 0;
     left: 0;
@@ -115,7 +115,7 @@ defineExpose({
   }
   @keyframes rotateY {
     to {
-      transform:rotateY(-1turn);
+      transform: rotateY(-1turn);
     }
   }
 </style>

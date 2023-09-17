@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import init, { encode_16g } from '~~/png_lib/pkg'  // eslint-disable-line
-import { styleList } from '~/utils/initialValue'
 
 const mapbox = useMapbox()
 const config = useRuntimeConfig()
@@ -35,15 +34,42 @@ const getPngHeightMap = async () => {
 const getMapImage = async (e: Event) => {
   const value = (e.target as HTMLSelectElement).value
   imgButton.value?.startIconRotation()
-  const { minLng, minLat, maxLng, maxLat } = getBoundsLngLat()
+  let url = ''
 
-  const url = 'https://api.mapbox.com/styles/v1/mapbox/' +
-              `${value}/static/[` +
-              minLng + ',' +
-              minLat + ',' +
-              maxLng + ',' +
-              maxLat + ']/1080x1080@2x?access_token=' +
-              config.public.token
+  if (mapbox.value.settings.angle === 0) {
+    const { minLng, minLat, maxLng, maxLat } = getBoundsLngLat()
+    url = 'https://api.mapbox.com/styles/v1/mapbox/' +
+          `${value}/static/[${minLng},${minLat},${maxLng},${maxLat}` +
+          `]/1080x1080@2x?access_token=${config.public.token}`
+  } else {
+    let decimals = 1
+    let zoom = 0
+    let pixel = 0
+    const startIndex = Math.min((mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1) / 2, 1280)
+
+    for (let i = startIndex; i < 1281; i++) {
+      const calcZoom = calculateZoomLevel(
+        mapbox.value.settings.lat,
+        mapbox.value.settings.size,
+        i,
+        512,
+      )
+      const z = calcZoom - Math.floor(calcZoom)
+      if (z < decimals) {
+        zoom = calcZoom
+        decimals = z
+        pixel = i
+      }
+    }
+
+    const roundedZoom = Math.round(zoom * 100) / 100
+    const bearing = (mapbox.value.settings.angle > 0) ? mapbox.value.settings.angle : mapbox.value.settings.angle + 360
+
+    url = 'https://api.mapbox.com/styles/v1/mapbox/' +
+          `${value}/static/` +
+          `${mapbox.value.settings.lng},${mapbox.value.settings.lat},${roundedZoom},${bearing}` +
+          `/${pixel}x${pixel}@2x?access_token=${config.public.token}`
+  }
 
   try {
     const res = await fetch(url)
@@ -229,7 +255,7 @@ const debug = () => {
   }
   @keyframes rotateY {
     to {
-      transform:rotateY(-1turn);
+      transform: rotateY(-1turn);
     }
   }
   :deep(.select-button) {
