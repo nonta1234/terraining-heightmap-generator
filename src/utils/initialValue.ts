@@ -1,13 +1,22 @@
 import { GridInfo, LittoralArray } from '~/types/types'
 
 export const mapStyle = {
-  streets:    'mapbox://styles/mapbox/streets-v12',
+  streets:    'mapbox://styles/mapbox/streets-v12?optimize=true',
   outdoors:   'mapbox://styles/mapbox/outdoors-v12?optimize=true',
-  satStreets: 'mapbox://styles/mapbox/satellite-streets-v12',
   satellite:  'mapbox://styles/mapbox/satellite-v9',
-  light:      'mapbox://styles/mapbox/light-v11',
-  dark:       'mapbox://styles/mapbox/dark-v11',
+  satStreets: 'mapbox://styles/mapbox/satellite-streets-v12',
+  light:      'mapbox://styles/mapbox/light-v11?optimize=true',
+  dark:       'mapbox://styles/mapbox/dark-v11?optimize=true',
 }
+
+export const styleList = [
+  { text: 'Streets', value: 'streets-v12' },
+  { text: 'Outdoors', value: 'outdoors-v12' },
+  { text: 'Satellite', value: 'satellite-v9' },
+  { text: 'Sat. Streets', value: 'satellite-streets-v12' },
+  { text: 'Light', value: 'light-v11' },
+  { text: 'Dark', value: 'dark-v11' },
+]
 
 export const mapSpec: GridInfo = {
   cs1: { mapPixels: 1081, size: 17.28, cell: 9, playCell: 5 },

@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import init, { encode_16g } from '~~/png_lib/pkg'  // eslint-disable-line
+import { styleList } from '~/utils/initialValue'
 
 const mapbox = useMapbox()
 const config = useRuntimeConfig()
 const { isMobile } = useDevice()
 
 const pngButton = ref<HTMLElement>()
-const imgButton = ref<HTMLElement>()
+const imgButton = ref()
 const osmButton = ref<HTMLElement>()
 
 const { debugMode } = useDebug()
-
 
 const getPngHeightMap = async () => {
   pngButton.value?.classList.add('downloading')
@@ -32,12 +32,13 @@ const getPngHeightMap = async () => {
 }
 
 
-const getMapImage = async () => {
-  imgButton.value?.classList.add('downloading')
+const getMapImage = async (e: Event) => {
+  const value = (e.target as HTMLSelectElement).value
+  imgButton.value?.startIconRotation()
   const { minLng, minLat, maxLng, maxLat } = getBoundsLngLat()
 
   const url = 'https://api.mapbox.com/styles/v1/mapbox/' +
-              'outdoors-v12/static/[' +
+              `${value}/static/[` +
               minLng + ',' +
               minLat + ',' +
               maxLng + ',' +
@@ -48,7 +49,7 @@ const getMapImage = async () => {
     const res = await fetch(url)
     if (res.ok) {
       const png = await res.blob()
-      download(`map_image_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png)
+      download(`map_image_${value}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png)
       saveSettings(mapbox.value.settings)
     } else {
       throw new Error(`download map image error: ${res.status}`)
@@ -56,7 +57,7 @@ const getMapImage = async () => {
   } catch (e: any) {
     console.log(e.message)
   } finally {
-    imgButton.value?.classList.remove('downloading')
+    imgButton.value?.stopIconRotation()
   }
 }
 
@@ -137,7 +138,16 @@ const debug = () => {
     <ul>
       <li v-if="debugMode"><button ref="debugButton" title="debug" class="debug" @click="debug"><DebugIcon /></button></li>
       <li><button ref="pngButton" title="Download PNG height map" @click="getPngHeightMap"><font-awesome-icon :icon="['fas', 'file-arrow-down']" class="fa-fw fa-2xl" /></button></li>
-      <li><button ref="imgButton" title="Download map image" @click="getMapImage"><font-awesome-icon :icon="['fas', 'file-image']" class="fa-fw fa-2xl" /></button></li>
+      <li>
+        <SelectButton
+          ref="imgButton"
+          :list="styleList"
+          :icon="['fas', 'file-image']"
+          :icon-class="'fa-fw fa-2xl'"
+          title="Download map image"
+          @change="getMapImage"
+        />
+      </li>
       <li><button ref="osmButton" title="Download OSM data" class="osm" @click="getOsmData"><OsmLogo /></button></li>
       <li><button title="Configuration" @click="modal"><font-awesome-icon :icon="['fas', 'gear']" class="fa-fw fa-2xl" /></button></li>
       <li><button title="https://github.com/nonta1234/terraining-heightmap-generator" @click="toRepository"><font-awesome-icon :icon="['far', 'circle-question']" class="fa-fw fa-2xl" /></button></li>
@@ -155,6 +165,41 @@ const debug = () => {
     z-index: 2;
     user-select: none;
     @include grass;
+    ul {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .5rem;
+    }
+    li {
+      position: relative;
+      flex-shrink: 0;
+      height: 48px;
+      width: 56px;
+      padding: 4px 8px;
+    }
+    button {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: none;
+      outline: none;
+      overflow: hidden;
+      display: block;
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      background-color: transparent;
+      color: $textColor;
+      perspective: 100px;
+      text-align: center;
+      &:hover, &:focus {
+        color: aquamarine;
+      }
+      svg {
+        margin: auto;
+      }
+    }
   }
   .is-mobile {
     bottom: 2.25rem;
@@ -164,40 +209,6 @@ const debug = () => {
   .is-desktop {
     top: 10px;
     right: 10px;
-  }
-  ul {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: .5rem;
-  }
-  li {
-    flex-shrink: 0;
-    height: 48px;
-    width: 56px;
-    padding: 4px 8px;
-  }
-  button {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border: none;
-    outline: none;
-    overflow: hidden;
-    display: block;
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    background-color: transparent;
-    color: $textColor;
-    perspective: 100px;
-    text-align: center;
-    &:hover, &:focus {
-      color: aquamarine;
-    }
-    svg {
-      margin: auto;
-    }
   }
   .osm {
     padding: 3.969px 4px 3px 3px;
@@ -219,6 +230,11 @@ const debug = () => {
   @keyframes rotateY {
     to {
       transform:rotateY(-1turn);
+    }
+  }
+  :deep(.select-button) {
+    .is-active {
+      color: aquamarine;
     }
   }
 </style>
