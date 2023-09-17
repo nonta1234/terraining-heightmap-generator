@@ -31,11 +31,12 @@ const reset = (e: Event) => {
 <template>
   <ModalWindow :modal="props.modal">
     <div id="littoral-editor">
-      <header>Littoral Editor</header>
+      <h3>Littoral Editor</h3>
       <GridCanvas />
       <div class="footer">
         <label class="select">
           <select ref="resetEl" name="reset" @change="reset">
+            <div>aaa</div>
             <option hidden disabled selected class="msg">Reset Slope</option>
             <option value="linear">Linear</option>
             <option value="sine">Sine</option>
@@ -51,7 +52,7 @@ const reset = (e: Event) => {
 
 
 <style lang="scss" scoped>
-  header {
+  h3 {
     font-size: 1rem;
     text-align: center;
     font-weight: 700;
