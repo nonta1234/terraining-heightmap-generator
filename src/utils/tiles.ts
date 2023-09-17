@@ -29,5 +29,5 @@ export const lat2pixel = (lat: number, zoom: number, pixelsPerTile: number) => {
 // zoom = ln((2π * 6378.137 * mapPixel * cos(rad)) / (mapLength * pixelPerTile)) / ln(2)
 
 export const calculateZoomLevel = (lat: number, mapSize: number, requiredPixels: number, pixelsPerTile: number) => {
-  return Math.ceil(Math.log2((2 * Math.PI * 6378.137 * requiredPixels * Math.cos(lat * Math.PI / 180)) / (mapSize * pixelsPerTile)))
+  return Math.log2((2 * Math.PI * 6378.137 * requiredPixels * Math.cos(lat * Math.PI / 180)) / (mapSize * pixelsPerTile))
 }

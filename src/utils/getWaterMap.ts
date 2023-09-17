@@ -35,7 +35,7 @@ export const getWaterMap = async () => {
     referenceLat = bottomright[1]
   }
 
-  const zoom = calculateZoomLevel(referenceLat, waterAreaSize, tmpMapPixels, pixelsPerTile) + 1
+  const zoom = Math.ceil(calculateZoomLevel(referenceLat, waterAreaSize, tmpMapPixels, pixelsPerTile)) + 1
 
   const x = lng2tile(topleft[0], zoom)
   const y = lat2tile(topleft[1], zoom)
