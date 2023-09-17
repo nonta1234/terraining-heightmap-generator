@@ -46,7 +46,7 @@
 
 ## Current known issues
 
-- Static map image & OSM data still does not support rotation.
+- Download OSM data still does not support rotation.
 
 ## Plans
 
