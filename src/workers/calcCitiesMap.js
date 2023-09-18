@@ -120,7 +120,8 @@ self.addEventListener('message', async function(e) {
 
   if (smoothCount > 1) {
     for (let i = 2; i < smoothCount + 1; i++) {
-      vec = getSmoothedMap(vec)
+      const tmpVec = getSmoothedMap(vec)
+      vec = [...tmpVec]
     }
   }
 
@@ -152,7 +153,6 @@ self.addEventListener('message', async function(e) {
     const { createNoise2D } = await import('simplex-noise')
     const noise2D = createNoise2D()
 
-
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const noiseValue = noise2D(x * noiseGrid / size, y * noiseGrid / size) * noise
@@ -167,7 +167,6 @@ self.addEventListener('message', async function(e) {
       }
     }
   }
-
 
   // triming
   const croppedMap = []
