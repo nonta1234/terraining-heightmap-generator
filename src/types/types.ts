@@ -41,19 +41,23 @@ export interface Settings {
   seaLevel:      number;
   adjLevel:      boolean;
   vertScale:     number;
-  fixedRatio:    boolean,
-  type:          HeightCalcType,
+  fixedRatio:    boolean;
+  type:          HeightCalcType;
   depth:         number;
+  streamDepth:   number;
   littoral:      number;
   littArray:     number[];
   smoothing:     number;
   smthThres:     number;
   smthFade:      number;
+  smoothCount:   number;
   sharpen:       number;
   shrpThres:     number;
   shrpFade:      number;
   gridInfo:      string;
   interpolation: Interpolation;
+  noise:         number;
+  noiseGrid:     number;
 }
 
 export interface Mapbox {

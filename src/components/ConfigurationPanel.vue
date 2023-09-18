@@ -21,20 +21,50 @@ const close = () => {
     <div id="config-panel">
       <header>Configuration</header>
       <div class="main">
-        <label class="select">
-          Heightmap Type&ThinSpace;:
-          <select ref="heightmapTypeRef" v-model="mapbox.settings.gridInfo" name="heightmapType">
-            <option value="cs1">Cities: Skylines</option>
-            <!--<option value="cs2">Cities: Skylines II</option>-->
-          </select>
-        </label>
-        <label class="select">
-          Interpolation&ThinSpace;:
-          <select ref="interpolationRef" v-model="mapbox.settings.interpolation" name="interpolation">
-            <option value="bilinear">Bilinear</option>
-            <option value="bicubic">Bicubic</option>
-          </select>
-        </label>
+        <ul>
+          <li>
+            <label>
+              <span>Heightmap Type&ThinSpace;:</span>
+              <span><select ref="heightmapTypeRef" v-model="mapbox.settings.gridInfo" name="heightmapType">
+                <option value="cs1">Cities: Skylines</option>
+                <!--<option value="cs2">Cities: Skylines II</option>-->
+              </select></span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <span>Interpolation&ThinSpace;:</span>
+              <span><select ref="interpolationRef" v-model="mapbox.settings.interpolation" name="interpolation">
+                <option value="bilinear">Bilinear</option>
+                <option value="bicubic">Bicubic</option>
+              </select></span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <span>Stream Depth&ThinSpace;:</span>
+              <NumberInput v-model="mapbox.settings.streamDepth" :max="100" :min="0" :step="1" /><span>m</span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <span>Smooth count&ThinSpace;:</span>
+              <NumberInput v-model="mapbox.settings.smoothCount" :max="20" :min="1" :step="1" />
+            </label>
+          </li>
+          <li>
+            <label>
+              <span>Noise value&ThinSpace;:</span><span class="prefix">&plusmn;</span>
+              <NumberInput v-model="mapbox.settings.noise" :max="100" :min="0" :step="1" /><span>m</span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <span>Noise grid&ThinSpace;:</span>
+              <NumberInput v-model="mapbox.settings.noiseGrid" :max="100" :min="1" :step="1" />
+            </label>
+          </li>
+        </ul>
         <button class="close" @click="close">CLOSE</button>
       </div>
     </div>
@@ -47,11 +77,60 @@ const close = () => {
     font-size: 1rem;
     text-align: center;
     font-weight: 700;
-    padding: .5rem 0 .75rem;
+    padding: .5rem 0 1rem;
     line-height: 1;
   }
   .main {
     padding: 0 1rem 1rem;
+  }
+  ul, li {
+    display: block;
+  }
+  label {
+    width: 20rem;
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: nowrap;
+    height: 2rem;
+    line-height: 2;
+    &:has(input) {
+      height: 1.5rem;
+      line-height: 1.5;
+    }
+    span {
+      display: block;
+      white-space: nowrap;
+      flex-shrink: 0;
+      &.prefix {
+        width: 1.25rem;
+        text-align: center;
+      }
+      &:first-child {
+        width: 9.5rem;
+        &:has(+ .prefix) {
+          width: 8.25rem;
+        }
+      }
+      &:last-child:not(:has(select)) {
+        width: 1.25rem;
+        text-align: right;
+      }
+      &:has(select) {
+        position: relative;
+        &::after {
+          position: absolute;
+          top: .8rem;
+          right: .5rem;
+          width: .625rem;
+          height: .4375rem;
+          background-color: $textAlt;
+          clip-path: polygon(0 0, 100% 0, 50% 100%);
+          content: '';
+          pointer-events: none;
+        }
+      }
+    }
   }
   button, select {
     -webkit-appearance: none;
@@ -62,6 +141,36 @@ const close = () => {
     overflow: hidden;
     display: block;
     flex-shrink: 0;
+  }
+  select {
+    width: 10.5rem;
+    border-radius: .25rem;
+    color: $textColor;
+    padding-left: .5rem;
+    height: 2rem;
+    line-height: 2;
+    background-color: $inputBg;
+    font-size: 1rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    &:active, &:focus {
+      background-color: $inputBgF;
+    }
+  }
+  input {
+    width: 4rem;
+    color: $textColor;
+    padding: 0 .25rem;
+    background-color: $inputBg;
+    border-radius: .25rem;
+    line-height: 1.5;
+    flex-shrink: 0;
+    &:active, &:focus {
+      background-color: $inputBgF;
+    }
+  }
+  input[input] {
+    color: #FFA500;
   }
   .close {
     height: 2.25rem;
@@ -78,38 +187,6 @@ const close = () => {
     &:hover, &:focus {
       color: aquamarine;
       background-color: rgba(0, 206, 209, .35);
-    }
-  }
-  select {
-    width: 10.5rem;
-    border-radius: .25rem;
-    color: $textColor;
-    padding-left: .5rem;
-    height: 2.25rem;
-    line-height: 2.25;
-    background-color: $inputBg;
-    font-size: 1rem;
-    cursor: pointer;
-    &:active, &:focus {
-      background-color: $inputBgF;
-    }
-  }
-  .select {
-    width: 20rem;
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    &::after {
-      position: absolute;
-      right: .5rem;
-      width: .625rem;
-      height: .4375rem;
-      background-color: $textAlt;
-      clip-path: polygon(0 0, 100% 0, 50% 100%);
-      content: '';
-      pointer-events: none;
     }
   }
 </style>

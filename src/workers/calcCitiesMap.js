@@ -48,26 +48,26 @@ const getSmoothedMap = (map) => {
   const tmpMap1 = new Array(map.length)
 
   for (let y = 0; y < size; y++) {
-    tmpMap1[y * size] = 0
-    tmpMap1[y * size + 1] = 0
+    tmpMap1[y * size] = map[y * size] * 3 + map[y * size + 1] + map[y * size + 2]
+    tmpMap1[y * size + 1] = map[y * size] * 2 + map[y * size + 1] + map[y * size + 2] + map[y * size + 3]
     for (let x = 2; x < size - 2; x++) {
       tmpMap1[y * size + x] = map[y * size + x - 2] + map[y * size + x - 1] + map[y * size + x] + map[y * size + x + 1] + map[y * size + x + 2]
     }
-    tmpMap1[y * size + size - 2] = 0
-    tmpMap1[y * size + size - 1] = 0
+    tmpMap1[y * size + size - 2] = map[y * size + size - 4] + map[y * size + size - 3] + map[y * size + size - 2] + map[y * size + size - 1] * 2
+    tmpMap1[y * size + size - 1] = map[y * size + size - 3] + map[y * size + size - 2] + map[y * size + size - 1] * 3
   }
 
   const tmpMap2 = transposeArray(tmpMap1, size, size)
   const tmpMap3 = new Array(map.length)
 
   for (let y = 0; y < size; y++) {
-    tmpMap3[y * size] = 0
-    tmpMap3[y * size + 1] = 0
+    tmpMap3[y * size] = tmpMap2[y * size] * 3 + tmpMap2[y * size + 1] + tmpMap2[y * size + 2]
+    tmpMap3[y * size + 1] = tmpMap2[y * size] * 2 + tmpMap2[y * size + 1] + tmpMap2[y * size + 2] + tmpMap2[y * size + 3]
     for (let x = 2; x < size - 2; x++) {
       tmpMap3[y * size + x] = (tmpMap2[y * size + x - 2] + tmpMap2[y * size + x - 1] + tmpMap2[y * size + x] + tmpMap2[y * size + x + 1] + tmpMap2[y * size + x + 2]) / 25
     }
-    tmpMap3[y * size + size - 2] = 0
-    tmpMap3[y * size + size - 1] = 0
+    tmpMap3[y * size + size - 2] = tmpMap2[y * size + size - 4] + tmpMap2[y * size + size - 3] + tmpMap2[y * size + size - 2] + tmpMap2[y * size + size - 1] * 2
+    tmpMap3[y * size + size - 1] = tmpMap2[y * size + size - 3] + tmpMap2[y * size + size - 2] + tmpMap2[y * size + size - 1] * 3
   }
 
   const smoothedMap = transposeArray(tmpMap3, size, size)
@@ -85,7 +85,7 @@ const getSharpenMap = (map, smoothedMap, k) => {
 }
 
 
-self.addEventListener('message', function(e) {
+self.addEventListener('message', async function(e) {
   const {
     tmpHeightMap,
     waterMap,
@@ -95,6 +95,7 @@ self.addEventListener('message', function(e) {
     smoothing,
     smthThres,
     smthFade,
+    smoothCount,
     sharpen,
     shrpThres,
     shrpFade,
@@ -102,6 +103,8 @@ self.addEventListener('message', function(e) {
     streamDepth,
     mapSizePixels,
     mapSizePixelsWithBuffer,
+    noise,
+    noiseGrid,
   } = e.data
 
   const alphaSharpen = sharpen / 10
@@ -112,9 +115,18 @@ self.addEventListener('message', function(e) {
   const smoothedMask = getSmoothMask(tmpHeightMap, smthThres, smthFade)
   const sharpenMask = getSharpenMask(tmpHeightMap, shrpThres, shrpFade)
 
-  const smoothedMap = getSmoothedMap(tmpHeightMap)
+  const tmpSmoothedMap = getSmoothedMap(tmpHeightMap)
+  let vec = [...tmpSmoothedMap]
 
-  const sharpenMap = getSharpenMap(tmpHeightMap, smoothedMap, alphaSharpen)
+  if (smoothCount > 1) {
+    for (let i = 2; i < smoothCount + 1; i++) {
+      vec = getSmoothedMap(vec)
+    }
+  }
+
+  const smoothedMap = [...vec]
+
+  const sharpenMap = getSharpenMap(tmpHeightMap, tmpSmoothedMap, alphaSharpen)
   const maskedSharpenMap = new Array(sharpenMap.length)
   for (let i = 0; i < sharpenMap.length; i++) {
     maskedSharpenMap[i] = tmpHeightMap[i] * (1 - sharpenMask[i]) + sharpenMap[i] * sharpenMask[i]
@@ -126,12 +138,36 @@ self.addEventListener('message', function(e) {
   }
 
   // adjust elevation
-  for (let i = 0; i < effectedMap.length; i++) {
-    effectedMap[i] = (maskedSharpenMap[i] * (1 - alphaSmooth) + maskedSmoothMap[i] * alphaSmooth) - seaLevel
-    if (effectedMap[i] < 0) { effectedMap[i] = 0 }
-    const waterDepth = Math.max((1 - waterMap[i]) * depth, (1 - waterwayMap[i]) * streamDepth)
-    effectedMap[i] = effectedMap[i] * vertScale + depth - waterDepth
+  const strm = Math.min(depth, streamDepth)
+
+  if (noise === 0) {
+    for (let i = 0; i < effectedMap.length; i++) {
+      let h = (maskedSharpenMap[i] * (1 - alphaSmooth) + maskedSmoothMap[i] * alphaSmooth) - seaLevel
+      if (h < 0) { h = 0 }
+      const waterDepth = Math.max((1 - waterMap[i]) * depth, (1 - waterwayMap[i]) * strm)
+      effectedMap[i] = h * vertScale + depth - waterDepth
+    }
+  } else {
+    const size = Math.sqrt(effectedMap.length)
+    const { createNoise2D } = await import('simplex-noise')
+    const noise2D = createNoise2D()
+
+
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const noiseValue = noise2D(x * noiseGrid / size, y * noiseGrid / size) * noise
+        let h = (maskedSharpenMap[y * size + x] * (1 - alphaSmooth) + maskedSmoothMap[y * size + x] * alphaSmooth) - seaLevel
+        if (h < 0) {
+          h = 0
+        } else if (h > noise) {
+          h += noiseValue
+        }
+        const waterDepth = Math.max((1 - waterMap[y * size + x]) * depth, (1 - waterwayMap[y * size + x]) * strm)
+        effectedMap[y * size + x] = h * vertScale + depth - waterDepth
+      }
+    }
   }
+
 
   // triming
   const croppedMap = []

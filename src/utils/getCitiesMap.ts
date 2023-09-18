@@ -9,6 +9,7 @@ type MessageData = {
   smoothing: number;
   smthThres: number;
   smthFade: number;
+  smoothCount: number;
   sharpen: number;
   shrpThres: number;
   shrpFade: number;
@@ -16,6 +17,8 @@ type MessageData = {
   streamDepth: number;
   mapSizePixels: number;
   mapSizePixelsWithBuffer: number;
+  noise: number;
+  noiseGrid: number;
 }
 
 
@@ -57,9 +60,12 @@ export const getCitiesMap = async () => {
     shrpThres: mapbox.value.settings.shrpThres,
     shrpFade: mapbox.value.settings.shrpFade,
     depth: mapbox.value.settings.depth,
-    streamDepth,
+    streamDepth: mapbox.value.settings.streamDepth,
     mapSizePixels: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
     mapSizePixelsWithBuffer: mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4,
+    noise: mapbox.value.settings.noise,
+    noiseGrid: mapbox.value.settings.noiseGrid,
+    smoothCount: mapbox.value.settings.smoothCount,
   }
 
   const citiesMap = await calcMap(messageData) as Uint8ClampedArray

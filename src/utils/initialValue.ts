@@ -41,18 +41,20 @@ export const initialValue = {
   vScale:        1.00,
   fixedRatio:    true,
   type:          'manual',
-  depth:         30,
+  depth:         40,
+  streamDepth:   10,
   littoral:      160,
   littArray:     littoralArray.sine,
   smoothing:     0,
   smthThres:     0,
   smthFade:      0,
+  smoothCount:   1,
   sharpen:       0,
   shrpThres:     0,
   shrpFade:      0,
   style:         mapStyle.outdoors,
   gridInfo:      'cs1',
   interpolation: 'bicubic',
+  noise:         0,
+  noiseGrid:     10,
 }
-
-export const streamDepth = 10
