@@ -48,19 +48,19 @@ const close = () => {
           </li>
           <li>
             <label>
-              <span>Smooth count&ThinSpace;:</span>
+              <span>Smooth Count&ThinSpace;:</span>
               <NumberInput v-model="mapbox.settings.smoothCount" :max="20" :min="1" :step="1" />
             </label>
           </li>
           <li>
             <label>
-              <span>Noise value&ThinSpace;:</span><span class="prefix">&plusmn;</span>
+              <span>Noise Value&ThinSpace;:</span><span class="prefix">&plusmn;</span>
               <NumberInput v-model="mapbox.settings.noise" :max="100" :min="0" :step="1" /><span>m</span>
             </label>
           </li>
           <li>
             <label>
-              <span>Noise grid&ThinSpace;:</span>
+              <span>Noise Grid&ThinSpace;:</span>
               <NumberInput v-model="mapbox.settings.noiseGrid" :max="100" :min="1" :step="1" />
             </label>
           </li>
