@@ -23,8 +23,8 @@ const controlDisabled = ref(false)
 
 const rotate = ref(false)
 const message = ref('')
-const minHeight = ref(0)
-const maxHeight = ref(0)
+const minHeight = ref('-')
+const maxHeight = ref('-')
 
 const maxSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size * 4)
 const minSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size)
@@ -90,13 +90,13 @@ watch([_smthThres, _smthFade], () => {
 })
 
 useListen('map:changeLngLat', () => {
-  minHeight.value = 0
-  maxHeight.value = 0
+  minHeight.value = '-'
+  maxHeight.value = '-'
 })
 
 useListen('map:changeMapSize', () => {
-  minHeight.value = 0
-  maxHeight.value = 0
+  minHeight.value = '-'
+  maxHeight.value = '-'
 })
 
 useListen('debug:operate', () => {
@@ -109,13 +109,13 @@ const refresh = async () => {
   const heightMap = await getHeightMap()
   message.value = ''
   const { min, max } = getMinMaxHeight(heightMap)
-  minHeight.value = min
-  maxHeight.value = max
+  minHeight.value = min.toFixed(1)
+  maxHeight.value = max.toFixed(1)
   rotate.value = false
   if (mapbox.value.settings.adjLevel) {
-    mapbox.value.settings.seaLevel = minHeight.value
+    mapbox.value.settings.seaLevel = min
   }
-  adjustElevation(maxHeight.value)
+  adjustElevation(max)
   saveSettings(mapbox.value.settings)
 }
 
@@ -185,8 +185,8 @@ onMounted(() => {
     </section>
     <section class="setting" :class="{'m-active': visMobile, 'd-active': visDesktop}">
       <div class="elevation section">
-        <dl><dt>Min. Height&ThinSpace;:</dt><dd>{{ minHeight.toFixed(1) }}<span>m</span></dd></dl>
-        <dl><dt>Max. Height&ThinSpace;:</dt><dd>{{ maxHeight.toFixed(1) }}<span>m</span></dd></dl>
+        <dl><dt>Min. Height&ThinSpace;:</dt><dd>{{ minHeight }}<span>m</span></dd></dl>
+        <dl><dt>Max. Height&ThinSpace;:</dt><dd>{{ maxHeight }}<span>m</span></dd></dl>
       </div>
       <div class="section">
         <ul>
