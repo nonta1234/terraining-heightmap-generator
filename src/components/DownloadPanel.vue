@@ -34,8 +34,8 @@ const getPngHeightMap = async () => {
 
 
 const getMapImage = async (e: Event) => {
-  const value = (e.target as HTMLSelectElement).value
   imgButton.value?.startIconRotation()
+  const value = (e.target as HTMLSelectElement).value
   let url = ''
 
   if (mapbox.value.settings.angle === 0) {
@@ -77,7 +77,7 @@ const getMapImage = async (e: Event) => {
     const res = await fetch(url)
     if (res.ok) {
       const png = await res.blob()
-      download(`map_image_${value}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png)
+      download(`map-image_${value}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png)
       saveSettings(mapbox.value.settings)
     } else {
       throw new Error(`download map image error: ${res.status}`)
@@ -94,7 +94,7 @@ const getOsmData = async () => {
   osmButton.value?.classList.add('downloading')
   try {
     const osmMap = await getOsmMap()
-    download(`map_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.osm`, osmMap)
+    download(`osm-data_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.osm`, osmMap)
     saveSettings(mapbox.value.settings)
   } catch (e: any) {
     console.log(e.message)
@@ -114,20 +114,16 @@ const toRepository = () => {
 }
 
 
-function download(filename: string, data: any, url = '') {
+function download(filename: string, data: any) {
+  const url = URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))
   const a = document.createElement('a')
-
-  if (url) {
-    a.href = url
-  } else {
-    a.href = URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))
-  }
+  a.href = url
   a.download = filename
-
   document.body.appendChild(a)
   a.click()
-
   document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+  console.log(`download completed: ${filename}`)
 }
 
 
