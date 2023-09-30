@@ -56,7 +56,6 @@ export default defineNuxtConfig({
     },
     plugins: [
       nodePolyfills({
-        // Whether to polyfill `node:` protocol imports.
         protocolImports: true,
       }),
       wasmpack('./png_lib'),
