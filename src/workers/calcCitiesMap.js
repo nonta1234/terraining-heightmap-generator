@@ -119,7 +119,7 @@ self.addEventListener('message', async function(e) {
   let vec = [...tmpSmoothedMap]
 
   if (smoothCount > 1) {
-    for (let i = 2; i < smoothCount + 1; i++) {
+    for (let i = 2; i <= smoothCount; i++) {
       const tmpVec = getSmoothedMap(vec)
       vec = [...tmpVec]
     }
