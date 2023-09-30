@@ -1,4 +1,4 @@
-import CalcMapWorker from '~/workers/calcCitiesMap.js?worker'
+import CalcMapWorker from '~/workers/calcCitiesMap.js?worker'  // eslint-disable-line
 
 type MessageData = {
   tmpHeightMap: Float64Array;
@@ -23,7 +23,7 @@ type MessageData = {
 
 
 const calcMap = (data: MessageData) => {
-  return new Promise((resolve) => {
+  return new Promise<Uint8Array>((resolve) => {
     const worker = new CalcMapWorker()
     worker.postMessage(data, [data.tmpHeightMap.buffer, data.waterMap.buffer, data.waterwayMap.buffer])
     worker.addEventListener('message', (e) => {
@@ -68,7 +68,7 @@ export const getCitiesMap = async () => {
     smoothCount: mapbox.value.settings.smoothCount,
   }
 
-  const citiesMap = await calcMap(messageData) as Uint8ClampedArray
+  const citiesMap = await calcMap(messageData)
 
   return citiesMap
 }

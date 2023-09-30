@@ -1,4 +1,4 @@
-const transposeArray = (arr, srcRows, srcCols) => {
+const transposeArrayData = (arr, srcRows, srcCols) => {
   const transposed = []
   for (let i = 0; i < srcCols; i++) {
     for (let j = 0; j < srcRows; j++) {
@@ -57,7 +57,7 @@ const getSmoothedMap = (map) => {
     tmpMap1[y * size + size - 1] = map[y * size + size - 3] + map[y * size + size - 2] + map[y * size + size - 1] * 3
   }
 
-  const tmpMap2 = transposeArray(tmpMap1, size, size)
+  const tmpMap2 = transposeArrayData(tmpMap1, size, size)
   const tmpMap3 = new Array(map.length)
 
   for (let y = 0; y < size; y++) {
@@ -70,7 +70,7 @@ const getSmoothedMap = (map) => {
     tmpMap3[y * size + size - 1] = tmpMap2[y * size + size - 3] + tmpMap2[y * size + size - 2] + tmpMap2[y * size + size - 1] * 3
   }
 
-  const smoothedMap = transposeArray(tmpMap3, size, size)
+  const smoothedMap = transposeArrayData(tmpMap3, size, size)
 
   return smoothedMap
 }
@@ -185,5 +185,7 @@ self.addEventListener('message', async function(e) {
     citiesMap[i * 2 + 1] = h & 255
   }
 
-  self.postMessage(citiesMap)
+  const resultMap = new Uint8Array(citiesMap)
+
+  self.postMessage(resultMap, [resultMap.buffer])
 }, false)
