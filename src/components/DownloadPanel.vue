@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import init, { encode_16g } from '~~/png_lib/pkg'  // eslint-disable-line
 
+
 const mapbox = useMapbox()
 const config = useRuntimeConfig()
 const { isMobile } = useDevice()
@@ -11,6 +12,7 @@ const osmButton = ref<HTMLElement>()
 
 const { debugMode } = useDebug()
 
+
 const getPngHeightMap = async () => {
   pngButton.value?.classList.add('downloading')
   try {
@@ -19,7 +21,7 @@ const getPngHeightMap = async () => {
     const png = await encode_16g({
       width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
       height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-      data: new Uint8Array(citiesMap),
+      data: citiesMap,
     })
     download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png.data)
     saveSettings(mapbox.value.settings)
@@ -37,7 +39,7 @@ const getMapImage = async (e: Event) => {
   let url = ''
 
   if (mapbox.value.settings.angle === 0) {
-    const { minLng, minLat, maxLng, maxLat } = getBoundsLngLat()
+    const { minLng, minLat, maxLng, maxLat } = getBoundsLngLat(mapbox.value.settings.size)
     url = 'https://api.mapbox.com/styles/v1/mapbox/' +
           `${value}/static/[${minLng},${minLat},${maxLng},${maxLat}` +
           `]/1080x1080@2x?access_token=${config.public.token}`
@@ -90,23 +92,10 @@ const getMapImage = async (e: Event) => {
 
 const getOsmData = async () => {
   osmButton.value?.classList.add('downloading')
-  const { minLng, minLat, maxLng, maxLat } = getBoundsLngLat()
-
-  const url = 'https://overpass-api.de/api/map?bbox=' +
-              minLng + ',' +
-              minLat + ',' +
-              maxLng + ',' +
-              maxLat
-
   try {
-    const res = await fetch(url)
-    if (res.ok) {
-      const osm = await res.blob()
-      download(`map_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.osm`, osm)
-      saveSettings(mapbox.value.settings)
-    } else {
-      throw new Error(`download osm map error: ${res.status}`)
-    }
+    const osmMap = await getOsmMap()
+    download(`map_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.osm`, osmMap)
+    saveSettings(mapbox.value.settings)
   } catch (e: any) {
     console.log(e.message)
   } finally {
@@ -122,17 +111,6 @@ const modal = () => {
 
 const toRepository = () => {
   window.open('https://github.com/nonta1234/terraining-heightmap-generator', '_blank')
-}
-
-
-function getBoundsLngLat() {
-  const bounds = getExtent(mapbox.value.settings.lng, mapbox.value.settings.lat, mapbox.value.settings.size / 2, mapbox.value.settings.size / 2)
-  const minLng = Math.min(bounds.topleft[0], bounds.bottomright[0])
-  const minLat = Math.min(bounds.topleft[1], bounds.bottomright[1])
-  const maxLng = Math.max(bounds.topleft[0], bounds.bottomright[0])
-  const maxLat = Math.max(bounds.topleft[1], bounds.bottomright[1])
-
-  return { minLng, minLat, maxLng, maxLat }
 }
 
 
@@ -249,6 +227,7 @@ const debug = () => {
     }
   }
   .downloading {
+    will-change: animation, transform;
     svg {
       animation: rotateY 2s linear infinite;
     }
