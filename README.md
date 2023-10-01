@@ -44,10 +44,6 @@
 - Visualize smooth and sharpen areas on the map. Keep in mind that, due to Mapbox specifications, the representation is approximate.
 - Navigate to the grid position.
 
-## Current known issues
-
-- Download OSM data still does not support rotation.
-
 ## Plans
 
 - Achieve compatibility with Cities: Skylines II.
