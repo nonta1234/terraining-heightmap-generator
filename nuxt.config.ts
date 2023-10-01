@@ -60,6 +60,9 @@ export default defineNuxtConfig({
       }),
       wasmpack('./png_lib'),
     ],
+    worker: {
+      format: 'es',
+    },
   },
   modules: [
     '@nuxtjs/device',
