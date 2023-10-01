@@ -57,7 +57,7 @@
 - **Interpolation**: Choose from Bilinear or Bicubic.
 - **Stream Depth**: Assist in drawing streams.
 - **Noise Value**: Height to add or subtract.
-- **Noise Grid**: Noise complexity, the bigger the more complex.
+- **Noise Grid**: Detail of noise. The smaller the number, the finer the details.
 
 ## Plans
 
