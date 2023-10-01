@@ -1,3 +1,5 @@
+[![CodeFactor](https://www.codefactor.io/repository/github/nonta1234/terraining-heightmap-generator/badge)](https://www.codefactor.io/repository/github/nonta1234/terraining-heightmap-generator)
+
 *This repository is a Nuxt3 reworking of sysoppl/Cities-Skylines-heightmap-generator.*
 # Terraining - Heightmap Generator
 
