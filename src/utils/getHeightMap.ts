@@ -146,12 +146,12 @@ const getHeightMapBilinear = async () => {
    *
    * bilinear interpolation
    *
-   * 1 - x = d
+   * x = dX, y = dY
    *
    *      eX   dX
    *    0--------
    * eY |        |
-   *    |     .__|
+   *    |   x,y__|
    * dY |     |  |
    *     --------1
    */
