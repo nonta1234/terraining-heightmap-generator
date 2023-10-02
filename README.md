@@ -56,6 +56,7 @@
 - **Heightmap Type**: It is planned that CS2 will also be available for selection soon.
 - **Interpolation**: Choose from Bilinear or Bicubic.
 - **Stream Depth**: Assist in drawing streams.
+- **Smooth Count**: Number of times to repeat smooth effect.
 - **Noise Value**: Height to add or subtract.
 - **Noise Grid**: Detail of noise. The smaller the number, the finer the details.
 
