@@ -19,7 +19,7 @@ const close = () => {
 <template>
   <ModalWindow>
     <div id="config-panel">
-      <header>Configuration</header>
+      <h3>Configuration</h3>
       <div class="main">
         <ul>
           <li>
@@ -73,7 +73,7 @@ const close = () => {
 
 
 <style lang="scss" scoped>
-  header {
+  h3 {
     font-size: 1rem;
     text-align: center;
     font-weight: 700;
