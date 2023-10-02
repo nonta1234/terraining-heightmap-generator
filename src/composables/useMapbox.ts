@@ -1,4 +1,4 @@
-import { Map, GeoJSONSource } from 'mapbox-gl'
+import mapboxgl, { Map, GeoJSONSource } from 'mapbox-gl'
 import * as turf from '@turf/turf'
 import { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
 import { Mapbox, Grid, LngLat } from '~/types/types'
@@ -193,6 +193,9 @@ export const setLngLat = (mapbox: Ref<Mapbox>, lnglat: LngLat, panTo: boolean) =
 export const createMapInstance = () => {
   const mapbox = useMapbox()
   const config = useRuntimeConfig()
+
+  // eslint-disable-next-line import/no-named-as-default-member
+  mapboxgl.workerCount = 4
 
   mapbox.value.map = new Map({
     accessToken: config.public.token,
