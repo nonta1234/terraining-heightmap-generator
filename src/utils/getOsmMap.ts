@@ -21,10 +21,10 @@ export const getOsmMap = async () => {
   try {
     const res = await fetch(url)
     if (res.ok) {
+      const osm = await res.text()
       if (mapbox.value.settings.angle === 0) {
-        return await res.text()
+        return osm
       } else {
-        const osm = await res.text()
         const geojsonData = osm2geojson(osm, { completeFeature: true, allFeatures: true, renderTagged: true }) as turf.AllGeoJSON
         turf.transformRotate(geojsonData, mapbox.value.settings.angle, { pivot: [mapbox.value.settings.lng, mapbox.value.settings.lat], mutate: true })
         const clipedGeojson = clip(area, geojsonData)
