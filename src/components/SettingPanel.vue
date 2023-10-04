@@ -120,18 +120,18 @@ const refresh = async () => {
 }
 
 const onLngChange = (value: number) => {
-  setLngLat(mapbox, [value, mapbox.value.settings.lat], true)
+  setGrid(mapbox, [value, mapbox.value.settings.lat], true)
 }
 
 const onLatChange = (value: number) => {
-  setLngLat(mapbox, [mapbox.value.settings.lng, value], true)
+  setGrid(mapbox, [mapbox.value.settings.lng, value], true)
 }
 
 const onSizeChange = (value: number) => {
   const tmpRatio = ratio.value
   mapbox.value.settings.size = value
   if (mapbox.value.settings.fixedRatio) { ratio.value = tmpRatio }
-  setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], true)
+  setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], true)
   useEvent('map:changeMapSize', value)
 }
 
