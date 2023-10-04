@@ -161,7 +161,7 @@ const getGrid = (lng: number, lat: number, size: number, angle: number) => {
 }
 
 
-export const setLngLat = (mapbox: Ref<Mapbox>, lnglat: LngLat, panTo: boolean) => {
+export const setGrid = (mapbox: Ref<Mapbox>, lnglat: LngLat, panTo: boolean) => {
   const _lng = ((lnglat[0] + 540) % 360) - 180
   let _lat = lnglat[1]
   if (lnglat[1] > 85) {
@@ -181,6 +181,8 @@ export const setLngLat = (mapbox: Ref<Mapbox>, lnglat: LngLat, panTo: boolean) =
   (mapbox.value.map?.getSource('rotate') as GeoJSONSource).setData(mapbox.value.grid.rotateArea);
   (mapbox.value.map?.getSource('side') as GeoJSONSource).setData(mapbox.value.grid.sideLines);
   (mapbox.value.map?.getSource('direction') as GeoJSONSource).setData(mapbox.value.grid.direction)
+
+  mapbox.value.settings.zoom = mapbox.value.map!.getZoom()
 
   mapbox.value.isUpdating = false
   if (panTo) {

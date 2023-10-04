@@ -10,7 +10,6 @@ const { isMobile } = useDevice()
 type GridState = 'none' | 'isMove' | 'isRotate' | 'isResize'
 let gridState: GridState = 'none'
 let prevAngle = 0
-let prevPos = [0, 0]
 
 const { $throttle } = useNuxtApp()
 
@@ -235,22 +234,7 @@ onMounted(() => {
   }
 
   function onMove(e: any) {
-    const delta = [e.lngLat.lng  - prevPos[0], e.lngLat.lat  - prevPos[1]]
-    /*
-    $throttle(
-      setGrid(mapbox, [e.lngLat.lng, e.lngLat.lat], false),
-      1000 / 60,
-    )
-    */
-    // console.log(delta)
-
-    const move = () => {
-      console.log('move')
-      moveGrid([delta[0], delta[1]])
-      prevPos = [e.lngLat.lng, e.lngLat.lat]
-    }
-
-    $throttle(move(), 100)
+    $throttle(setGrid(mapbox, [e.lngLat.lng, e.lngLat.lat], false), 100)
   }
 
   function onUp(e: any) {
@@ -361,7 +345,6 @@ onMounted(() => {
       if (gridState === 'none') {
         e.preventDefault()
         mapCanvas.style.cursor = 'grab'
-        prevPos = [e.lngLat.lng, e.lngLat.lat]
         mapbox.value.map!.on('mousemove', onMove)
         mapbox.value.map!.once('mouseup', onUp)
         gridState = 'isMove'

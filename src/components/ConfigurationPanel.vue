@@ -11,7 +11,7 @@ onMounted(() => {
 
 const close = () => {
   useEvent('map:cpModal')
-  setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+  setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
 }
 </script>
 
