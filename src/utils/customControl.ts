@@ -46,7 +46,7 @@ export class ResetGridDirection {
       const rotateAnimation = () => {
         const progress = Math.min(1, (Date.now() - startTime) / duration)
         mapbox.value.settings.angle = startAngle * (1 - ease(progress))
-        setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+        setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
         if (progress < 1) {
           requestAnimationFrame(rotateAnimation)
         }
@@ -54,7 +54,7 @@ export class ResetGridDirection {
 
       rotateAnimation()
       mapbox.value.settings.angle = 0
-      setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+      setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
       saveSettings(mapbox.value.settings)
     })
     return div

@@ -8,10 +8,11 @@ const { debugMode } = useDebug()
 const { isMobile } = useDevice()
 
 type GridState = 'none' | 'isMove' | 'isRotate' | 'isResize'
-
 let gridState: GridState = 'none'
-
 let prevAngle = 0
+let prevPos = [0, 0]
+
+const { $throttle } = useNuxtApp()
 
 onMounted(() => {
   createMapInstance()
@@ -37,7 +38,7 @@ onMounted(() => {
   })
 
   mapbox.value.map?.on('click', (e) => {
-    setLngLat(mapbox, [e.lngLat.lng, e.lngLat.lat], true)
+    setGrid(mapbox, [e.lngLat.lng, e.lngLat.lat], true)
   })
 
   mapbox.value.map?.on('zoom', () => {
@@ -234,11 +235,26 @@ onMounted(() => {
   }
 
   function onMove(e: any) {
-    setLngLat(mapbox, [e.lngLat.lng, e.lngLat.lat], false)
+    const delta = [e.lngLat.lng  - prevPos[0], e.lngLat.lat  - prevPos[1]]
+    /*
+    $throttle(
+      setGrid(mapbox, [e.lngLat.lng, e.lngLat.lat], false),
+      1000 / 60,
+    )
+    */
+    // console.log(delta)
+
+    const move = () => {
+      console.log('move')
+      moveGrid([delta[0], delta[1]])
+      prevPos = [e.lngLat.lng, e.lngLat.lat]
+    }
+
+    $throttle(move(), 100)
   }
 
   function onUp(e: any) {
-    setLngLat(mapbox, [e.lngLat.lng, e.lngLat.lat], false)
+    setGrid(mapbox, [e.lngLat.lng, e.lngLat.lat], false)
     mapbox.value.map?.off('mousemove', onMove)
     mapbox.value.map?.off('touchmove', onMove)
     gridState = 'none'
@@ -259,14 +275,14 @@ onMounted(() => {
     const delta = currentAngle - prevAngle
     mapbox.value.settings.angle = ((delta + mapbox.value.settings.angle + 540) % 360) - 180
 
-    setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+    setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
 
     mapbox.value.settings.angle = getGridAngle()
     prevAngle = currentAngle
   }
 
   function onRotateEnd() {
-    setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+    setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
     mapbox.value.settings.angle = getGridAngle()
     mapCanvas.style.cursor = ''
     mapbox.value.map?.off('mousemove', onRotate)
@@ -315,12 +331,12 @@ onMounted(() => {
     if (mapbox.value.settings.fixedRatio) {
       mapbox.value.settings.vertScale = tmpRatio * mapSpec[mapbox.value.settings.gridInfo].size / mapbox.value.settings.size
     }
-    setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+    setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
     useEvent('map:changeMapSize', mapbox.value.settings.size)
   }
 
   function onResizeEnd() {
-    setLngLat(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+    setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
     mapCanvas.style.cursor = ''
     mapbox.value.map?.off('mousemove', onResize)
     mapbox.value.map?.off('touchmove', onResize)
@@ -345,6 +361,7 @@ onMounted(() => {
       if (gridState === 'none') {
         e.preventDefault()
         mapCanvas.style.cursor = 'grab'
+        prevPos = [e.lngLat.lng, e.lngLat.lat]
         mapbox.value.map!.on('mousemove', onMove)
         mapbox.value.map!.once('mouseup', onUp)
         gridState = 'isMove'
