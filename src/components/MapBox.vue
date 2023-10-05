@@ -453,7 +453,6 @@ onMounted(() => {
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
-      border: none;
       outline: none;
       overflow: hidden;
       display: block;
