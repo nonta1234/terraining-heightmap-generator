@@ -234,7 +234,7 @@ onMounted(() => {
   }
 
   function onMove(e: any) {
-    $throttle(setGrid(mapbox, [e.lngLat.lng, e.lngLat.lat], false), 100)
+    $throttle(setGrid(mapbox, [e.lngLat.lng, e.lngLat.lat], false), 1000 / 30)
   }
 
   function onUp(e: any) {
@@ -253,16 +253,19 @@ onMounted(() => {
   }
 
   function onRotate(e: any) {
-    const point1 = [mapbox.value.settings.lng, mapbox.value.settings.lat]
-    const point2 = [e.lngLat.lng, e.lngLat.lat]
-    const currentAngle = turf.rhumbBearing(point1, point2)
-    const delta = currentAngle - prevAngle
-    mapbox.value.settings.angle = ((delta + mapbox.value.settings.angle + 540) % 360) - 180
+    const rotate = () => {
+      const point1 = [mapbox.value.settings.lng, mapbox.value.settings.lat]
+      const point2 = [e.lngLat.lng, e.lngLat.lat]
+      const currentAngle = turf.rhumbBearing(point1, point2)
+      const delta = currentAngle - prevAngle
+      mapbox.value.settings.angle = ((delta + mapbox.value.settings.angle + 540) % 360) - 180
 
-    setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+      setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
 
-    mapbox.value.settings.angle = getGridAngle()
-    prevAngle = currentAngle
+      mapbox.value.settings.angle = getGridAngle()
+      prevAngle = currentAngle
+    }
+    $throttle(rotate(), 1000 / 30)
   }
 
   function onRotateEnd() {
@@ -307,16 +310,19 @@ onMounted(() => {
   }
 
   function onResize(e: any) {
-    let distance = turf.pointToLineDistance([e.lngLat.lng, e.lngLat.lat], lineString, { units: 'kilometers' })
-    if (distance < mapSpec[mapbox.value.settings.gridInfo].size) { distance = mapSpec[mapbox.value.settings.gridInfo].size }
-    if (distance > mapSpec[mapbox.value.settings.gridInfo].size * 4) { distance = mapSpec[mapbox.value.settings.gridInfo].size * 4 }
-    const tmpRatio = mapbox.value.settings.vertScale / mapSpec[mapbox.value.settings.gridInfo].size * mapbox.value.settings.size
-    mapbox.value.settings.size = distance
-    if (mapbox.value.settings.fixedRatio) {
-      mapbox.value.settings.vertScale = tmpRatio * mapSpec[mapbox.value.settings.gridInfo].size / mapbox.value.settings.size
+    const resize = () => {
+      let distance = turf.pointToLineDistance([e.lngLat.lng, e.lngLat.lat], lineString, { units: 'kilometers' })
+      if (distance < mapSpec[mapbox.value.settings.gridInfo].size) { distance = mapSpec[mapbox.value.settings.gridInfo].size }
+      if (distance > mapSpec[mapbox.value.settings.gridInfo].size * 4) { distance = mapSpec[mapbox.value.settings.gridInfo].size * 4 }
+      const tmpRatio = mapbox.value.settings.vertScale / mapSpec[mapbox.value.settings.gridInfo].size * mapbox.value.settings.size
+      mapbox.value.settings.size = distance
+      if (mapbox.value.settings.fixedRatio) {
+        mapbox.value.settings.vertScale = tmpRatio * mapSpec[mapbox.value.settings.gridInfo].size / mapbox.value.settings.size
+      }
+      setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+      useEvent('map:changeMapSize', mapbox.value.settings.size)
     }
-    setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
-    useEvent('map:changeMapSize', mapbox.value.settings.size)
+    $throttle(resize(), 1000 / 30)
   }
 
   function onResizeEnd() {
