@@ -217,7 +217,7 @@ const debug = () => {
     }
   }
   .debug {
-    padding: 2px 0 2px;
+    padding: 2px 0;
     svg {
       height: 100%;
     }

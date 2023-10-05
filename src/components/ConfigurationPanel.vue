@@ -175,7 +175,7 @@ const close = () => {
   .close {
     height: 2.25rem;
     border-radius: .25rem;
-    padding: 0 1rem 0;
+    padding: 0 1rem;
     font-size: 1rem;
     line-height: 2.125;
     text-align: center;
