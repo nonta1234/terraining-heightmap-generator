@@ -13,11 +13,12 @@ export const setGridInfo = (gridInfoString: string) => {
   endCell = gridInfoValue.cell * gridInfoValue.cell - 1
   centerCell = endCell / 2
   const gap = (gridInfoValue.cell - gridInfoValue.playCell) / 2
+  const c1 = gridInfoValue.cell + 1
   playCell = [
-    gap * (gridInfoValue.cell + 1),
-    gap * (gridInfoValue.cell + 1) + gridInfoValue.playCell - 1,
-    endCell - gap * (gridInfoValue.cell + 1),
-    endCell - gap * (gridInfoValue.cell + 1) - gridInfoValue.playCell + 1,
+    gap * c1,
+    gap * c1 + gridInfoValue.playCell - 1,
+    endCell - gap * c1,
+    endCell - gap * c1 - gridInfoValue.playCell + 1,
   ]
   cornerCell = [
     0,
@@ -52,9 +53,9 @@ export const getGridAngle = () => {
 const getPlayArea = (features: Feature<Polygon, GeoJsonProperties>[]) => {
   const area = turf.polygon([[
     features[playCell[0]].geometry.coordinates[0][0],
-    features[playCell[3]].geometry.coordinates[0][3],
-    features[playCell[2]].geometry.coordinates[0][2],
     features[playCell[1]].geometry.coordinates[0][1],
+    features[playCell[2]].geometry.coordinates[0][2],
+    features[playCell[3]].geometry.coordinates[0][3],
     features[playCell[0]].geometry.coordinates[0][0],
   ]])
   return area
@@ -64,9 +65,9 @@ const getPlayArea = (features: Feature<Polygon, GeoJsonProperties>[]) => {
 const getCenterArea = (features: Feature<Polygon, GeoJsonProperties>[]) => {
   const area = turf.polygon([[
     features[centerCell].geometry.coordinates[0][0],
-    features[centerCell].geometry.coordinates[0][3],
-    features[centerCell].geometry.coordinates[0][2],
     features[centerCell].geometry.coordinates[0][1],
+    features[centerCell].geometry.coordinates[0][2],
+    features[centerCell].geometry.coordinates[0][3],
     features[centerCell].geometry.coordinates[0][0],
   ]])
   return area
@@ -77,30 +78,30 @@ const getRotateArea = (features: Feature<Polygon, GeoJsonProperties>[]) => {
   const area = turf.multiPolygon([[
     [
       features[cornerCell[0]].geometry.coordinates[0][0],
-      features[cornerCell[0]].geometry.coordinates[0][3],
-      features[cornerCell[0]].geometry.coordinates[0][2],
       features[cornerCell[0]].geometry.coordinates[0][1],
+      features[cornerCell[0]].geometry.coordinates[0][2],
+      features[cornerCell[0]].geometry.coordinates[0][3],
       features[cornerCell[0]].geometry.coordinates[0][0],
     ],
     [
       features[cornerCell[1]].geometry.coordinates[0][0],
-      features[cornerCell[1]].geometry.coordinates[0][3],
-      features[cornerCell[1]].geometry.coordinates[0][2],
       features[cornerCell[1]].geometry.coordinates[0][1],
+      features[cornerCell[1]].geometry.coordinates[0][2],
+      features[cornerCell[1]].geometry.coordinates[0][3],
       features[cornerCell[1]].geometry.coordinates[0][0],
     ],
     [
       features[cornerCell[2]].geometry.coordinates[0][0],
-      features[cornerCell[2]].geometry.coordinates[0][3],
-      features[cornerCell[2]].geometry.coordinates[0][2],
       features[cornerCell[2]].geometry.coordinates[0][1],
+      features[cornerCell[2]].geometry.coordinates[0][2],
+      features[cornerCell[2]].geometry.coordinates[0][3],
       features[cornerCell[2]].geometry.coordinates[0][0],
     ],
     [
       features[cornerCell[3]].geometry.coordinates[0][0],
-      features[cornerCell[3]].geometry.coordinates[0][3],
-      features[cornerCell[3]].geometry.coordinates[0][2],
       features[cornerCell[3]].geometry.coordinates[0][1],
+      features[cornerCell[3]].geometry.coordinates[0][2],
+      features[cornerCell[3]].geometry.coordinates[0][3],
       features[cornerCell[3]].geometry.coordinates[0][0],
     ],
   ]])
@@ -250,7 +251,7 @@ export const useMapbox = () => {
  *    +---+---+---+---0---+---+---+---+---+
  *    | 4 |   | P | P |40 | P | P |   |   |
  *    +---+---+---+---+---2---+---+---+---+
- *    | 5 |   | P | P | P |40 | P |   |   |
+ *    | 5 |   | P | P | P |50 | P |   |   |
  *    +---+---+---+---+---+---+---+---+---+
  *    | 6 |   | P | P | P | P |60 |   |   |
  *    +---+---+---+---+---+---+---2---+---+
