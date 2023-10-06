@@ -1,11 +1,11 @@
-const throttle = (fn: any, interval: number) => {
-  let lastTime = 0
+let lastTime = 0
 
+const throttle = function(fn: any, interval: number) {
   return () => {
     const currentTime = Date.now()
     if (currentTime - lastTime >= interval) {
-      lastTime = currentTime
       fn()
+      lastTime = currentTime
     }
   }
 }
