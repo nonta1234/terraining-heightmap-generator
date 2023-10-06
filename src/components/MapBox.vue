@@ -234,7 +234,7 @@ onMounted(() => {
   }
 
   function onMove(e: any) {
-    $throttle(setGrid(mapbox, [e.lngLat.lng, e.lngLat.lat], false), 1000 / 30)
+    $throttle(setGrid(mapbox, [e.lngLat.lng, e.lngLat.lat], false), 1000 / 60)
   }
 
   function onUp(e: any) {
@@ -265,7 +265,7 @@ onMounted(() => {
       mapbox.value.settings.angle = getGridAngle()
       prevAngle = currentAngle
     }
-    $throttle(rotate(), 1000 / 30)
+    $throttle(rotate(), 1000 / 60)
   }
 
   function onRotateEnd() {
@@ -278,10 +278,10 @@ onMounted(() => {
     gridState = 'none'
   }
 
-  let lineString: turf.Feature<turf.LineString>
+  let lineString: turf.helpers.Feature<turf.helpers.LineString, turf.helpers.Properties>
 
   function getFarthestLineString(coordinates: turf.Position[][], point: turf.Coord) {
-    let farthestLineString: any
+    let farthestLineString: turf.helpers.Feature<turf.helpers.LineString, turf.helpers.Properties> | undefined
     let maxDistance = 0
 
     for (let i = 0; i < coordinates.length; i++) {
@@ -292,7 +292,7 @@ onMounted(() => {
         farthestLineString = line
       }
     }
-    return farthestLineString
+    return farthestLineString as turf.helpers.Feature<turf.helpers.LineString, turf.helpers.Properties>
   }
 
   function onResizeStart(e: any) {
@@ -322,7 +322,7 @@ onMounted(() => {
       setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
       useEvent('map:changeMapSize', mapbox.value.settings.size)
     }
-    $throttle(resize(), 1000 / 30)
+    $throttle(resize(), 1000 / 60)
   }
 
   function onResizeEnd() {
