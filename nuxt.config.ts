@@ -28,14 +28,20 @@ export default defineNuxtConfig({
   ],
   vite: {
     build: {
-      chunkSizeWarningLimit: 100000000,
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         plugins: [
           visualizer({
             open: false,
-            template: 'treemap',
           }),
         ],
+        output: {
+          manualChunks(id) {
+            if (id.includes('mapbox-gl')) {
+              return 'vendor'
+            }
+          },
+        },
       },
     },
     server: {
