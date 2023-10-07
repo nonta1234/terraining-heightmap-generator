@@ -61,7 +61,7 @@ const reset = (e: Event) => {
   }
   .footer {
     display: flex;
-    padding: 0 1rem 1rem 1rem;
+    padding: 0 1rem 1rem;
     justify-content: space-between;
     position: relative;
   }
