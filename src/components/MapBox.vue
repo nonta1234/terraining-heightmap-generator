@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import * as turf from '@turf/turf'
 import { NavigationControl } from 'mapbox-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
 
 const mapbox = useMapbox()
 const { debugMode } = useDebug()

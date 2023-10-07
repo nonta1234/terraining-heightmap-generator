@@ -25,6 +25,7 @@ export default defineNuxtConfig({
     '@/assets/scss/reset.scss',
     '@/assets/scss/main.scss',
     '@fortawesome/fontawesome-svg-core/styles.css',
+    'mapbox-gl/dist/mapbox-gl.css',
   ],
   vite: {
     build: {
