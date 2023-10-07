@@ -38,7 +38,7 @@ export default defineNuxtConfig({
         ],
         output: {
           manualChunks(id) {
-            if (id.includes('mapbox-gl')) {
+            if (id.includes('mapbox-gl') && !id.includes('mapbox-gl.css')) {
               return 'vendor'
             }
           },
