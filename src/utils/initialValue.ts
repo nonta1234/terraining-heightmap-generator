@@ -7,6 +7,7 @@ export const mapStyle = {
   satStreets: 'mapbox://styles/mapbox/satellite-streets-v12',
   light:      'mapbox://styles/mapbox/light-v11?optimize=true',
   dark:       'mapbox://styles/mapbox/dark-v11?optimize=true',
+  standard:   'mapbox://styles/mapbox/standard-beta',
 }
 
 export const styleList = [

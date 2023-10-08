@@ -19,6 +19,10 @@ onMounted(() => {
 
   mapbox.value.map?.on('load', () => {
     mapCanvas = mapbox.value.map!.getCanvasContainer()
+    mapbox.value.map!.setStyle({
+      ...mapbox.value.map!.getStyle(),
+      version: 8,
+    })
   })
 
   mapbox.value.map?.on('style.load', () => {
@@ -81,6 +85,13 @@ onMounted(() => {
     mapbox.value.map?.addSource('hillshade-dem', {
       type: 'raster-dem',
       url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      tileSize: 512,
+      maxzoom: 14,
+    })
+    mapbox.value.map?.addSource('raster-dem', {
+      type: 'raster',
+      tiles: ['https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/{z}/{x}/{y}@2x.pngraw'],
+      // url: 'mapbox://mapbox.terrain-rgb',
       tileSize: 512,
       maxzoom: 14,
     })
@@ -186,11 +197,52 @@ onMounted(() => {
     mapbox.value.map?.addLayer(
       {
         id: 'hillshading',
-        source: 'hillshade-dem',
         type: 'hillshade',
+        source: 'hillshade-dem',
       },
       'water',
     )
+
+    mapbox.value.map?.addLayer(
+      {
+        id: 'newSharpen',
+        type: 'raster',
+        source: 'raster-dem',
+        paint: {
+          // @ts-ignore
+          'raster-color-range': [
+            -500,
+            9740,
+          ],
+          'raster-color-mix': [
+            256 * 256 * 256 * 0.1,
+            256 * 256 * 0.1,
+            256 * 0.1,
+            -10000,
+          ],
+          'raster-color': [
+            // 'interpolate,',
+            // ['linear'],
+            'step',
+            ['raster-value'],
+            'transparent',
+            -10, 'rgb(0,0,255)',
+            -5, 'rgb(0,255,255)',
+            0, 'rgb(255,255,255)',
+            5, 'rgb(0,255,0)',
+            10, 'rgb(255,255,0)',
+            100, 'rgb(255,155,0)',
+            500, 'rgb(155,155,0)',
+            1000, 'rgb(155,0,0)',
+            3777, 'rgb(55,0,0)',
+          ],
+          'raster-opacity': 0.5,
+        },
+      },
+      'water',
+    )
+
+
     mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'none')
     mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')
     mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
