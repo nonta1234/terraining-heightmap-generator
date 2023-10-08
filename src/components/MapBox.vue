@@ -157,35 +157,40 @@ onMounted(() => {
   }
 
   function addEffectLayer() {
-    mapbox.value.map?.addLayer({
-      id: 'smoothLayer',
-      type: 'fill',
-      source: 'contours',
-      'source-layer': 'contour',
-      paint: {
-        'fill-color': getSmoothLayerColor(),
-        'fill-opacity': 0.5,
+    mapbox.value.map?.addLayer(
+      {
+        id: 'smoothLayer',
+        type: 'fill',
+        source: 'contours',
+        'source-layer': 'contour',
+        paint: {
+          'fill-color': getSmoothLayerColor(),
+          'fill-opacity': 0.5,
+        },
       },
-    })
-    mapbox.value.map?.addLayer({
-      id: 'sharpenLayer',
-      type: 'fill',
-      source: 'contours',
-      'source-layer': 'contour',
-      paint: {
-        'fill-color': getSharpenLayerColor(),
-        'fill-opacity': 0.5,
-      },
-    })
-    mapbox.value.map?.addLayer({
-      id: 'hillshading',
-      source: 'hillshade-dem',
-      type: 'hillshade',
-    },
+      'water',
     )
-    mapbox.value.map?.moveLayer('smoothLayer', 'water')
-    mapbox.value.map?.moveLayer('sharpenLayer', 'water')
-    mapbox.value.map?.moveLayer('hillshading', 'water')
+    mapbox.value.map?.addLayer(
+      {
+        id: 'sharpenLayer',
+        type: 'fill',
+        source: 'contours',
+        'source-layer': 'contour',
+        paint: {
+          'fill-color': getSharpenLayerColor(),
+          'fill-opacity': 0.5,
+        },
+      },
+      'water',
+    )
+    mapbox.value.map?.addLayer(
+      {
+        id: 'hillshading',
+        source: 'hillshade-dem',
+        type: 'hillshade',
+      },
+      'water',
+    )
     mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'none')
     mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')
     mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
