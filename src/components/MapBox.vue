@@ -80,9 +80,10 @@ onMounted(() => {
     })
     mapbox.value.map?.addSource('raster-dem', {
       type: 'raster',
-      tiles: ['https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/{z}/{x}/{y}.pngraw'],
+      // tiles: ['https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/{z}/{x}/{y}.pngraw'],
+      tiles: ['https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw'],
       tileSize: 256,
-      maxzoom: 14,
+      maxzoom: 15,
     })
   }
 
@@ -167,6 +168,7 @@ onMounted(() => {
           'raster-color-mix': effectRasterColorMix,
           'raster-color': getSmoothLayerColor(),
           'raster-opacity': 1,
+          'raster-resampling': 'nearest',
         } as any,
       },
       'water',
@@ -182,6 +184,7 @@ onMounted(() => {
           'raster-color-mix': effectRasterColorMix,
           'raster-color': getSharpenLayerColor(),
           'raster-opacity': 1,
+          'raster-resampling': 'nearest',
         } as any,
       },
       'water',
