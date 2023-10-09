@@ -37,7 +37,7 @@ export const effectRasterColorMix = [
   256 * 256 * 256 * 0.1,
   256 * 256 * 0.1,
   256 * 0.1,
-  -10000,
+  -10020,
 ]
 
 export const initialValue = {
