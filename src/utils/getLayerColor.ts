@@ -15,7 +15,15 @@ export function getSharpenLayerColor() {
       ['raster-value'],
       'rgba(54,22,0,0)',
       mapbox.value.settings.shrpThres,
-      'rgba(54,22,0,0)',
+      [
+        'interpolate',
+        ['linear'],
+        ['raster-value'],
+        mapbox.value.settings.shrpThres,
+        'rgba(54,22,0,0)',
+        mapbox.value.settings.shrpThres + mapbox.value.settings.shrpFade,
+        'rgba(54,22,0,0.5)',
+      ],
       mapbox.value.settings.shrpThres + mapbox.value.settings.shrpFade,
       'rgba(54,22,0,0.5)',
     ]
@@ -40,7 +48,15 @@ export function getSmoothLayerColor() {
       ['raster-value'],
       'rgba(10,142,65,0.5)',
       mapbox.value.settings.smthThres - mapbox.value.settings.smthFade,
-      'rgba(10,142,65,0.5)',
+      [
+        'interpolate',
+        ['linear'],
+        ['raster-value'],
+        mapbox.value.settings.smthThres - mapbox.value.settings.smthFade,
+        'rgba(10,142,65,0.5)',
+        mapbox.value.settings.smthThres,
+        'rgba(10,142,65,0)',
+      ],
       mapbox.value.settings.smthThres,
       'rgba(10,142,65,0)',
     ]
