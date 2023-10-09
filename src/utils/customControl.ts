@@ -1,5 +1,49 @@
 import { Map } from 'mapbox-gl'
 
+const defaultHillshade = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  14,
+  [
+    'match',
+    ['get', 'class'],
+    'shadow',
+    'hsla(66, 38%, 17%, 0.08)',
+    'hsla(60, 20%, 95%, 0.14)',
+  ],
+  16,
+  [
+    'match',
+    ['get', 'class'],
+    'shadow',
+    'hsla(66, 38%, 17%, 0)',
+    'hsla(60, 20%, 95%, 0)',
+  ],
+]
+
+const effectedHillshade = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  14,
+  [
+    'match',
+    ['get', 'class'],
+    'shadow',
+    'hsla(66, 38%, 17%, 0.24)',
+    'hsla(60, 20%, 95%, 0.14)',
+  ],
+  16,
+  [
+    'match',
+    ['get', 'class'],
+    'shadow',
+    'hsla(66, 38%, 17%, 0.08)',
+    'hsla(60, 20%, 95%, 0)',
+  ],
+]
+
 export class HomeButton {
   onAdd(map: Map) {
     const div = document.createElement('div')
@@ -86,12 +130,12 @@ export class EffectedArea {
         button?.setAttribute('fill', '#F1F3F4')
         mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'visible')
         mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'visible')
-        mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'visible')
+        mapbox.value.map?.setPaintProperty('hillshade', 'fill-color', effectedHillshade)
       } else {
         button?.setAttribute('fill', '#86888A')
+        mapbox.value.map?.setPaintProperty('hillshade', 'fill-color', defaultHillshade)
         mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')
         mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'none')
-        mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
       }
     })
     return div

@@ -1,65 +1,49 @@
 export function getSharpenLayerColor() {
   const mapbox = useMapbox()
-  let lineColorParams = []
+  let rasterColorParams = []
   if (mapbox.value.settings.shrpFade === 0) {
-    lineColorParams = [
+    rasterColorParams = [
       'step',
-      ['get', 'ele'],
-      'hsla(34, 86%, 17%, 0)',
+      ['raster-value'],
+      'rgba(54,22,0,0)',
       mapbox.value.settings.shrpThres,
-      'hsl(34, 86%, 17%)',
+      'rgba(54,22,0,0.5)',
     ]
   } else {
-    lineColorParams = [
+    rasterColorParams = [
       'step',
-      ['get', 'ele'],
-      'hsla(34, 86%, 17%, 0)',
+      ['raster-value'],
+      'rgba(54,22,0,0)',
       mapbox.value.settings.shrpThres,
-      [
-        'interpolate',
-        ['linear'],
-        ['get', 'ele'],
-        mapbox.value.settings.shrpThres,
-        'hsla(34, 86%, 17%, 0)',
-        mapbox.value.settings.shrpThres + mapbox.value.settings.shrpFade,
-        'hsl(34, 86%, 17%)',
-      ],
+      'rgba(54,22,0,0)',
       mapbox.value.settings.shrpThres + mapbox.value.settings.shrpFade,
-      'hsl(34, 86%, 17%)',
+      'rgba(54,22,0,0.5)',
     ]
   }
-  return lineColorParams as mapboxgl.StyleFunction
+  return rasterColorParams as any
 }
 
 export function getSmoothLayerColor() {
   const mapbox = useMapbox()
-  let lineColorParams = []
+  let rasterColorParams = []
   if (mapbox.value.settings.smthFade === 0) {
-    lineColorParams = [
+    rasterColorParams = [
       'step',
-      ['get', 'ele'],
-      'hsl(87, 85%, 49%)',
+      ['raster-value'],
+      'rgba(10,142,65,0.5)',
       mapbox.value.settings.smthThres,
-      'hsl(145, 86%, 30%)',
+      'rgba(10,142,65,0.0)',
     ]
   } else {
-    lineColorParams = [
+    rasterColorParams = [
       'step',
-      ['get', 'ele'],
-      'hsl(87, 85%, 49%)',
+      ['raster-value'],
+      'rgba(10,142,65,0.5)',
       mapbox.value.settings.smthThres - mapbox.value.settings.smthFade,
-      [
-        'interpolate',
-        ['linear'],
-        ['get', 'ele'],
-        mapbox.value.settings.smthThres - mapbox.value.settings.smthFade,
-        'hsl(87, 85%, 49%)',
-        mapbox.value.settings.smthThres,
-        'hsl(145, 86%, 30%)',
-      ],
+      'rgba(10,142,65,0.5)',
       mapbox.value.settings.smthThres,
-      'hsl(145, 86%, 30%)',
+      'rgba(10,142,65,0)',
     ]
   }
-  return lineColorParams as mapboxgl.StyleFunction
+  return rasterColorParams as any
 }

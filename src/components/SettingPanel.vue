@@ -76,7 +76,7 @@ watch([ratio, vScale], () => {
 watch([_shrpThres, _shrpFade], () => {
   mapbox.value.map?.setPaintProperty(
     'sharpenLayer',
-    'fill-color',
+    'raster-color',
     getSharpenLayerColor(),
   )
 })
@@ -84,7 +84,7 @@ watch([_shrpThres, _shrpFade], () => {
 watch([_smthThres, _smthFade], () => {
   mapbox.value.map?.setPaintProperty(
     'smoothLayer',
-    'fill-color',
+    'raster-color',
     getSmoothLayerColor(),
   )
 })
@@ -223,15 +223,15 @@ onMounted(() => {
       <div class="section">
         <ul>
           <li><label>Smoothing&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smoothing" :max="100" :min="0" :step="1" /><span>%</span></li>
-          <li><label>Threshold&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smthThres" :max="10000" :min="0" :step="1" /><span>m</span></li>
-          <li><label>Fade&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smthFade" :max="1000" :min="0" :step="1" /><span>m</span></li>
+          <li><label>Threshold&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smthThres" :max="10000" :min="0" :step="10" /><span>m</span></li>
+          <li><label>Fade&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smthFade" :max="1000" :min="0" :step="10" /><span>m</span></li>
         </ul>
       </div>
       <div class="section">
         <ul>
           <li><label>Sharpen&ThinSpace;:</label><NumberInput v-model="mapbox.settings.sharpen" :max="200" :min="0" :step="1" /><span>%</span></li>
-          <li><label>Threshold&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpThres" :max="10000" :min="0" :step="1" /><span>m</span></li>
-          <li><label>Fade&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpFade" :max="1000" :min="0" :step="1" /><span>m</span></li>
+          <li><label>Threshold&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpThres" :max="10000" :min="0" :step="10" /><span>m</span></li>
+          <li><label>Fade&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpFade" :max="1000" :min="0" :step="10" /><span>m</span></li>
         </ul>
       </div>
       <div class="section footer">
