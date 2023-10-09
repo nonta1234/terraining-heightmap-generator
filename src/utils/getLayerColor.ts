@@ -7,7 +7,7 @@ export function getSharpenLayerColor() {
       ['raster-value'],
       'rgba(54,22,0,0)',
       mapbox.value.settings.shrpThres,
-      'rgba(54,22,0,0.5)',
+      'rgba(54,22,0,1)',
     ]
   } else {
     rasterColorParams = [
@@ -22,10 +22,10 @@ export function getSharpenLayerColor() {
         mapbox.value.settings.shrpThres,
         'rgba(54,22,0,0)',
         mapbox.value.settings.shrpThres + mapbox.value.settings.shrpFade,
-        'rgba(54,22,0,0.5)',
+        'rgba(54,22,0,1)',
       ],
       mapbox.value.settings.shrpThres + mapbox.value.settings.shrpFade,
-      'rgba(54,22,0,0.5)',
+      'rgba(54,22,0,1)',
     ]
   }
   return rasterColorParams as any
@@ -38,7 +38,7 @@ export function getSmoothLayerColor() {
     rasterColorParams = [
       'step',
       ['raster-value'],
-      'rgba(10,142,65,0.5)',
+      'rgba(10,142,65,1)',
       mapbox.value.settings.smthThres,
       'rgba(10,142,65,0.0)',
     ]
@@ -46,14 +46,14 @@ export function getSmoothLayerColor() {
     rasterColorParams = [
       'step',
       ['raster-value'],
-      'rgba(10,142,65,0.5)',
+      'rgba(10,142,65,1)',
       mapbox.value.settings.smthThres - mapbox.value.settings.smthFade,
       [
         'interpolate',
         ['linear'],
         ['raster-value'],
         mapbox.value.settings.smthThres - mapbox.value.settings.smthFade,
-        'rgba(10,142,65,0.5)',
+        'rgba(10,142,65,1)',
         mapbox.value.settings.smthThres,
         'rgba(10,142,65,0)',
       ],
