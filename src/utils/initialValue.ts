@@ -67,4 +67,5 @@ export const initialValue = {
   interpolation: 'bicubic',
   noise:         0,
   noiseGrid:     10,
+  displayEffect: false,
 }

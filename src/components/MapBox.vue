@@ -167,7 +167,7 @@ onMounted(() => {
           'raster-color-range': effectRasterColorRange,
           'raster-color-mix': effectRasterColorMix,
           'raster-color': getSmoothLayerColor(),
-          'raster-opacity': 0.5,
+          'raster-opacity': getRasterOpacity(mapbox.value.settings.smoothing / 100 * 0.8),
           'raster-resampling': 'nearest',
         } as any,
       },
@@ -183,14 +183,12 @@ onMounted(() => {
           'raster-color-range': effectRasterColorRange,
           'raster-color-mix': effectRasterColorMix,
           'raster-color': getSharpenLayerColor(),
-          'raster-opacity': 0.5,
+          'raster-opacity': getRasterOpacity(mapbox.value.settings.sharpen / 100 * 0.8),
           'raster-resampling': 'nearest',
         } as any,
       },
       'water',
     )
-
-    // mapbox.value.map?.setPaintProperty('hillshade', 'fill-color', effectedHillshade)
 
     mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'none')
     mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')

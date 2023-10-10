@@ -3,6 +3,20 @@ const mapbox = useMapbox()
 
 const heightmapTypeRef = ref<HTMLSelectElement>()
 const interpolationRef = ref<HTMLSelectElement>()
+const _displayEffect = computed(() => mapbox.value.settings.displayEffect)
+
+watch(_displayEffect, () => {
+  mapbox.value.map?.setPaintProperty(
+    'sharpenLayer',
+    'raster-opacity',
+    getRasterOpacity(mapbox.value.settings.sharpen / 100 * 0.8),
+  )
+  mapbox.value.map?.setPaintProperty(
+    'smoothLayer',
+    'raster-opacity',
+    getRasterOpacity(mapbox.value.settings.smoothing / 100 * 0.8),
+  )
+})
 
 onMounted(() => {
   heightmapTypeRef.value!.value = mapbox.value.settings.gridInfo
@@ -64,6 +78,12 @@ const close = () => {
               <NumberInput v-model="mapbox.settings.noiseGrid" :max="100" :min="1" :step="1" />
             </label>
           </li>
+          <li>
+            <label class="amount">
+              <span>Reflecting the<br>amount of effect&ThinSpace;:</span>
+              <ToggleSwitch v-model="mapbox.settings.displayEffect" :name="'display-effect'" />
+            </label>
+          </li>
         </ul>
         <button class="close" @click="close">CLOSE</button>
       </div>
@@ -97,6 +117,9 @@ const close = () => {
     &:has(input) {
       height: 1.5rem;
       line-height: 1.5;
+      &.amount {
+        height: 3rem;
+      }
     }
     span {
       display: block;
@@ -182,7 +205,7 @@ const close = () => {
     border: solid 1px $borderColor;
     background-color: rgba(255, 255, 255, .1);
     color: $textColor;
-    margin: 1.5rem 0 0 auto;
+    margin: 1rem 0 0 auto;
     cursor: pointer;
     &:hover, &:focus {
       color: aquamarine;

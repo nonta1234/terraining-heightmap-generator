@@ -32,9 +32,11 @@ const minSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size)
 const hScale = computed(() => 17.28 / mapbox.value.settings.size)
 const vScale = computed(() => mapbox.value.settings.vertScale)
 
+const _sharpen = computed(() => mapbox.value.settings.sharpen)
 const _shrpThres = computed(() => mapbox.value.settings.shrpThres)
 const _shrpFade = computed(() => mapbox.value.settings.shrpFade)
 
+const _smoothing = computed(() => mapbox.value.settings.smoothing)
 const _smthThres = computed(() => mapbox.value.settings.smthThres)
 const _smthFade = computed(() => mapbox.value.settings.smthFade)
 
@@ -71,6 +73,22 @@ watch([ratio, vScale], () => {
   limitCheck()
   mapbox.value.map?.setTerrain()
   mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: ratio.value })
+})
+
+watch(_sharpen, () => {
+  mapbox.value.map?.setPaintProperty(
+    'sharpenLayer',
+    'raster-opacity',
+    getRasterOpacity(mapbox.value.settings.sharpen / 100 * 0.8),
+  )
+})
+
+watch(_smoothing, () => {
+  mapbox.value.map?.setPaintProperty(
+    'smoothLayer',
+    'raster-opacity',
+    getRasterOpacity(mapbox.value.settings.smoothing / 100 * 0.8),
+  )
 })
 
 watch([_shrpThres, _shrpFade], () => {

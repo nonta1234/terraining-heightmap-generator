@@ -58,6 +58,7 @@ export interface Settings {
   interpolation: Interpolation;
   noise:         number;
   noiseGrid:     number;
+  displayEffect: boolean;
 }
 
 export interface Mapbox {

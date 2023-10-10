@@ -63,3 +63,12 @@ export function getSmoothLayerColor() {
   }
   return rasterColorParams as any
 }
+
+export const getRasterOpacity = (value: number) => {
+  const mapbox = useMapbox()
+  if (mapbox.value.settings.displayEffect) {
+    return Math.min(value, 1)
+  } else {
+    return 0.5
+  }
+}

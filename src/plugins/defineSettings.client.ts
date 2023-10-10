@@ -27,6 +27,7 @@ const defineSettings = () => {
   store.interpolation = store.interpolation || initialValue.interpolation
   store.noise = typeof store.noise === 'undefined' ? initialValue.noise : store.noise
   store.noiseGrid = typeof store.noiseGrid === 'undefined' ? initialValue.noiseGrid : store.noiseGrid
+  store.displayEffect = typeof store.displayEffect === 'undefined' ? initialValue.displayEffect : store.displayEffect
   return store
 }
 
