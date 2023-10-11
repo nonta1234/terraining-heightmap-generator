@@ -76,19 +76,23 @@ watch([ratio, vScale], () => {
 })
 
 watch(_sharpen, () => {
-  mapbox.value.map?.setPaintProperty(
-    'sharpenLayer',
-    'raster-opacity',
-    getRasterOpacity(mapbox.value.settings.sharpen / 100 * 0.8),
-  )
+  if (mapbox.value.settings.displayEffect) {
+    mapbox.value.map?.setPaintProperty(
+      'sharpenLayer',
+      'raster-opacity',
+      getRasterOpacity(mapbox.value.settings.sharpen),
+    )
+  }
 })
 
 watch(_smoothing, () => {
-  mapbox.value.map?.setPaintProperty(
-    'smoothLayer',
-    'raster-opacity',
-    getRasterOpacity(mapbox.value.settings.smoothing / 100 * 0.8),
-  )
+  if (mapbox.value.settings.displayEffect) {
+    mapbox.value.map?.setPaintProperty(
+      'smoothLayer',
+      'raster-opacity',
+      getRasterOpacity(mapbox.value.settings.smoothing),
+    )
+  }
 })
 
 watch([_shrpThres, _shrpFade], () => {
