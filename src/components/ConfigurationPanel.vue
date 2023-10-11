@@ -3,25 +3,24 @@ const mapbox = useMapbox()
 
 const heightmapTypeRef = ref<HTMLSelectElement>()
 const interpolationRef = ref<HTMLSelectElement>()
-const _displayEffect = computed(() => mapbox.value.settings.displayEffect)
-
-watch(_displayEffect, () => {
-  mapbox.value.map?.setPaintProperty(
-    'sharpenLayer',
-    'raster-opacity',
-    getRasterOpacity(mapbox.value.settings.sharpen / 100 * 0.8),
-  )
-  mapbox.value.map?.setPaintProperty(
-    'smoothLayer',
-    'raster-opacity',
-    getRasterOpacity(mapbox.value.settings.smoothing / 100 * 0.8),
-  )
-})
 
 onMounted(() => {
   heightmapTypeRef.value!.value = mapbox.value.settings.gridInfo
   interpolationRef.value!.value = mapbox.value.settings.interpolation
 })
+
+const toggleDisplayEffect = () => {
+  mapbox.value.map?.setPaintProperty(
+    'sharpenLayer',
+    'raster-opacity',
+    getRasterOpacity(mapbox.value.settings.sharpen),
+  )
+  mapbox.value.map?.setPaintProperty(
+    'smoothLayer',
+    'raster-opacity',
+    getRasterOpacity(mapbox.value.settings.smoothing),
+  )
+}
 
 const close = () => {
   useEvent('map:cpModal')
@@ -81,7 +80,7 @@ const close = () => {
           <li>
             <label class="amount">
               <span>Reflecting the<br>amount of effect&ThinSpace;:</span>
-              <ToggleSwitch v-model="mapbox.settings.displayEffect" :name="'display-effect'" />
+              <ToggleSwitch v-model="mapbox.settings.displayEffect" :name="'display-effect'" @change="toggleDisplayEffect"  />
             </label>
           </li>
         </ul>
