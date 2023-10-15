@@ -130,12 +130,14 @@ export class EffectedArea {
         button?.setAttribute('fill', '#F1F3F4')
         mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'visible')
         mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'visible')
+        mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'visible')
         mapbox.value.map?.setPaintProperty('hillshade', 'fill-color', effectedHillshade)
       } else {
         button?.setAttribute('fill', '#86888A')
         mapbox.value.map?.setPaintProperty('hillshade', 'fill-color', defaultHillshade)
-        mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')
+        mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
         mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'none')
+        mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')
       }
     })
     return div

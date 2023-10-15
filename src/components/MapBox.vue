@@ -85,6 +85,12 @@ onMounted(() => {
       tileSize: 256,
       maxzoom: 15,
     })
+    mapbox.value.map?.addSource('hillshade-dem', {
+      type: 'raster-dem',
+      url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      tileSize: 512,
+      maxzoom: 14,
+    })
   }
 
   function addTerrain() {
@@ -171,7 +177,7 @@ onMounted(() => {
           'raster-resampling': 'nearest',
         } as any,
       },
-      'water',
+      'waterway-shadow',
     )
 
     mapbox.value.map?.addLayer(
@@ -187,11 +193,21 @@ onMounted(() => {
           'raster-resampling': 'nearest',
         } as any,
       },
-      'water',
+      'waterway-shadow',
+    )
+
+    mapbox.value.map?.addLayer(
+      {
+        id: 'hillshading',
+        source: 'hillshade-dem',
+        type: 'hillshade',
+      },
+      'waterway-shadow',
     )
 
     mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'none')
     mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')
+    mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
   }
 
   const addResetGridDirection = () => {
