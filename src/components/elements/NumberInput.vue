@@ -37,7 +37,7 @@ watch(() => props.disabled, () => {
 
 let isComposing = false
 
-const _value = ref((props.value ?? props.modelValue)!)
+const _value = ref((props.value ?? props.modelValue) || 0)
 
 const decimalPart = props.step.toString().split('.')[1]
 const decimalDigits = (decimalPart && decimalPart.length) ? decimalPart.length : 0
@@ -54,7 +54,7 @@ const filter = (src: string) => {
 }
 
 const displayText = computed({
-  get: () => (props.value ?? props.modelValue)!.toFixed(decimalDigits),
+  get: () => ((props.value ?? props.modelValue) || 0).toFixed(decimalDigits),
   set: (val) => {
     const str = filter(val)
     _value.value = parseFloat(str)
@@ -82,7 +82,7 @@ const onCompositionEnd = async (e: Event) => {
 }
 
 const handleChange = (value: number) => {
-  const prevValue = props.value ?? props.modelValue
+  const prevValue = (props.value ?? props.modelValue) || 0
   let tmpValue = value
   if (isNaN(tmpValue)) {
     displayText.value = prevValue!.toFixed(decimalDigits)
