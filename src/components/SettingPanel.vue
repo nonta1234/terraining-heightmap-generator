@@ -338,7 +338,7 @@ onMounted(() => {
   input[input] {
     color: #FFA500;
   }
-  input[type="number"]:disabled {
+  input:disabled {
     color: $textDisabled;
     background-color: transparent;
   }

@@ -2,7 +2,7 @@
 interface Props {
   modelValue?: number;
   value?: number;
-  step?: number
+  step?: number;
   max?: number;
   min?: number;
   disabled?: boolean;
@@ -35,48 +35,90 @@ watch(() => props.disabled, () => {
   }
 })
 
-const decimalPart = computed(() => props.step.toString().split('.')[1]).value
+let isComposing = false
+
+const _value = ref((props.value ?? props.modelValue)!)
+
+const decimalPart = props.step.toString().split('.')[1]
 const decimalDigits = (decimalPart && decimalPart.length) ? decimalPart.length : 0
 const scale = Math.pow(10, decimalDigits)
 
-const toDisplayValue = (value: number) => {
-  return Math.round(value * scale) / scale
+const filter = (src: string) => {
+  return src
+    .replace(/[０-９．]/g, (s) => {
+      return String.fromCharCode(s.charCodeAt(0) - 65248)
+    })
+    .replace(/[‐－―ー]/g, '-')
+    .replace(/[^\-\d.]/g, '')
+    .replace(/(?!^-)[^\d.]/g, '')
 }
 
-const _value = ref()
-
-const displayValue = computed({
-  get: () => toDisplayValue((typeof props.modelValue === 'undefined' ? props.value : props.modelValue) as number),
-  set: (val) => { _value.value = val },
+const displayText = computed({
+  get: () => (props.value ?? props.modelValue)!.toFixed(decimalDigits),
+  set: (val) => {
+    const str = filter(val)
+    _value.value = parseFloat(str)
+    nInput.value!.value = str
+  },
 })
 
-const onFocus = (e: Event) => {
-  const value = (e.target as HTMLInputElement).value
-  _value.value = parseFloat(value)
-}
-
 const onInput = (e: Event) => {
-  const value = (e.target as HTMLInputElement).value
-  if (!Number.isNaN(parseFloat(value))) {
-    displayValue.value = parseFloat(value)
+  if (!isComposing) {
+    displayText.value = (e.target as HTMLInputElement).value
   }
   nInput.value?.setAttribute('input', '')
   emit('input')
 }
 
-const handleChange = () => {
-  const oldValue = (typeof props.modelValue === 'undefined' ? props.value : props.modelValue) as number
-  if (_value.value > props.max) { _value.value = props.max }
-  if (_value.value < props.min) { _value.value = props.min }
-  if (!Number.isNaN(_value.value)) {
-    displayValue.value = toDisplayValue(_value.value)
+const onCompositionStart = () => {
+  isComposing = true
+}
+
+const onCompositionEnd = async (e: Event) => {
+  await new Promise(resolve => setTimeout(() => {
+    resolve(displayText.value = (e.target as HTMLInputElement).value)
+  }, 0))
+  isComposing = false
+}
+
+const handleChange = (value: number) => {
+  const prevValue = props.value ?? props.modelValue
+  let tmpValue = value
+  if (isNaN(tmpValue)) {
+    displayText.value = prevValue!.toFixed(decimalDigits)
   } else {
-    displayValue.value = toDisplayValue(oldValue)
+    if (tmpValue > props.max) { tmpValue = props.max }
+    if (tmpValue < props.min) { tmpValue = props.min }
+    if (props.step > 1) {
+      tmpValue = Math.round(Math.round(tmpValue * scale) / scale / props.step) * props.step
+    } else {
+      tmpValue = Math.round(tmpValue * scale) / scale
+    }
+    displayText.value = tmpValue.toFixed(decimalDigits)
   }
-  nInput.value!.value = String(toDisplayValue(oldValue))
   nInput.value?.removeAttribute('input')
   emit('update:modelValue', _value.value)
   emit('change', _value.value)
+}
+
+const onChange = (e: Event) => {
+  if (!isComposing) {
+    handleChange(parseFloat(filter((e.target as HTMLInputElement).value)))
+  }
+}
+
+const onKeydown = (e: KeyboardEvent) => {
+  if (!isComposing) {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      _value.value += props.step
+      handleChange(_value.value)
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      _value.value -= props.step
+      handleChange(_value.value)
+    }
+  }
 }
 </script>
 
@@ -84,15 +126,16 @@ const handleChange = () => {
 <template>
   <input
     ref="nInput"
-    :value="displayValue"
-    type="number"
-    :max="max"
-    :min="min"
-    :step="step"
-    @focus="onFocus"
+    :value="displayText"
+    type="text"
+    inputmode="decimal"
+    enterkeyhint="done"
     @input="onInput"
-    @keydown.enter="handleChange"
-    @blur="handleChange"
+    @compositionstart="onCompositionStart"
+    @compositionend="onCompositionEnd"
+    @keydown="onKeydown"
+    @keydown.enter="onChange"
+    @blur="onChange"
   />
 </template>
 
@@ -108,14 +151,5 @@ const handleChange = () => {
     text-align: right;
     text-overflow: hidden;
     font-feature-settings: "tnum";
-  }
-  input[type="number"]::-webkit-inner-spin-button,
-  input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none !important;
-    margin: 0 !important;
-    -moz-appearance:textfield !important;
-  }
-  input[type="number"] {
-    -moz-appearance:textfield;
   }
 </style>
