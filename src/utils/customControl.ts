@@ -1,5 +1,4 @@
 import { Map } from 'mapbox-gl'
-
 /**
 const defaultHillshade = [
   'interpolate',
@@ -66,7 +65,47 @@ export class HomeButton {
 }
 
 
-export class ResetGridDirection {
+
+
+interface CustomControl {
+}
+
+
+export class ResetGridDirection implements CustomControl {
+  private _pressPosition: Array<number>
+  private _pressTimer: string | number | NodeJS.Timeout | undefined
+  private _isIos: boolean
+
+  private clearTimer(force: boolean, e?: TouchEvent) {
+    if (force) {
+      clearTimeout(this._pressTimer)
+    } else if (this._pressPosition && e && e.touches) {
+      const pixel = [e.touches[0].clientX, e.touches[0].clientY]
+      if (this._pressPosition[0] > pixel[0] + 20 || this._pressPosition[0] < pixel[0] - 20 ||
+          this._pressPosition[1] > pixel[1] + 20 || this._pressPosition[1] < pixel[1] - 20) {
+        this._pressPosition = []
+        clearTimeout(this._pressTimer)
+      }
+    }
+  }
+
+  private longTap() {
+    const mapbox = useMapbox()
+    mapbox.value.map?.easeTo({
+      bearing: mapbox.value.settings.angle,
+      easing: ease,
+      duration: 1000,
+    })
+    saveSettings(mapbox.value.settings)
+  }
+
+  constructor() {
+    this._pressPosition = []
+    this._pressTimer = undefined
+    const { isIos } = useDevice()
+    this._isIos = isIos
+  }
+
   onAdd() {
     const div = document.createElement('div')
     div.className = 'mapboxgl-ctrl mapboxgl-ctrl-group'
@@ -75,14 +114,30 @@ export class ResetGridDirection {
       </button>`
     div.addEventListener('contextmenu', (e) => {
       e.preventDefault()
-      const mapbox = useMapbox()
-      mapbox.value.map?.easeTo({
-        bearing: mapbox.value.settings.angle,
-        easing: ease,
-        duration: 1000,
-      })
-      saveSettings(mapbox.value.settings)
+      this.longTap()
     })
+
+    if (this._isIos) {
+      div.addEventListener('touchstart', (e) => {
+        this.clearTimer(true)
+        this._pressPosition = [e.touches[0].clientX, e.touches[0].clientY]
+        this._pressTimer = setTimeout(() => {
+          this._pressPosition = []
+          e.preventDefault()
+          this.longTap()
+        }, 1000)
+      })
+      div.addEventListener('touchend', () => {
+        this.clearTimer(true)
+      }, false)
+      div.addEventListener('touchcancel', () => {
+        this.clearTimer(true)
+      }, false)
+      div.addEventListener('touchmove', (e) => {
+        this.clearTimer(false, e)
+      }, false)
+    }
+
     div.addEventListener('click', () => {
       const mapbox = useMapbox()
       const startAngle = getGridAngle()
