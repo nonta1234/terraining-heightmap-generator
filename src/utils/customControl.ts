@@ -65,13 +65,7 @@ export class HomeButton {
 }
 
 
-
-
-interface CustomControl {
-}
-
-
-export class ResetGridDirection implements CustomControl {
+export class ResetGridDirection {
   private _pressPosition: Array<number>
   private _pressTimer: string | number | NodeJS.Timeout | undefined
   private _isIos: boolean
