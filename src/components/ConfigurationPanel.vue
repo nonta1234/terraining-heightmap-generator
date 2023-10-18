@@ -80,7 +80,7 @@ const close = () => {
           <li>
             <label class="amount">
               <span>Reflecting the<br>amount of effect&ThinSpace;:</span>
-              <ToggleSwitch v-model="mapbox.settings.displayEffect" :name="'display-effect'" @change="toggleDisplayEffect"  />
+              <ToggleSwitch v-model="mapbox.settings.displayEffect" :name="'display-effect'" @change="toggleDisplayEffect" />
             </label>
           </li>
         </ul>
