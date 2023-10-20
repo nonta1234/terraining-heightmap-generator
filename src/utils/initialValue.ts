@@ -48,7 +48,7 @@ export const initialValue = {
   angle:         0,
   seaLevel:      0,
   adjLevel:      false,
-  vScale:        1.00,
+  vertScale:     1.00,
   fixedRatio:    true,
   type:          'manual',
   depth:         40,
