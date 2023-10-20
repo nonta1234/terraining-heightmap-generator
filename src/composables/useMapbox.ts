@@ -197,8 +197,6 @@ export const createMapInstance = () => {
   const mapbox = useMapbox()
   const config = useRuntimeConfig()
 
-  mapbox.value.settings = useDefineSettings().value
-
   // eslint-disable-next-line import/no-named-as-default-member
   mapboxgl.workerCount = 4
 
