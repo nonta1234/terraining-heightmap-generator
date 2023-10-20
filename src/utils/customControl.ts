@@ -83,7 +83,7 @@ export class ResetGridDirection {
     }
   }
 
-  private longTap() {
+  private longPress() {
     const mapbox = useMapbox()
     mapbox.value.map?.easeTo({
       bearing: mapbox.value.settings.angle,
@@ -108,7 +108,7 @@ export class ResetGridDirection {
       </button>`
     div.addEventListener('contextmenu', (e) => {
       e.preventDefault()
-      this.longTap()
+      this.longPress()
     })
 
     if (this._isIos) {
@@ -118,7 +118,7 @@ export class ResetGridDirection {
         this._pressTimer = setTimeout(() => {
           this._pressPosition = []
           e.preventDefault()
-          this.longTap()
+          this.longPress()
         }, 1000)
       })
       div.addEventListener('touchend', () => {
