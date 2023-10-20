@@ -29,7 +29,7 @@ const maxHeight = ref('-')
 const maxSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size * 4)
 const minSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size)
 
-const hScale = computed(() => 17.28 / mapbox.value.settings.size)
+const hScale = computed(() => mapSpec[mapbox.value.settings.gridInfo].size / mapbox.value.settings.size)
 const vScale = computed(() => mapbox.value.settings.vertScale)
 
 const _sharpen = computed(() => mapbox.value.settings.sharpen)
