@@ -37,38 +37,43 @@ const calcMap = (data: MessageData) => {
 
 
 export const getCitiesMap = async () => {
-  const mapbox = useMapbox()
-  const tmpHeightMap = await getHeightMap()
-  const { waterMap, waterwayMap } = await getWaterMap()
-  const { min, max } = getMinMaxHeight(tmpHeightMap)
+  try {
+    const mapbox = useMapbox()
+    const tmpHeightMap = await getHeightMap()
+    const { waterMap, waterwayMap } = await getWaterMap()
+    const { min, max } = getMinMaxHeight(tmpHeightMap)
 
-  if (mapbox.value.settings.adjLevel) {
-    mapbox.value.settings.seaLevel = min
+    if (mapbox.value.settings.adjLevel) {
+      mapbox.value.settings.seaLevel = min
+    }
+    adjustElevation(max)
+
+    const messageData: MessageData = {
+      tmpHeightMap: new Float64Array(tmpHeightMap),
+      waterMap: new Float64Array(waterMap),
+      waterwayMap: new Float64Array(waterwayMap),
+      seaLevel: mapbox.value.settings.seaLevel,
+      vertScale: mapbox.value.settings.vertScale,
+      smoothing: mapbox.value.settings.smoothing,
+      smthThres: mapbox.value.settings.smthThres,
+      smthFade: mapbox.value.settings.smthFade,
+      sharpen: mapbox.value.settings.sharpen,
+      shrpThres: mapbox.value.settings.shrpThres,
+      shrpFade: mapbox.value.settings.shrpFade,
+      depth: mapbox.value.settings.depth,
+      streamDepth: mapbox.value.settings.streamDepth,
+      mapSizePixels: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+      mapSizePixelsWithBuffer: mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4,
+      noise: mapbox.value.settings.noise,
+      noiseGrid: mapbox.value.settings.noiseGrid,
+      smoothCount: mapbox.value.settings.smoothCount,
+    }
+
+    const citiesMap = await calcMap(messageData)
+
+    return citiesMap
+  } catch (error) {
+    console.error('An error occurred in getCitiesMap:', error)
+    throw error
   }
-  adjustElevation(max)
-
-  const messageData: MessageData = {
-    tmpHeightMap: new Float64Array(tmpHeightMap),
-    waterMap: new Float64Array(waterMap),
-    waterwayMap: new Float64Array(waterwayMap),
-    seaLevel: mapbox.value.settings.seaLevel,
-    vertScale: mapbox.value.settings.vertScale,
-    smoothing: mapbox.value.settings.smoothing,
-    smthThres: mapbox.value.settings.smthThres,
-    smthFade: mapbox.value.settings.smthFade,
-    sharpen: mapbox.value.settings.sharpen,
-    shrpThres: mapbox.value.settings.shrpThres,
-    shrpFade: mapbox.value.settings.shrpFade,
-    depth: mapbox.value.settings.depth,
-    streamDepth: mapbox.value.settings.streamDepth,
-    mapSizePixels: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-    mapSizePixelsWithBuffer: mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4,
-    noise: mapbox.value.settings.noise,
-    noiseGrid: mapbox.value.settings.noiseGrid,
-    smoothCount: mapbox.value.settings.smoothCount,
-  }
-
-  const citiesMap = await calcMap(messageData)
-
-  return citiesMap
 }

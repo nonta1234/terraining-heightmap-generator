@@ -18,23 +18,19 @@ export const getOsmMap = async () => {
     area = turf.flatten(turf.bboxPolygon([minX, minY, maxX, maxY]))
   }
 
-  try {
-    const res = await fetch(url)
-    if (res.ok) {
-      const osm = await res.text()
-      if (mapbox.value.settings.angle === 0) {
-        return osm
-      } else {
-        const geojsonData = osm2geojson(osm, { completeFeature: true, allFeatures: true, renderTagged: true }) as turf.AllGeoJSON
-        turf.transformRotate(geojsonData, mapbox.value.settings.angle, { pivot: [mapbox.value.settings.lng, mapbox.value.settings.lat], mutate: true })
-        const clipedGeojson = clip(area, geojsonData)
-        return geojsontoosm(clipedGeojson)
-      }
+  const res = await fetch(url)
+  if (res.ok) {
+    const osm = await res.text()
+    if (mapbox.value.settings.angle === 0) {
+      return osm
     } else {
-      throw new Error(`download osm data error: ${res.status}`)
+      const geojsonData = osm2geojson(osm, { completeFeature: true, allFeatures: true, renderTagged: true }) as turf.AllGeoJSON
+      turf.transformRotate(geojsonData, mapbox.value.settings.angle, { pivot: [mapbox.value.settings.lng, mapbox.value.settings.lat], mutate: true })
+      const clipedGeojson = clip(area, geojsonData)
+      return geojsontoosm(clipedGeojson)
     }
-  } catch (e: any) {
-    throw new Error(e.message)
+  } else {
+    throw new Error(`An error occurred in download osm data: ${res.status}`)
   }
 }
 
@@ -64,8 +60,9 @@ function clip(clippingData: turf.AllGeoJSON, inputData: turf.AllGeoJSON) {
         intersectFeatures!.properties = cGeo.properties
         output.features.push(intersectFeatures!)
         }
-      } catch (e: any) {
-        // console.log(e.message)
+      } catch (error) {
+        console.error('An error occurred in clipping osm data:', error)
+        throw error
       }
     }
   }

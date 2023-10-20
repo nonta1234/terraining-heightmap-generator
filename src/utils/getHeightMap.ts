@@ -286,10 +286,15 @@ const getHeightMapBicubic = async () => {
 
 
 export const getHeightMap = async () => {
-  const mapbox = useMapbox()
-  if (mapbox.value.settings.interpolation === 'bicubic') {
-    return await getHeightMapBicubic()
-  } else {
-    return await getHeightMapBilinear()
+  try {
+    const mapbox = useMapbox()
+    if (mapbox.value.settings.interpolation === 'bicubic') {
+      return await getHeightMapBicubic()
+    } else {
+      return await getHeightMapBilinear()
+    }
+  } catch (error) {
+    console.error('An error occurred in getHeightMap:', error)
+    throw error
   }
 }
