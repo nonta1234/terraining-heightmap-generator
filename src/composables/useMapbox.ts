@@ -197,6 +197,8 @@ export const createMapInstance = () => {
   const mapbox = useMapbox()
   const config = useRuntimeConfig()
 
+  mapbox.value.settings = useDefineSettings().value
+
   // eslint-disable-next-line import/no-named-as-default-member
   mapboxgl.workerCount = 4
 
@@ -209,7 +211,6 @@ export const createMapInstance = () => {
     zoom:        mapbox.value.settings.zoom,
   })
 
-  mapbox.value.settings = useDefineSettings().value
   setGridInfo(mapbox.value.settings.gridInfo)
 
   mapbox.value.grid = getGrid(
