@@ -6993,10 +6993,10 @@ make-fetch-happen@^13.0.0:
     promise-retry "^2.0.1"
     ssri "^10.0.0"
 
-mapbox-gl@3.0.0-beta.4:
-  version "3.0.0-beta.4"
-  resolved "https://registry.yarnpkg.com/mapbox-gl/-/mapbox-gl-3.0.0-beta.4.tgz#8576a91cdd490a44f52e1d0ce54776facab44a95"
-  integrity sha512-F28ptXe5XDM7I95FRhJK3v2JCL3rh+W3y1y+RQqvHraZ4wG3Bmoyr5ABeAayc/1vQDlA6cPhZNVUFuTQkSh99Q==
+mapbox-gl@3.0.0-beta.5:
+  version "3.0.0-beta.5"
+  resolved "https://registry.yarnpkg.com/mapbox-gl/-/mapbox-gl-3.0.0-beta.5.tgz#05c0cc9da15ae0801adb7fd1d883b662ef2b7bc8"
+  integrity sha512-qkbX4xgf2BSrA/lBLcMN53ft0v0cWjRFU78uCgaiNrrujKsoUe7mBiQPDN8QRmvS4ZyZIwjmFtsAvUN/RLykHg==
   dependencies:
     "@mapbox/geojson-rewind" "^0.5.2"
     "@mapbox/jsonlint-lines-primitives" "^2.0.2"
