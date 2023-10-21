@@ -66,7 +66,7 @@ export function getSmoothLayerColor() {
 
 export const getRasterOpacity = (value: number) => {
   const mapbox = useMapbox()
-  if (mapbox.value.settings.displayEffect) {
+  if (mapbox.value.settings.applyEffectAmount) {
     return Math.sqrt(value / 100) * 0.7
   } else {
     return 0.5

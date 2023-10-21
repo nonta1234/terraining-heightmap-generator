@@ -30,7 +30,7 @@ onMounted(() => {
     addTerrain()
     addEffectLayer()
     addController()
-    addLayer()
+    addGridLayer()
     setMouse()
     if (debugMode.value) { mapbox.value.map!.showTileBoundaries = true }
   })
@@ -98,7 +98,7 @@ onMounted(() => {
     mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: exag })
   }
 
-  function addLayer() {
+  function addGridLayer() {
     mapbox.value.map?.addLayer({
       id: 'gridArea',
       type: 'fill',
@@ -205,9 +205,12 @@ onMounted(() => {
       'waterway-shadow',
     )
 
-    mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'none')
-    mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')
-    mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
+    if (!mapbox.value.settings.displayEffectArea) {
+      // mapbox.value.map?.setPaintProperty('hillshade', 'fill-color', defaultHillshade)
+      mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
+      mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'none')
+      mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')
+    }
   }
 
   const addResetGridDirection = () => {
@@ -233,7 +236,7 @@ onMounted(() => {
 
   const addEffectArea = () => {
     mapbox.value.map?.addControl(
-      new EffectedArea(), isMobile ? 'top-right' : 'bottom-right',
+      new EffectedArea(mapbox.value.settings.displayEffectArea), isMobile ? 'top-right' : 'bottom-right',
     )
   }
 

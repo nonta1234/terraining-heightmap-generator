@@ -76,7 +76,7 @@ watch([ratio, vScale], () => {
 })
 
 watch(_sharpen, () => {
-  if (mapbox.value.settings.displayEffect) {
+  if (mapbox.value.settings.displayEffectArea) {
     mapbox.value.map?.setPaintProperty(
       'sharpenLayer',
       'raster-opacity',
@@ -86,7 +86,7 @@ watch(_sharpen, () => {
 })
 
 watch(_smoothing, () => {
-  if (mapbox.value.settings.displayEffect) {
+  if (mapbox.value.settings.displayEffectArea) {
     mapbox.value.map?.setPaintProperty(
       'smoothLayer',
       'raster-opacity',

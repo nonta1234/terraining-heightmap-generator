@@ -161,21 +161,21 @@ export class ResetGridDirection {
 
 export class EffectedArea {
   private _visibility: boolean
-  constructor() {
-    this._visibility = false
+  constructor(visibility: boolean) {
+    this._visibility = visibility
   }
 
   onAdd() {
     const div = document.createElement('div')
+    const svgFillColor = this._visibility ? '#F1F3F4' : '#86888A'
     div.className = 'mapboxgl-ctrl mapboxgl-ctrl-group'
     div.innerHTML = `<button type="button" class="effected-area" aria-label="Show the smooth & sharpen area" aria-disabled="false" title="Show the smooth & sharpen area" style="padding-bottom:2px">
-      <svg xmlns="http://www.w3.org/2000/svg" id="effected-area-svg" height="17px" viewBox="0 0 640 512" fill="#86888A"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M560 160A80 80 0 1 0 560 0a80 80 0 1 0 0 160zM55.9 512H381.1h75H578.9c33.8 0 61.1-27.4 61.1-61.1c0-11.2-3.1-22.2-8.9-31.8l-132-216.3C495 196.1 487.8 192 480 192s-15 4.1-19.1 10.7l-48.2 79L286.8 81c-6.6-10.6-18.3-17-30.8-17s-24.1 6.4-30.8 17L8.6 426.4C3 435.3 0 445.6 0 456.1C0 487 25 512 55.9 512z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" id="effected-area-svg" height="17px" viewBox="0 0 640 512" fill="${svgFillColor}"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M560 160A80 80 0 1 0 560 0a80 80 0 1 0 0 160zM55.9 512H381.1h75H578.9c33.8 0 61.1-27.4 61.1-61.1c0-11.2-3.1-22.2-8.9-31.8l-132-216.3C495 196.1 487.8 192 480 192s-15 4.1-19.1 10.7l-48.2 79L286.8 81c-6.6-10.6-18.3-17-30.8-17s-24.1 6.4-30.8 17L8.6 426.4C3 435.3 0 445.6 0 456.1C0 487 25 512 55.9 512z"/></svg>
       </button>`
     div.addEventListener('contextmenu', e => e.preventDefault())
     div.addEventListener('click', () => {
-      const button = document.getElementById('effected-area-svg')
-      button?.setAttribute('fill', '#F1F3F4')
       this._visibility = !this._visibility
+      const button = document.getElementById('effected-area-svg')
       const mapbox = useMapbox()
       if (this._visibility) {
         button?.setAttribute('fill', '#F1F3F4')
@@ -183,12 +183,16 @@ export class EffectedArea {
         mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'visible')
         mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'visible')
         // mapbox.value.map?.setPaintProperty('hillshade', 'fill-color', effectedHillshade)
+        mapbox.value.settings.displayEffectArea = true
+        saveSettings(mapbox.value.settings)
       } else {
         button?.setAttribute('fill', '#86888A')
         // mapbox.value.map?.setPaintProperty('hillshade', 'fill-color', defaultHillshade)
         mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
         mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'none')
         mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')
+        mapbox.value.settings.displayEffectArea = false
+        saveSettings(mapbox.value.settings)
       }
     })
     return div
