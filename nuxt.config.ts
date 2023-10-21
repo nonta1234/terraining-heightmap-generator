@@ -1,5 +1,6 @@
 import { visualizer } from 'rollup-plugin-visualizer'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import { splitVendorChunkPlugin } from 'vite'
 import wasmpack from 'vite-plugin-wasm-pack'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -29,7 +30,7 @@ export default defineNuxtConfig({
   ],
   vite: {
     build: {
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 2000,
       rollupOptions: {
         plugins: [
           visualizer({
@@ -39,7 +40,10 @@ export default defineNuxtConfig({
         output: {
           manualChunks(id) {
             if (id.includes('mapbox-gl') && !id.includes('mapbox-gl.css')) {
-              return 'vendor'
+              return 'mapbox'
+            }
+            if (id.includes('turf')) {
+              return 'turf'
             }
           },
         },
@@ -65,6 +69,7 @@ export default defineNuxtConfig({
       nodePolyfills({
         protocolImports: true,
       }),
+      splitVendorChunkPlugin(),
       wasmpack('./png_lib'),
     ],
     worker: {
