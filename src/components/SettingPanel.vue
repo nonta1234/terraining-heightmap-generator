@@ -4,6 +4,10 @@ import { HeightCalcType } from '~/types/types'
 const mapbox = useMapbox()
 const { isMobile } = useDevice()
 
+const setting = ref()
+const defaultHeight = ref('auto')
+const panelHeight = ref('auto')
+
 const visDesktop = ref(false)
 const visMobile = ref(false)
 
@@ -187,6 +191,11 @@ onMounted(() => {
   } else {
     controlDisabled.value = false
   }
+  const { height } = getComputedStyle(setting.value)
+  nextTick(() => {
+    defaultHeight.value = '0'
+    panelHeight.value = `calc(${height} + 1px)`
+  })
 })
 </script>
 
@@ -205,7 +214,7 @@ onMounted(() => {
         </ul>
       </div>
     </section>
-    <section class="setting" :class="{'m-active': visMobile, 'd-active': visDesktop}">
+    <section ref="setting" class="setting" :class="{'m-active': visMobile, 'd-active': visDesktop}">
       <div class="elevation section">
         <dl><dt>Min. Height&ThinSpace;:</dt><dd>{{ minHeight }}<span>m</span></dd></dl>
         <dl><dt>Max. Height&ThinSpace;:</dt><dd>{{ maxHeight }}<span>m</span></dd></dl>
@@ -283,19 +292,19 @@ onMounted(() => {
     @include grass;
   }
   .setting {
-    height: 0;
-    max-height: 0;
+    height: v-bind(defaultHeight);
+    max-height: v-bind(defaultHeight);
     display: block;
     transition: .4s ease;
     padding: 0 .75rem;
     overflow-y: hidden;
     &.d-active {
-      height: calc(43.75rem + 6px);
+      height: v-bind(panelHeight);
       max-height: calc(100dvh - 4.5rem - 40px);
       overflow-y: scroll;
     }
     &.m-active {
-      height: calc(43.75rem + 6px);
+      height: v-bind(panelHeight);
       max-height: calc(100dvh - 5.5rem - 110px);
       overflow-y: scroll;
     }
