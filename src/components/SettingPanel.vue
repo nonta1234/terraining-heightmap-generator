@@ -7,6 +7,7 @@ const { isMobile } = useDevice()
 const setting = ref()
 const defaultHeight = ref('auto')
 const panelHeight = ref('auto')
+// const scroll = ref(isWindows ? 'undefined' : 'scroll')
 
 const visDesktop = ref(false)
 const visMobile = ref(false)
@@ -191,8 +192,8 @@ onMounted(() => {
   } else {
     controlDisabled.value = false
   }
-  const { height } = getComputedStyle(setting.value)
   nextTick(() => {
+    const { height } = getComputedStyle(setting.value)
     defaultHeight.value = '0'
     panelHeight.value = `calc(${height} + 1px)`
   })
@@ -214,65 +215,67 @@ onMounted(() => {
         </ul>
       </div>
     </section>
-    <section ref="setting" class="setting" :class="{'m-active': visMobile, 'd-active': visDesktop}">
-      <div class="elevation section">
-        <dl><dt>Min. Height&ThinSpace;:</dt><dd>{{ minHeight }}<span>m</span></dd></dl>
-        <dl><dt>Max. Height&ThinSpace;:</dt><dd>{{ maxHeight }}<span>m</span></dd></dl>
-      </div>
-      <div class="section">
-        <ul>
-          <li><label>Map Size&ThinSpace;:</label><NumberInput :value="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.01" @change="onSizeChange" /><span>㎞</span></li>
-          <li><label>Sea Level&ThinSpace;:</label><NumberInput v-model="mapbox.settings.seaLevel" :max="9999" :min="-9999" :step="0.1" /><span>m</span></li>
-          <li><label>Adjust Level&ThinSpace;:</label><ToggleSwitch v-model="mapbox.settings.adjLevel" :name="'adjust-level'" /></li>
-          <li>
-            <label>Height Ratio&ThinSpace;:</label>
-            <NumberInput v-model="ratio" :max="10" :min="0" :step="0.001" :disabled="controlDisabled" />
-            <ToggleIcon v-model="mapbox.settings.fixedRatio" :name="'fixedRatio'" :disabled="controlDisabled" :icon="['fas', 'thumbtack']" :icon-class="'fa-sm fa-fw'" />
-          </li>
-          <li>
-            <label>Height Scale&ThinSpace;:</label>
-            <NumberInput v-model="mapbox.settings.vertScale" :max="2.5" :min="0" :step="0.001" :disabled="controlDisabled" />
-            <ToggleIcon v-model="fixedS" :name="'fixedScale'" :disabled="controlDisabled" :icon="['fas', 'thumbtack']" :icon-class="'fa-sm fa-fw'" />
-          </li>
-          <li>
-            <label>Elev. Type&ThinSpace;:</label>
-            <select name="type" :value="mapbox.settings.type" @change="onTypeChange">
-              <option value="manual">Manual</option>
-              <option value="limit">Limit</option>
-              <option value="maximize">Maxi.</option>
-            </select><span></span>
-          </li>
-        </ul>
-      </div>
-      <div class="section">
-        <ul>
-          <li><label>Water Depth&ThinSpace;:</label><NumberInput v-model="mapbox.settings.depth" :max="100" :min="0" :step="1" /><span>m</span></li>
-          <li><label>Littoral Length&ThinSpace;:</label><NumberInput v-model="littoral" :max="320" :min="16" :step="16" /><span>m</span></li>
-          <li class="editor"><label>Littoral Editor&ThinSpace;:</label><button class="littoral-editor" @click="modal">{{ modalButtonText }}</button><span></span></li>
-        </ul>
-      </div>
-      <div class="section">
-        <ul>
-          <li><label>Smoothing&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smoothing" :max="100" :min="0" :step="1" /><span>%</span></li>
-          <li><label>Threshold&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smthThres" :max="10000" :min="0" :step="10" /><span>m</span></li>
-          <li><label>Fade&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smthFade" :max="1000" :min="0" :step="10" /><span>m</span></li>
-        </ul>
-      </div>
-      <div class="section">
-        <ul>
-          <li><label>Sharpen&ThinSpace;:</label><NumberInput v-model="mapbox.settings.sharpen" :max="200" :min="0" :step="1" /><span>%</span></li>
-          <li><label>Threshold&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpThres" :max="10000" :min="0" :step="10" /><span>m</span></li>
-          <li><label>Fade&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpFade" :max="1000" :min="0" :step="10" /><span>m</span></li>
-        </ul>
-      </div>
-      <div class="section footer">
-        <p class="message">{{ message }}</p>
-        <button class="refresh fab" @click="refresh">
-          <font-awesome-icon v-if="!rotate" :icon="['fas', 'arrows-rotate']" class="fa-fw fa-lg" />
-          <font-awesome-icon v-else :icon="['fas', 'arrows-rotate']" class="fa-fw fa-lg fa-spin" />
-        </button>
-      </div>
-    </section>
+    <OverlayScrollbars>
+      <section ref="setting" class="setting" :class="{ 'm-active': visMobile, 'd-active': visDesktop }">
+        <div class="elevation section">
+          <dl><dt>Min. Height&ThinSpace;:</dt><dd>{{ minHeight }}<span>m</span></dd></dl>
+          <dl><dt>Max. Height&ThinSpace;:</dt><dd>{{ maxHeight }}<span>m</span></dd></dl>
+        </div>
+        <div class="section">
+          <ul>
+            <li><label>Map Size&ThinSpace;:</label><NumberInput :value="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.01" @change="onSizeChange" /><span>㎞</span></li>
+            <li><label>Sea Level&ThinSpace;:</label><NumberInput v-model="mapbox.settings.seaLevel" :max="9999" :min="-9999" :step="0.1" /><span>m</span></li>
+            <li><label>Adjust Level&ThinSpace;:</label><ToggleSwitch v-model="mapbox.settings.adjLevel" :name="'adjust-level'" /></li>
+            <li>
+              <label>Height Ratio&ThinSpace;:</label>
+              <NumberInput v-model="ratio" :max="10" :min="0" :step="0.001" :disabled="controlDisabled" />
+              <ToggleIcon v-model="mapbox.settings.fixedRatio" :name="'fixedRatio'" :disabled="controlDisabled" :icon="['fas', 'thumbtack']" :icon-class="'fa-sm fa-fw'" />
+            </li>
+            <li>
+              <label>Height Scale&ThinSpace;:</label>
+              <NumberInput v-model="mapbox.settings.vertScale" :max="2.5" :min="0" :step="0.001" :disabled="controlDisabled" />
+              <ToggleIcon v-model="fixedS" :name="'fixedScale'" :disabled="controlDisabled" :icon="['fas', 'thumbtack']" :icon-class="'fa-sm fa-fw'" />
+            </li>
+            <li>
+              <label>Elev. Type&ThinSpace;:</label>
+              <select name="type" :value="mapbox.settings.type" @change="onTypeChange">
+                <option value="manual">Manual</option>
+                <option value="limit">Limit</option>
+                <option value="maximize">Maxi.</option>
+              </select><span></span>
+            </li>
+          </ul>
+        </div>
+        <div class="section">
+          <ul>
+            <li><label>Water Depth&ThinSpace;:</label><NumberInput v-model="mapbox.settings.depth" :max="100" :min="0" :step="1" /><span>m</span></li>
+            <li><label>Littoral Length&ThinSpace;:</label><NumberInput v-model="littoral" :max="320" :min="16" :step="16" /><span>m</span></li>
+            <li class="editor"><label>Littoral Editor&ThinSpace;:</label><button class="littoral-editor" @click="modal">{{ modalButtonText }}</button><span></span></li>
+          </ul>
+        </div>
+        <div class="section">
+          <ul>
+            <li><label>Smoothing&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smoothing" :max="100" :min="0" :step="1" /><span>%</span></li>
+            <li><label>Threshold&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smthThres" :max="10000" :min="0" :step="10" /><span>m</span></li>
+            <li><label>Fade&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smthFade" :max="1000" :min="0" :step="10" /><span>m</span></li>
+          </ul>
+        </div>
+        <div class="section">
+          <ul>
+            <li><label>Sharpen&ThinSpace;:</label><NumberInput v-model="mapbox.settings.sharpen" :max="200" :min="0" :step="1" /><span>%</span></li>
+            <li><label>Threshold&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpThres" :max="10000" :min="0" :step="10" /><span>m</span></li>
+            <li><label>Fade&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpFade" :max="1000" :min="0" :step="10" /><span>m</span></li>
+          </ul>
+        </div>
+        <div class="section footer">
+          <p class="message">{{ message }}</p>
+          <button class="refresh fab" @click="refresh">
+            <font-awesome-icon v-if="!rotate" :icon="['fas', 'arrows-rotate']" class="fa-fw fa-lg" />
+            <font-awesome-icon v-else :icon="['fas', 'arrows-rotate']" class="fa-fw fa-lg fa-spin" />
+          </button>
+        </div>
+      </section>
+    </OverlayScrollbars>
   </div>
 </template>
 
@@ -301,12 +304,12 @@ onMounted(() => {
     &.d-active {
       height: v-bind(panelHeight);
       max-height: calc(100dvh - 4.5rem - 40px);
-      overflow-y: scroll;
+      overflow-y: auto;
     }
     &.m-active {
       height: v-bind(panelHeight);
       max-height: calc(100dvh - 5.5rem - 110px);
-      overflow-y: scroll;
+      overflow-y: auto;
     }
   }
   .section {

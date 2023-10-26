@@ -27,6 +27,7 @@ export default defineNuxtConfig({
     '@/assets/scss/main.scss',
     '@fortawesome/fontawesome-svg-core/styles.css',
     'mapbox-gl/dist/mapbox-gl.css',
+    'overlayscrollbars/styles/overlayscrollbars.css',
   ],
   vite: {
     build: {
