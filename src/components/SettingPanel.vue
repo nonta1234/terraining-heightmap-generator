@@ -300,16 +300,16 @@ onMounted(() => {
     display: block;
     transition: .4s ease;
     padding: 0 .75rem;
-    overflow-y: hidden;
+    // overflow-y: hidden;
     &.d-active {
       height: v-bind(panelHeight);
       max-height: calc(100dvh - 4.5rem - 40px);
-      overflow-y: auto;
+      // overflow-y: auto;
     }
     &.m-active {
       height: v-bind(panelHeight);
       max-height: calc(100dvh - 5.5rem - 110px);
-      overflow-y: auto;
+      // overflow-y: auto;
     }
   }
   .section {
@@ -420,7 +420,7 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: .5rem .75rem;
+    padding: .5rem .75rem 0;
   }
   .footer {
     display: flex;
