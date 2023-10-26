@@ -1,4 +1,4 @@
-import { GridInfo, LittoralArray } from '~/types/types'
+import type { GridInfo, LittoralArray } from '~/types/types'
 
 export const mapStyle = {
   streets:    'mapbox://styles/mapbox/streets-v12?optimize=true',

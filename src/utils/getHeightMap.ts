@@ -1,6 +1,6 @@
 import { FetchError } from 'ofetch'
 import * as turf from '@turf/turf'
-import { Mapbox } from '~/types/types'
+import type { Mapbox } from '~/types/types'
 
 type T = {
   data: globalThis.Ref<Blob | null>;

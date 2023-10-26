@@ -1,4 +1,4 @@
-import { Settings } from '~/types/types'
+import type { Settings } from '~/types/types'
 
 export const saveSettings = (settings: Settings) => {
   localStorage.setItem('map-settings',  JSON.stringify(settings))

@@ -1,4 +1,4 @@
-import { Settings } from '~/types/types'
+import type { Settings } from '~/types/types'
 
 const defineSettings = () => {
   const store: Settings = JSON.parse(localStorage.getItem('map-settings')!) || {}

@@ -1,5 +1,5 @@
 import mitt from 'mitt'
-import { LngLat } from '~/types/types'
+import type { LngLat } from '~/types/types'
 
 type ApplicationEvents = {
   'map:changeLngLat': LngLat;
