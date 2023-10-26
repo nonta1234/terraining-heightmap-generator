@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type HeightCalcType } from '~/types/types'
+import type { HeightCalcType } from '~/types/types'
 
 const mapbox = useMapbox()
 const { isMobile } = useDevice()

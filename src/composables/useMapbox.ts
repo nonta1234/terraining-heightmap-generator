@@ -1,7 +1,7 @@
 import mapboxgl, { Map, GeoJSONSource } from 'mapbox-gl'
 import * as turf from '@turf/turf'
-import { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
-import { Mapbox, Grid, LngLat } from '~/types/types'
+import type { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
+import type { Mapbox, Grid, LngLat } from '~/types/types'
 
 let endCell = 0
 let centerCell = 0
