@@ -5,6 +5,7 @@ import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 
 <template>
   <OverlayScrollbarsComponent
+    class="overlay-scrollbars-elm"
     :options="{
       showNativeOverlaidScrollbars: true,
       scrollbars: {
@@ -22,3 +23,9 @@ import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
     <slot />
   </OverlayScrollbarsComponent>
 </template>
+
+<style lang="scss" scoped>
+  .overlay-scrollbars-elm {
+    margin-bottom: -4px;
+  }
+</style>

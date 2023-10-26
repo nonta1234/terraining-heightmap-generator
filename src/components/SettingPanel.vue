@@ -425,7 +425,7 @@ onMounted(() => {
   .footer {
     display: flex;
     justify-content: space-between;
-    padding: .75rem 0;
+    padding: .75rem 0 1rem;
   }
   .coordinates {
     label {
