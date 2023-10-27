@@ -195,7 +195,7 @@ onMounted(() => {
   nextTick(() => {
     const { height } = getComputedStyle(contents.value)
     defaultHeight.value = '0'
-    panelHeight.value = `calc(${height} + 2px)`
+    panelHeight.value = `calc(${height} + 4px)`
   })
 })
 </script>
@@ -311,7 +311,7 @@ onMounted(() => {
     }
   }
   .contents {
-    margin-top: -10px;
+    margin-top: -8px;
     padding: 0 .75rem;
   }
   .section {
@@ -457,7 +457,6 @@ onMounted(() => {
     dd {
       display: inline-block;
       font-feature-settings: "tnum";
-      font-size: .9375rem;
       flex-shrink: 0;
     }
   }
