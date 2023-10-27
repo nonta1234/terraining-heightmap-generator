@@ -4,7 +4,7 @@ import type { HeightCalcType } from '~/types/types'
 const mapbox = useMapbox()
 const { isMobile } = useDevice()
 
-const setting = ref()
+const contents = ref()
 const defaultHeight = ref('auto')
 const panelHeight = ref('auto')
 // const scroll = ref(isWindows ? 'undefined' : 'scroll')
@@ -193,9 +193,9 @@ onMounted(() => {
     controlDisabled.value = false
   }
   nextTick(() => {
-    const { height } = getComputedStyle(setting.value)
+    const { height } = getComputedStyle(contents.value)
     defaultHeight.value = '0'
-    panelHeight.value = `calc(${height} + 1px)`
+    panelHeight.value = `calc(${height} + 2px)`
   })
 })
 </script>
@@ -215,8 +215,8 @@ onMounted(() => {
         </ul>
       </div>
     </section>
-    <OverlayScrollbars>
-      <section ref="setting" class="setting" :class="{ 'm-active': visMobile, 'd-active': visDesktop }">
+    <OverlayScrollbars :class="['setting', {'m-active': visMobile, 'd-active': visDesktop}]">
+      <section ref="contents" class="contents">
         <div class="elevation section">
           <dl><dt>Min. Height&ThinSpace;:</dt><dd>{{ minHeight }}<span>m</span></dd></dl>
           <dl><dt>Max. Height&ThinSpace;:</dt><dd>{{ maxHeight }}<span>m</span></dd></dl>
@@ -294,12 +294,10 @@ onMounted(() => {
     user-select: none;
     @include grass;
   }
-  .setting {
+  :deep(.setting) {
     height: v-bind(defaultHeight);
     max-height: v-bind(defaultHeight);
-    display: block;
     transition: .4s ease;
-    padding: 0 .75rem;
     // overflow-y: hidden;
     &.d-active {
       height: v-bind(panelHeight);
@@ -311,6 +309,10 @@ onMounted(() => {
       max-height: calc(100dvh - 5.5rem - 110px);
       // overflow-y: auto;
     }
+  }
+  .contents {
+    margin-top: -10px;
+    padding: 0 .75rem;
   }
   .section {
     margin-top: .75rem;
@@ -420,12 +422,12 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: .5rem .75rem 0;
+    padding: .5rem .75rem;
   }
   .footer {
     display: flex;
     justify-content: space-between;
-    padding: .75rem 0 1rem;
+    padding: .75rem 0;
   }
   .coordinates {
     label {

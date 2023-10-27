@@ -35,7 +35,7 @@
     "mitt": "^3.0.0",
     "nuxt": "^3.8.0",
     "osm2geojson-lite": "^0.9.4",
-    "overlayscrollbars": "^2.4.3",
+    "overlayscrollbars": "^2.4.4",
     "overlayscrollbars-vue": "^0.5.6",
     "rollup-plugin-visualizer": "^5.9.2",
     "sass": "^1.62.1",

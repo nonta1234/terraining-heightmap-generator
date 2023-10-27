@@ -8158,10 +8158,10 @@ overlayscrollbars-vue@^0.5.6:
   resolved "https://registry.yarnpkg.com/overlayscrollbars-vue/-/overlayscrollbars-vue-0.5.6.tgz#cae11d204ece52b170702c0cea15703869526731"
   integrity sha512-gBraPkblG/pE6P74+q0vOnULzmD1sePth7S3D6Cb8hLLLrkJNE66cNWzxUgVPtUP3gp5PK6R3rZsxNNo3Xs3GQ==
 
-overlayscrollbars@^2.4.3:
-  version "2.4.3"
-  resolved "https://registry.yarnpkg.com/overlayscrollbars/-/overlayscrollbars-2.4.3.tgz#2a6b4aa0392b1444e679f63ff6495eaf08d0d085"
-  integrity sha512-DG//Rd7AVVEvaVtBcjg+NlfT9IWbBWw2vO7+zFVLz86AVHQA3KcaAd/WByFtUMNwzTW2DDOqgb/bXQOw6OZLMw==
+overlayscrollbars@^2.4.4:
+  version "2.4.4"
+  resolved "https://registry.yarnpkg.com/overlayscrollbars/-/overlayscrollbars-2.4.4.tgz#95c3007114b047ef747f4ef443c6ced3d4143afd"
+  integrity sha512-792lwASLr3FlZER+/P7NseFQjffDEcQOg6HtyBSLrnb3crH+Ybk0tzaljQVQZs0pjGF/xFjyvMKin6whkL0RnQ==
 
 p-limit@^2.2.0:
   version "2.3.0"
