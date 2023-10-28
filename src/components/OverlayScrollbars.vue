@@ -7,12 +7,11 @@ import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
   <OverlayScrollbarsComponent
     class=""
     :options="{
-      showNativeOverlaidScrollbars: true,
       scrollbars: {
         theme: 'os-theme-dark',
         autoHide: 'scroll',
         visibility: 'auto',
-        autoHideDelay: 1300,
+        autoHideDelay: 1000,
         dragScroll: true,
         clickScroll: false,
         pointers: ['mouse', 'touch', 'pen'],

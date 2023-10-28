@@ -2555,6 +2555,11 @@
   resolved "https://registry.yarnpkg.com/@types/normalize-package-data/-/normalize-package-data-2.4.3.tgz#291c243e4b94dbfbc0c0ee26b7666f1d5c030e2c"
   integrity sha512-ehPtgRgaULsFG8x0NeYJvmyH1hmlfsNLujHe9dQEia/7MAJYdzMSi19JtchUHjmBA6XC/75dK55mzZH+RyieSg==
 
+"@types/overlayscrollbars@^1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@types/overlayscrollbars/-/overlayscrollbars-1.12.3.tgz#51bc0c5eddcbe6fd6b9500a63e5bd7f32d688351"
+  integrity sha512-XjQakOYnk+lM3JXhQR2Zg61f/p7KTpm10mXuQ9o6eOQkGuaZ3NcHDkTo1aHm1MZOzFyzbvwMsqq2e/0rPK4gEw==
+
 "@types/resolve@1.20.2":
   version "1.20.2"
   resolved "https://registry.yarnpkg.com/@types/resolve/-/resolve-1.20.2.tgz#97d26e00cd4a0423b4af620abecf3e6f442b7975"
