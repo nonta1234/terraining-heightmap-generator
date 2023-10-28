@@ -59,6 +59,7 @@ export const getWaterMap = async () => {
 
   const mapPixelsOnTile = Math.sqrt(mapWidth * mapWidth + mapHeight * mapHeight) / Math.SQRT2
   const scale = tmpMapPixels / mapPixelsOnTile
+  const lineWidth = mapbox.value.settings.littoral / 8
 
   const tiles = new Array<Promise<T>>(Math.pow(tileCount, 2))
 
@@ -177,7 +178,7 @@ export const getWaterMap = async () => {
 
                 // draw littoral
                 for (let j = 0; j < littArray.length - 1; j++) {
-                  gradientLineTo(littArray[j], littArray[j + 1])
+                  gradientLineTo(littArray[j], littArray[j + 1], lineWidth)
                 }
               }
             }
@@ -212,8 +213,7 @@ export const getWaterMap = async () => {
   }
 
 
-  function gradientLineTo(from: Position, to: Position) {
-    const lineWidth = mapbox.value.settings.littoral / 8
+  function gradientLineTo(from: Position, to: Position, width: number) {
     const dx = to.x - from.x
     const dy = to.y - from.y
     const lineLength = Math.sqrt(dx * dx + dy * dy)
@@ -223,7 +223,7 @@ export const getWaterMap = async () => {
     const centerY = dy / 2 + from.y
 
     const rectX = centerX - lineLength / 2
-    const rectY = centerY - lineWidth / 2
+    const rectY = centerY - width / 2
 
     tmpLittCtx.save()
     tmpLittCtx.translate(centerX, centerY)
@@ -234,7 +234,7 @@ export const getWaterMap = async () => {
       rectX,
       rectY,
       rectX,
-      rectY + lineWidth,
+      rectY + width,
     )
 
     littGradient.addColorStop(0, '#000000')
@@ -248,11 +248,11 @@ export const getWaterMap = async () => {
     littGradient.addColorStop(1, '#000000')
 
     tmpLittCtx.fillStyle = littGradient
-    tmpLittCtx.fillRect(rectX, rectY, lineLength, lineWidth)
+    tmpLittCtx.fillRect(rectX, rectY, lineLength, width)
 
     tmpLittCtx.restore()
 
-    const cornerGradient = tmpLittCtx.createRadialGradient(to.x, to.y, 0, to.x, to.y, lineWidth / 2)
+    const cornerGradient = tmpLittCtx.createRadialGradient(to.x, to.y, 0, to.x, to.y, width / 2)
     cornerGradient.addColorStop(0, '#FFFFFF')
     for (let i = 1; i < 10; i++) {
       cornerGradient.addColorStop(i / 10, getColorFromValue(mapbox.value.settings.littArray[9 - i]))
@@ -260,7 +260,7 @@ export const getWaterMap = async () => {
     cornerGradient.addColorStop(1, '#000000')
 
     tmpLittCtx.beginPath()
-    tmpLittCtx.arc(to.x, to.y, lineWidth / 2, 0, 2 * Math.PI, true)
+    tmpLittCtx.arc(to.x, to.y, width / 2, 0, 2 * Math.PI, true)
     tmpLittCtx.fillStyle = cornerGradient
     tmpLittCtx.fill()
   }
