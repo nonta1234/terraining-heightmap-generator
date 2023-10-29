@@ -27,7 +27,7 @@
 - **Lng & Lat**: Adjust your position by modifying the values.
 - **Min & Max Height**: Click the refresh button at the bottom to retrieve current area's minimum and maximum elevations. Please note that slight variations in values may occur due to interpolation based on map size.
 - **Map Size**: Set the size within the range of 17.28&ThinSpace;km to 62.12&ThinSpace;km square.
-- **Sea Level**: Elevations below this level are automatically adjusted to 0m.
+- **Sea Level**: Elevations below this level are automatically adjusted to 0&ThinSpace;m.
 - **Adjust Level**: The sea level is automatically aligned with the minimum height.
 - **Height Ratio**: Define the vertical-to-horizontal distance ratio.
 - **Height Scale**: Set the proportion relative to actual terrain height.  
