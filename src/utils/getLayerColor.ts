@@ -28,7 +28,7 @@ export function getSharpenLayerColor() {
       'rgba(54,22,0,1)',
     ]
   }
-  return rasterColorParams as any
+  return rasterColorParams as any   // RasterPaint type settings are in beta
 }
 
 export function getSmoothLayerColor() {
@@ -61,7 +61,7 @@ export function getSmoothLayerColor() {
       'rgba(10,142,65,0)',
     ]
   }
-  return rasterColorParams as any
+  return rasterColorParams as any   // RasterPaint type settings are in beta
 }
 
 export const getRasterOpacity = (value: number) => {

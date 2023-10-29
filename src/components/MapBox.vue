@@ -175,7 +175,7 @@ onMounted(() => {
           'raster-color': getSmoothLayerColor(),
           'raster-opacity': getRasterOpacity(mapbox.value.settings.smoothing),
           'raster-resampling': 'nearest',
-        } as any,
+        } as any,   // RasterPaint type settings are in beta
       },
       'waterway-shadow',
     )
@@ -191,7 +191,7 @@ onMounted(() => {
           'raster-color': getSharpenLayerColor(),
           'raster-opacity': getRasterOpacity(mapbox.value.settings.sharpen),
           'raster-resampling': 'nearest',
-        } as any,
+        } as any,   // RasterPaint type settings are in beta
       },
       'waterway-shadow',
     )
