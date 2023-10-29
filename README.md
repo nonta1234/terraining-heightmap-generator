@@ -12,39 +12,39 @@
 
 ## Features
 
-- Select a square area from the map, ranging in size from 17.28&ThinSpace;km to 69.12&ThinSpace;km.
-- Freely rotate the square area.
-- Download 16bit grayscale PNG heightmap and map images.
+- Select a square area on the map, with sizes ranging from 17.28&ThinSpace;km to 69.12&ThinSpace;km.
+- Easily rotate the selected square area.
+- Download 16-bit grayscale PNG heightmap and map images.
 
 ## How to
 
 1. Choose the area you want to download.
-1. Customize the settings in the settings panel according to your preferences.
-1. Download the heightmap or map image.
+1. Customize the settings within the settings panel to match your preferences.
+1. Download either the heightmap or map image.
 
 ## Setting panel
 
-- **Lng & Lat**: Adjust your position by changing the values.
-- **Min & Max Height**: Use the refresh button at the bottom to retrieve current area's minimum and maximum elevations. Note that slight variations in values may occur due to interpolation based on map size.
-- **Map Size**: Set size between 17.28&ThinSpace;km and 62.12&ThinSpace;km square.
-- **Sea Level**: Elevations below this height are adjusted to 0m.
-- **Adjust Level**: Sea level automatically matches minimum height.
-- **Height Ratio**: Define vertical-to-horizontal distance ratio.
-- **Height Scale**: Set proportion relative to actual height.  
-*‡Height Ratio and Height Scale are Interrelated and linked to map size. You can lock one.*
+- **Lng & Lat**: Adjust your position by modifying the values.
+- **Min & Max Height**: Click the refresh button at the bottom to retrieve current area's minimum and maximum elevations. Please note that slight variations in values may occur due to interpolation based on map size.
+- **Map Size**: Set the size within the range of 17.28&ThinSpace;km to 62.12&ThinSpace;km square.
+- **Sea Level**: Elevations below this level are automatically adjusted to 0m.
+- **Adjust Level**: The sea level is automatically aligned with the minimum height.
+- **Height Ratio**: Define the vertical-to-horizontal distance ratio.
+- **Height Scale**: Set the proportion relative to actual terrain height.  
+*‡Height Ratio and Height Scale are interrelated and are linked to map size. You can lock one.*
 - **Elev. Type**: Auto-configures Height Ratio and Height Scale.
   * Manual: No automatic adjustments.
-  * Limit: Adjusts maximum elevation to 1,023.98&ThinSpace;m if exceeded.
-  * Maxi.: Sets maximum elevation at 1,023.98&ThinSpace;m.
-- **Water Depth**: Adjusts water depth.
-- **Littoral Length**: Changes littoral zone distance. Increasing creates a gentle slope from coast to seabed.
-- **Littoral Editor**: Configure littoral slope shape.
-- **Smoothing & Sharpen**: Set smoothing and sharpening ranges for terrain.
+  * Limit: If exceeded, adjusts the maximum elevation to 1,023.98&ThinSpace;m.
+  * Maxi.: Set the maximum elevation at 1,023.98&ThinSpace;m.
+- **Water Depth**: Modify the water depth.
+- **Littoral Length**: Adjust the littoral zone distance. Increasing it creates a gradual slope from the coast to the seabed.
+- **Littoral Editor**: Configure the shape of the littoral slope.
+- **Smoothing & Sharpen**: Set ranges for terrain smoothing and sharpening.
 
 ## Control panel
 
 - Download the following data:
-  * Heightmap in 16bit grayscale PNG format
+  * Heightmap in 16-bit grayscale PNG format
   * Map image
   * OSM data
 - Configuration Panel
@@ -53,13 +53,13 @@
 
 ## Configuration Panel
 
-- **Heightmap Type**: It is planned that CS2 will also be available for selection soon.
+- **Heightmap Type**: Selection of CS2 will soon be available.
 - **Interpolation**: Choose from Bilinear or Bicubic.
-- **Stream Depth**: Assist in drawing streams.
-- **Smooth Count**: Number of times to repeat smooth effect.
-- **Noise Value**: Height to add or subtract.
-- **Noise Grid**: Detail of noise. The smaller the number, the finer the details.
+- **Stream Depth**: Aiding in the depiction of streams.
+- **Smooth Count**: Determine the number of times the smooth effect is repeated.
+- **Noise Value**: Add or subtract height.
+- **Noise Grid**: Adjust the level of detail for noise. The smaller the number, the finer the details.
 
 ## Plans
 
-- Achieve compatibility with Cities: Skylines II.
+- I plan to achieve compatibility with Cities: Skylines II.
