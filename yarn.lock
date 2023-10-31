@@ -2978,6 +2978,11 @@
   resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.3.7.tgz#0091852fe5cc4237c8440fe32f3ab6bc920ae6d9"
   integrity sha512-N/tbkINRUDExgcPTBvxNkvHGu504k8lzlNQRITVnm6YjOjwa4r0nnbd4Jb01sNpur5hAllyRJzSK5PvB9PPwRg==
 
+"@vueform/multiselect@^2.6.6":
+  version "2.6.6"
+  resolved "https://registry.yarnpkg.com/@vueform/multiselect/-/multiselect-2.6.6.tgz#d8541f0eb6d03a53024461cfd54fb67f910b57cb"
+  integrity sha512-JDWesVRmyGz9HmHp2Ooy1cb8XgKohiztwMDtjm8c0/Th+7wEZENZuYa0iY5CTvaJNANl3LVqh9BNnCc/YlM/Bg==
+
 JSONStream@~0.7.1:
   version "0.7.4"
   resolved "https://registry.yarnpkg.com/JSONStream/-/JSONStream-0.7.4.tgz#734290e41511eea7c2cfe151fbf9a563a97b9786"

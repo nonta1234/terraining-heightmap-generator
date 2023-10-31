@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// import Multiselect from '@vueform/multiselect'
 import type { HeightCalcType } from '~/types/types'
 
 const mapbox = useMapbox()
@@ -238,6 +239,19 @@ onMounted(() => {
             </li>
             <li>
               <label>Elev. Type&ThinSpace;:</label>
+              <!--
+              <Multiselect
+                v-model="mapbox.settings.type"
+                mode="single"
+                :can-clear="false"
+                :options="{
+                  manual: 'Manual',
+                  limit: 'Limit',
+                  maximize: 'Maxi.',
+                }"
+                @change="onTypeChange"
+              />
+              -->
               <select name="type" :value="mapbox.settings.type" @change="onTypeChange">
                 <option value="manual">Manual</option>
                 <option value="limit">Limit</option>
@@ -483,4 +497,10 @@ onMounted(() => {
   .editor{
     padding-top: .375rem;
   }
+  // MultiSelect
+
+
+
+
+
 </style>
