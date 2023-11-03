@@ -75,7 +75,7 @@ const toggle = () => {
     }
     &:focus {
       svg {
-        filter: drop-shadow(0px 0px 3px rgba(0, 0, 0, .8));
+        filter: drop-shadow(0px 0px 3px rgba(0, 0, 0, .9));
       }
     }
   }
