@@ -239,19 +239,6 @@ onMounted(() => {
             </li>
             <li>
               <label>Elev. Type&ThinSpace;:</label>
-              <!--
-              <Multiselect
-                v-model="mapbox.settings.type"
-                mode="single"
-                :can-clear="false"
-                :options="{
-                  manual: 'Manual',
-                  limit: 'Limit',
-                  maximize: 'Maxi.',
-                }"
-                @change="onTypeChange"
-              />
-              -->
               <select name="type" :value="mapbox.settings.type" @change="onTypeChange">
                 <option value="manual">Manual</option>
                 <option value="limit">Limit</option>
