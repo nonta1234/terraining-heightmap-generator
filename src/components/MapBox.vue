@@ -94,8 +94,7 @@ onMounted(() => {
   }
 
   function addTerrain() {
-    const exag = mapbox.value.settings.vertScale / mapSpec[mapbox.value.settings.gridInfo].size / mapbox.value.settings.size
-    mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: exag })
+    mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: mapbox.value.settings.vertScale })
   }
 
   function addGridLayer() {

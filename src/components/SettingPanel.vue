@@ -78,7 +78,7 @@ const limitCheck = () => {
 watch([ratio, vScale], () => {
   limitCheck()
   mapbox.value.map?.setTerrain()
-  mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: ratio.value })
+  mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: mapbox.value.settings.vertScale })
 })
 
 watch(_sharpen, () => {
