@@ -62,6 +62,10 @@ const displayText = computed({
   },
 })
 
+const onFocus = () => {
+  _value.value = (props.value ?? props.modelValue) || 0
+}
+
 const onInput = (e: Event) => {
   if (!isComposing) {
     displayText.value = (e.target as HTMLInputElement).value
@@ -131,6 +135,7 @@ const onKeydown = (e: KeyboardEvent) => {
     inputmode="decimal"
     enterkeyhint="done"
     @input="onInput"
+    @focus="onFocus"
     @compositionstart="onCompositionStart"
     @compositionend="onCompositionEnd"
     @keydown="onKeydown"
