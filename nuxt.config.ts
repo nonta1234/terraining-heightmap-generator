@@ -87,6 +87,13 @@ export default defineNuxtConfig({
       pathPrefix: false,
     },
   ],
+  build: {
+    transpile: [
+      '@fortawesome/fontawesome-svg-core',
+      '@fortawesome/free-solid-svg-icons',
+      '@fortawesome/vue-fontawesome',
+    ],
+  },
   app: {
     head: {
       htmlAttrs: {
