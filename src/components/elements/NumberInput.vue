@@ -37,7 +37,7 @@ watch(() => props.disabled, () => {
 
 let isComposing = false
 
-const _value = ref((props.value ?? props.modelValue) || 0)
+const _value = ref(props.value ?? props.modelValue ?? 0)
 
 const decimalPart = props.step.toString().split('.')[1]
 const decimalDigits = (decimalPart && decimalPart.length) ? decimalPart.length : 0
@@ -63,7 +63,7 @@ const displayText = computed({
 })
 
 const onFocus = () => {
-  _value.value = (props.value ?? props.modelValue) || 0
+  _value.value = props.value ?? props.modelValue ?? 0
 }
 
 const onInput = (e: Event) => {
