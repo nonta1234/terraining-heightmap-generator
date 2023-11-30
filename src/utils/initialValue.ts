@@ -20,8 +20,8 @@ export const styleList = [
 ]
 
 export const mapSpec: GridInfo = {
-  cs1: { mapPixels: 1081, size: 17.28, cell: 9, playCell: 5 },
-  cs2: { mapPixels: 1576, size: 12.6, cell: 21, playCell: 3 },
+  cs1: { mapPixels: 1081, size: 17.280, cell: 9, playCell: 5 },
+  cs2: { mapPixels: 4096, size: 14.336, cell: 23, playCell: 21 },
 }
 
 export const littoralArray: LittoralArray = {

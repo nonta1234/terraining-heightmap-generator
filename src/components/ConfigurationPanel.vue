@@ -9,6 +9,16 @@ onMounted(() => {
   interpolationRef.value!.value = mapbox.value.settings.interpolation
 })
 
+const onHeightmapTypeChange = () => {
+  setGridInfo(mapbox.value.settings.gridInfo)
+  if (mapbox.value.settings.gridInfo === 'cs1' && mapbox.value.settings.size < mapSpec.cs1.size) {
+    mapbox.value.settings.size = mapSpec.cs1.size
+  } else if (mapbox.value.settings.gridInfo === 'cs2' && mapbox.value.settings.size < mapSpec.cs2.size) {
+    mapbox.value.settings.size = mapSpec.cs2.size
+  }
+  setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+}
+
 const toggleDisplayEffect = () => {
   mapbox.value.map?.setPaintProperty(
     'sharpenLayer',
@@ -25,6 +35,7 @@ const toggleDisplayEffect = () => {
 const close = () => {
   useEvent('map:cpModal')
   setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+  saveSettings(mapbox.value.settings)
 }
 </script>
 
@@ -38,9 +49,9 @@ const close = () => {
           <li>
             <label>
               <span>Heightmap Type&ThinSpace;:</span>
-              <span><select ref="heightmapTypeRef" v-model="mapbox.settings.gridInfo" name="heightmapType">
-                <option value="cs1">Cities: Skylines</option>
-                <!--<option value="cs2">Cities: Skylines II</option>-->
+              <span><select ref="heightmapTypeRef" v-model="mapbox.settings.gridInfo" name="heightmapType" @change="onHeightmapTypeChange">
+                <option value="cs1">CS1</option>
+                <option value="cs2">CS2 Vanilla</option>
               </select></span>
             </label>
           </li>
@@ -106,7 +117,7 @@ const close = () => {
     display: block;
   }
   label {
-    width: 20rem;
+    width: 17.5rem;
     display: flex;
     align-items: center;
     margin-bottom: 1rem;
@@ -165,7 +176,7 @@ const close = () => {
     flex-shrink: 0;
   }
   select {
-    width: 10.5rem;
+    width: 8rem;
     border-radius: .25rem;
     color: $textColor;
     padding-left: .5rem;

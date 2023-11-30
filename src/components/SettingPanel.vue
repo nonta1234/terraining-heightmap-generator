@@ -224,7 +224,7 @@ onMounted(() => {
         </div>
         <div class="section">
           <ul>
-            <li><label>Map Size&ThinSpace;:</label><NumberInput :value="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.01" @change="onSizeChange" /><span>㎞</span></li>
+            <li><label>Map Size&ThinSpace;:</label><NumberInput :value="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.001" @change="onSizeChange" /><span>㎞</span></li>
             <li><label>Sea Level&ThinSpace;:</label><NumberInput v-model="mapbox.settings.seaLevel" :max="9999" :min="-9999" :step="0.1" /><span>m</span></li>
             <li><label>Adjust Level&ThinSpace;:</label><ToggleSwitch v-model="mapbox.settings.adjLevel" :name="'adjust-level'" /></li>
             <li>
