@@ -179,8 +179,7 @@ self.addEventListener('message', async function(e) {
   const citiesMap = new Uint8ClampedArray(mapSizePixels * mapSizePixels * 2)
 
   for (let i = 0; i < croppedMap.length; i++) {
-    let h = Math.round(croppedMap[i] / 0.015625)
-    if (h > 65535) { h = 65535 }
+    const h = Math.round(croppedMap[i] / 0.015625)
     citiesMap[i * 2] = h >> 8
     citiesMap[i * 2 + 1] = h & 255
   }

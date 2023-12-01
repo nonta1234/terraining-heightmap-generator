@@ -4,8 +4,6 @@ import {
   faBars,
   faXmark,
   faArrowsRotate,
-  faFileArrowDown,
-  faFileImage,
   faThumbtack,
   faGear,
 } from '@fortawesome/free-solid-svg-icons'
@@ -19,8 +17,6 @@ export default defineNuxtPlugin((nuxtApp) => {
     faBars,
     faXmark,
     faArrowsRotate,
-    faFileArrowDown,
-    faFileImage,
     faThumbtack,
     faCircleQuestion,
     faGear,

@@ -1,14 +1,10 @@
 <script setup lang="ts">
 interface Props {
   list: { text: string, value: string }[];
-  icon: [string, string];
-  iconClass?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   list: () => [],
-  icon: () => ['', ''],
-  iconClass: () => '',
 })
 
 const label = ref<HTMLLabelElement>()
@@ -57,7 +53,9 @@ defineExpose({
 
 <template>
   <div class="select-button">
-    <label ref="label" :class="{ 'is-active': isActive }"><font-awesome-icon :icon="props.icon" :class="props.iconClass" /></label>
+    <label ref="label" :class="{ 'is-active': isActive }">
+      <slot />
+    </label>
     <select
       ref="select"
       @mouseenter="onMouseenter"
@@ -89,6 +87,7 @@ defineExpose({
     perspective: 100px;
     text-align: center;
     flex-shrink: 0;
+    padding: 4px;
     svg {
       margin: 4px 0;
     }

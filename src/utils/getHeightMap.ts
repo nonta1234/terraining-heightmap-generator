@@ -75,7 +75,7 @@ const getHeightMapBilinear = async () => {
   const mapbox = useMapbox()
   const { resultPixels, calcPixels, tmpAreaSize, pixelsPerTile } = getInitParameter(mapbox)
   const { topleft, bottomright, referenceLat } = getExtentData(mapbox, tmpAreaSize)
-  const zoom = Math.ceil(calculateZoomLevel(referenceLat, tmpAreaSize, calcPixels, pixelsPerTile))
+  const zoom = Math.min(Math.ceil(calculateZoomLevel(referenceLat, tmpAreaSize, calcPixels, pixelsPerTile)), 14)
   const { tileX, tileY, tileCount, tilePixels, scale, offsetX, offsetY } = getTileInfo(mapbox, topleft, bottomright, zoom, pixelsPerTile, calcPixels)
 
   const tiles = new Array<Promise<T>>(Math.pow(tileCount, 2))
@@ -182,7 +182,7 @@ const getHeightMapBicubic = async () => {
   const mapbox = useMapbox()
   const { resultPixels, calcPixels, tmpAreaSize, pixelsPerTile } = getInitParameter(mapbox)
   const { topleft, bottomright, referenceLat } = getExtentData(mapbox, tmpAreaSize)
-  const zoom = Math.ceil(calculateZoomLevel(referenceLat, tmpAreaSize, calcPixels, pixelsPerTile))
+  const zoom = Math.min(Math.ceil(calculateZoomLevel(referenceLat, tmpAreaSize, calcPixels, pixelsPerTile)), 14)
   const { tileX, tileY, tileCount, tilePixels, scale, offsetX, offsetY } = getTileInfo(mapbox, topleft, bottomright, zoom, pixelsPerTile, calcPixels)
 
   const tiles = new Array<Promise<T>>(Math.pow(tileCount, 2))

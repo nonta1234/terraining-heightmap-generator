@@ -6,11 +6,26 @@ const mapbox = useMapbox()
 const config = useRuntimeConfig()
 const { isMobile } = useDevice()
 
+const rawButton = ref<HTMLElement>()
 const pngButton = ref<HTMLElement>()
 const imgButton = ref()
 const osmButton = ref<HTMLElement>()
 
 const { debugMode } = useDebug()
+
+
+const getRawHeightMap = async () => {
+  rawButton.value?.classList.add('downloading')
+  try {
+    const citiesMap = await getCitiesMap()
+    download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, citiesMap)
+    saveSettings(mapbox.value.settings)
+  } catch (e: any) {
+    console.log(e.message)
+  } finally {
+    rawButton.value?.classList.remove('downloading')
+  }
+}
 
 
 const getPngHeightMap = async () => {
@@ -137,16 +152,17 @@ const debug = () => {
   <div id="download-panel" :class="{'is-mobile': isMobile, 'is-desktop': !isMobile}">
     <ul>
       <li v-if="debugMode"><button ref="debugButton" title="debug" class="debug" @click="debug"><DebugIcon /></button></li>
-      <li><button ref="pngButton" title="Download PNG height map" @click="getPngHeightMap"><font-awesome-icon :icon="['fas', 'file-arrow-down']" class="fa-fw fa-2xl" /></button></li>
+      <li><button ref="rawButton" title="Download RAW height map" class="dl-icon" @click="getRawHeightMap"><RawIcon /></button></li>
+      <li><button ref="pngButton" title="Download PNG height map" class="dl-icon" @click="getPngHeightMap"><PngIcon /></button></li>
       <li>
         <SelectButton
           ref="imgButton"
           :list="styleList"
-          :icon="['fas', 'file-image']"
-          :icon-class="'fa-fw fa-2xl'"
           title="Download map image"
           @change="getMapImage"
-        />
+        >
+          <ImgIcon />
+        </SelectButton>
       </li>
       <li><button ref="osmButton" title="Download OSM data" class="osm" @click="getOsmData"><OsmLogo /></button></li>
       <li><button title="Configuration" @click="modal"><font-awesome-icon :icon="['fas', 'gear']" class="fa-fw fa-2xl" /></button></li>
@@ -200,6 +216,9 @@ const debug = () => {
         margin: auto;
       }
     }
+  }
+  .dl-icon {
+    padding: 4px;
   }
   .is-mobile {
     bottom: 2.25rem;
