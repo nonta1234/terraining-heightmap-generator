@@ -3,31 +3,6 @@ import * as turf from '@turf/turf'
 import type { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
 import type { Mapbox, Grid, LngLat } from '~/types/types'
 
-let endCell = 0
-let centerCell = 0
-let playCell = [0, 0, 0, 0]   // topleft, bottomleft, bottomright, topright
-let cornerCell = [0, 0, 0, 0]
-
-export const setGridInfo = (gridInfoString: string) => {
-  const gridInfoValue = mapSpec[gridInfoString]
-  endCell = gridInfoValue.cell * gridInfoValue.cell - 1
-  centerCell = endCell / 2
-  const gap = (gridInfoValue.cell - gridInfoValue.playCell) / 2
-  const c1 = gridInfoValue.cell + 1
-  playCell = [
-    gap * c1,
-    gap * c1 + gridInfoValue.playCell - 1,
-    endCell - gap * c1,
-    endCell - gap * c1 - gridInfoValue.playCell + 1,
-  ]
-  cornerCell = [
-    0,
-    gridInfoValue.cell - 1,
-    endCell,
-    endCell - gridInfoValue.cell + 1,
-  ]
-}
-
 
 export const getExtent = (lng: number, lat: number, topleftSize: number, bottomrightSize: number) => {
   const topleftDist = Math.sqrt(2 * Math.pow(topleftSize, 2))
@@ -51,58 +26,61 @@ export const getGridAngle = () => {
 // -> Figure 1
 
 const getPlayArea = (features: Feature<Polygon, GeoJsonProperties>[]) => {
+  const mapbox = useMapbox()
   const area = turf.polygon([[
-    features[playCell[0]].geometry.coordinates[0][0],
-    features[playCell[1]].geometry.coordinates[0][1],
-    features[playCell[2]].geometry.coordinates[0][2],
-    features[playCell[3]].geometry.coordinates[0][3],
-    features[playCell[0]].geometry.coordinates[0][0],
+    features[mapSpec[mapbox.value.settings.gridInfo].play[0]].geometry.coordinates[0][0],
+    features[mapSpec[mapbox.value.settings.gridInfo].play[1]].geometry.coordinates[0][1],
+    features[mapSpec[mapbox.value.settings.gridInfo].play[2]].geometry.coordinates[0][2],
+    features[mapSpec[mapbox.value.settings.gridInfo].play[3]].geometry.coordinates[0][3],
+    features[mapSpec[mapbox.value.settings.gridInfo].play[0]].geometry.coordinates[0][0],
   ]])
   return area
 }
 
 
 const getCenterArea = (features: Feature<Polygon, GeoJsonProperties>[]) => {
+  const mapbox = useMapbox()
   const area = turf.polygon([[
-    features[centerCell].geometry.coordinates[0][0],
-    features[centerCell].geometry.coordinates[0][1],
-    features[centerCell].geometry.coordinates[0][2],
-    features[centerCell].geometry.coordinates[0][3],
-    features[centerCell].geometry.coordinates[0][0],
+    features[mapSpec[mapbox.value.settings.gridInfo].center[0]].geometry.coordinates[0][0],
+    features[mapSpec[mapbox.value.settings.gridInfo].center[1]].geometry.coordinates[0][1],
+    features[mapSpec[mapbox.value.settings.gridInfo].center[2]].geometry.coordinates[0][2],
+    features[mapSpec[mapbox.value.settings.gridInfo].center[3]].geometry.coordinates[0][3],
+    features[mapSpec[mapbox.value.settings.gridInfo].center[0]].geometry.coordinates[0][0],
   ]])
   return area
 }
 
 
 const getRotateArea = (features: Feature<Polygon, GeoJsonProperties>[]) => {
+  const mapbox = useMapbox()
   const area = turf.multiPolygon([[
     [
-      features[cornerCell[0]].geometry.coordinates[0][0],
-      features[cornerCell[0]].geometry.coordinates[0][1],
-      features[cornerCell[0]].geometry.coordinates[0][2],
-      features[cornerCell[0]].geometry.coordinates[0][3],
-      features[cornerCell[0]].geometry.coordinates[0][0],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[0][0]].geometry.coordinates[0][0],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[0][1]].geometry.coordinates[0][1],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[0][2]].geometry.coordinates[0][2],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[0][3]].geometry.coordinates[0][3],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[0][0]].geometry.coordinates[0][0],
     ],
     [
-      features[cornerCell[1]].geometry.coordinates[0][0],
-      features[cornerCell[1]].geometry.coordinates[0][1],
-      features[cornerCell[1]].geometry.coordinates[0][2],
-      features[cornerCell[1]].geometry.coordinates[0][3],
-      features[cornerCell[1]].geometry.coordinates[0][0],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[1][0]].geometry.coordinates[0][0],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[1][1]].geometry.coordinates[0][1],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[1][2]].geometry.coordinates[0][2],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[1][3]].geometry.coordinates[0][3],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[1][0]].geometry.coordinates[0][0],
     ],
     [
-      features[cornerCell[2]].geometry.coordinates[0][0],
-      features[cornerCell[2]].geometry.coordinates[0][1],
-      features[cornerCell[2]].geometry.coordinates[0][2],
-      features[cornerCell[2]].geometry.coordinates[0][3],
-      features[cornerCell[2]].geometry.coordinates[0][0],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[2][0]].geometry.coordinates[0][0],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[2][1]].geometry.coordinates[0][1],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[2][2]].geometry.coordinates[0][2],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[2][3]].geometry.coordinates[0][3],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[2][0]].geometry.coordinates[0][0],
     ],
     [
-      features[cornerCell[3]].geometry.coordinates[0][0],
-      features[cornerCell[3]].geometry.coordinates[0][1],
-      features[cornerCell[3]].geometry.coordinates[0][2],
-      features[cornerCell[3]].geometry.coordinates[0][3],
-      features[cornerCell[3]].geometry.coordinates[0][0],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[3][0]].geometry.coordinates[0][0],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[3][1]].geometry.coordinates[0][1],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[3][2]].geometry.coordinates[0][2],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[3][3]].geometry.coordinates[0][3],
+      features[mapSpec[mapbox.value.settings.gridInfo].rotate[3][0]].geometry.coordinates[0][0],
     ],
   ]])
   return area
@@ -141,20 +119,20 @@ const getGrid = (lng: number, lat: number, size: number, angle: number) => {
   const rotateArea = getRotateArea(gridArea.features)
 
   const sideLines = turf.multiLineString([
-    [getPosition(gridArea.features[cornerCell[0]], 'topleft'), getPosition(gridArea.features[cornerCell[3]], 'topright')],
-    [getPosition(gridArea.features[cornerCell[3]], 'topright'), getPosition(gridArea.features[cornerCell[2]], 'bottomright')],
-    [getPosition(gridArea.features[cornerCell[2]], 'bottomright'), getPosition(gridArea.features[cornerCell[1]], 'bottomleft')],
-    [getPosition(gridArea.features[cornerCell[1]], 'bottomleft'), getPosition(gridArea.features[cornerCell[0]], 'topleft')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]], 'topleft'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[3]], 'topright')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[3]], 'topright'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[2]], 'bottomright')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[2]], 'bottomright'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[1]], 'bottomleft')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[1]], 'bottomleft'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]], 'topleft')],
   ])
 
   const midpoint = turf.midpoint(
-    getPosition(gridArea.features[centerCell], 'topleft'),
-    getPosition(gridArea.features[centerCell], 'topright'),
+    getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[0]], 'topleft'),
+    getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[3]], 'topright'),
   )
 
   const direction =  turf.multiLineString([
-    [getPosition(gridArea.features[centerCell], 'bottomleft'), midpoint.geometry.coordinates],
-    [midpoint.geometry.coordinates, getPosition(gridArea.features[centerCell], 'bottomright')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[1]], 'bottomleft'), midpoint.geometry.coordinates],
+    [midpoint.geometry.coordinates, getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[2]], 'bottomright')],
   ])
 
   const grid: Grid = { gridArea, playArea, centerArea, rotateArea, sideLines, direction }
@@ -208,8 +186,6 @@ export const createMapInstance = () => {
     center:      [mapbox.value.settings.lng, mapbox.value.settings.lat],
     zoom:        mapbox.value.settings.zoom,
   })
-
-  setGridInfo(mapbox.value.settings.gridInfo)
 
   mapbox.value.grid = getGrid(
     mapbox.value.settings.lng,

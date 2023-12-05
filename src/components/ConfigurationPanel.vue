@@ -10,7 +10,6 @@ onMounted(() => {
 })
 
 const onHeightmapTypeChange = () => {
-  setGridInfo(mapbox.value.settings.gridInfo)
   if (mapbox.value.settings.gridInfo === 'cs1' && mapbox.value.settings.size < mapSpec.cs1.size) {
     mapbox.value.settings.size = mapSpec.cs1.size
   } else if (mapbox.value.settings.gridInfo === 'cs2' && mapbox.value.settings.size < mapSpec.cs2.size) {
@@ -51,8 +50,14 @@ const close = () => {
               <span>Heightmap Type&ThinSpace;:</span>
               <span><select ref="heightmapTypeRef" v-model="mapbox.settings.gridInfo" name="heightmapType" @change="onHeightmapTypeChange">
                 <option value="cs1">CS1</option>
-                <option value="cs2">CS2 Vanilla</option>
+                <option value="cs2">CS2</option>
               </select></span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <span>Elevation Scale&ThinSpace;:</span>
+              <NumberInput v-model="mapbox.settings.elevationScale" :max="100000" :min="0" :step="0.001" /><span>m</span>
             </label>
           </li>
           <li>
@@ -117,7 +122,7 @@ const close = () => {
     display: block;
   }
   label {
-    width: 17.5rem;
+    width: 17rem;
     display: flex;
     align-items: center;
     margin-bottom: 1rem;
@@ -140,9 +145,9 @@ const close = () => {
         text-align: center;
       }
       &:first-child {
-        width: 9.5rem;
+        width: 9.75rem;
         &:has(+ .prefix) {
-          width: 8.25rem;
+          width: 8.5rem;
         }
       }
       &:last-child:not(:has(select)) {
@@ -176,7 +181,7 @@ const close = () => {
     flex-shrink: 0;
   }
   select {
-    width: 8rem;
+    width: 6rem;
     border-radius: .25rem;
     color: $textColor;
     padding-left: .5rem;
@@ -191,7 +196,7 @@ const close = () => {
     }
   }
   input {
-    width: 4rem;
+    width: 6rem;
     color: $textColor;
     padding: 0 .25rem;
     background-color: $inputBg;
@@ -204,6 +209,10 @@ const close = () => {
   }
   input[input] {
     color: #FFA500;
+  }
+  input:disabled {
+    color: $textDisabled;
+    background-color: transparent;
   }
   .close {
     height: 2.25rem;

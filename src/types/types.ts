@@ -12,7 +12,10 @@ export type GridInfoData = {
   mapPixels: number;
   size:      number;
   cell:      number;
-  playCell:  number;
+  center:    number[];
+  play:      number[];
+  rotate:    number[][];
+  side:      number[];
 }
 
 export interface GridInfo {
@@ -24,40 +27,41 @@ export interface LittoralArray {
 }
 
 export interface Grid {
-  gridArea:     FeatureCollection<Polygon, GeoJsonProperties>;
-  playArea:     Feature<Polygon, GeoJsonProperties>;
-  centerArea:   Feature<Polygon, GeoJsonProperties>;
-  rotateArea:   Feature<MultiPolygon, GeoJsonProperties>;
-  sideLines:    Feature<MultiLineString, GeoJsonProperties>;
-  direction:    Feature<MultiLineString, GeoJsonProperties>;
+  gridArea:   FeatureCollection<Polygon, GeoJsonProperties>;
+  playArea:   Feature<Polygon, GeoJsonProperties>;
+  centerArea: Feature<Polygon, GeoJsonProperties>;
+  rotateArea: Feature<MultiPolygon, GeoJsonProperties>;
+  sideLines:  Feature<MultiLineString, GeoJsonProperties>;
+  direction:  Feature<MultiLineString, GeoJsonProperties>;
 }
 
 export interface Settings {
-  lng:           number;
-  lat:           number;
-  zoom:          number;
-  size:          number;
-  angle:         number;
-  seaLevel:      number;
-  adjLevel:      boolean;
-  vertScale:     number;
-  fixedRatio:    boolean;
-  type:          HeightCalcType;
-  depth:         number;
-  streamDepth:   number;
-  littoral:      number;
-  littArray:     number[];
-  smoothing:     number;
-  smthThres:     number;
-  smthFade:      number;
-  smoothCount:   number;
-  sharpen:       number;
-  shrpThres:     number;
-  shrpFade:      number;
-  gridInfo:      string;
-  interpolation: Interpolation;
-  noise:         number;
-  noiseGrid:     number;
+  lng:               number;
+  lat:               number;
+  zoom:              number;
+  size:              number;
+  angle:             number;
+  seaLevel:          number;
+  adjLevel:          boolean;
+  vertScale:         number;
+  fixedRatio:        boolean;
+  type:              HeightCalcType;
+  depth:             number;
+  streamDepth:       number;
+  littoral:          number;
+  littArray:         number[];
+  smoothing:         number;
+  smthThres:         number;
+  smthFade:          number;
+  smoothCount:       number;
+  sharpen:           number;
+  shrpThres:         number;
+  shrpFade:          number;
+  gridInfo:          string;
+  elevationScale:    number;
+  interpolation:     Interpolation;
+  noise:             number;
+  noiseGrid:         number;
   displayEffectArea: boolean,
   applyEffectAmount: boolean,
 }
