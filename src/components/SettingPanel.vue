@@ -46,13 +46,6 @@ const _smoothing = computed(() => mapbox.value.settings.smoothing)
 const _smthThres = computed(() => mapbox.value.settings.smthThres)
 const _smthFade = computed(() => mapbox.value.settings.smthFade)
 
-const littoral = computed({
-  get: () => mapbox.value.settings.littoral,
-  set: (val) => {
-    mapbox.value.settings.littoral = Math.round(val / 16) * 16
-  },
-})
-
 const fixedS = computed({
   get: () => !mapbox.value.settings.fixedRatio,
   set: (val) => {
@@ -133,18 +126,24 @@ useListen('debug:operate', () => {
 
 const refresh = async () => {
   rotate.value = true
-  message.value = 'Downloading' + '\n' + 'elevation data.'
-  const heightMap = await getHeightMap()
-  message.value = ''
-  const { min, max } = getMinMaxHeight(heightMap)
-  minHeight.value = min.toFixed(1)
-  maxHeight.value = max.toFixed(1)
-  rotate.value = false
-  if (mapbox.value.settings.adjLevel) {
-    mapbox.value.settings.seaLevel = min
+  try {
+    message.value = 'Downloading' + '\n' + 'elevation data.'
+    const heightMap = await getHeightMap()
+    const { min, max } = getMinMaxHeight(heightMap)
+    minHeight.value = min.toFixed(1)
+    maxHeight.value = max.toFixed(1)
+    if (mapbox.value.settings.adjLevel) {
+      mapbox.value.settings.seaLevel = min
+    }
+    adjustElevation(max)
+    saveSettings(mapbox.value.settings)
+  } catch (error) {
+    console.error('An error occurred in getHeightMap:', error)
+    throw error
+  } finally {
+    message.value = ''
+    rotate.value = false
   }
-  adjustElevation(max)
-  saveSettings(mapbox.value.settings)
 }
 
 const onLngChange = (value: number) => {
@@ -242,7 +241,7 @@ onMounted(() => {
               <select name="type" :value="mapbox.settings.type" @change="onTypeChange">
                 <option value="manual">Manual</option>
                 <option value="limit">Limit</option>
-                <option value="maximize">Maxi.</option>
+                <option value="maximize">Maximize</option>
               </select><span></span>
             </li>
           </ul>
@@ -250,7 +249,7 @@ onMounted(() => {
         <div class="section">
           <ul>
             <li><label>Water Depth&ThinSpace;:</label><NumberInput v-model="mapbox.settings.depth" :max="100" :min="0" :step="1" /><span>m</span></li>
-            <li><label>Littoral Length&ThinSpace;:</label><NumberInput v-model="littoral" :max="512" :min="16" :step="16" /><span>m</span></li>
+            <li><label>Littoral Length&ThinSpace;:</label><NumberInput v-model="mapbox.settings.littoral" :max="500" :min="0" :step="1" /><span>m</span></li>
             <li class="editor"><label>Littoral Editor&ThinSpace;:</label><button class="littoral-editor" @click="modal">{{ modalButtonText }}</button><span></span></li>
           </ul>
         </div>
@@ -286,7 +285,7 @@ onMounted(() => {
     position: absolute;
     top: 10px;
     left: 10px;
-    width: 14.75rem;
+    width: 15.25rem;
     border-radius: .375rem;
     color: $textColor;
     font-size: 1rem;
@@ -339,7 +338,7 @@ onMounted(() => {
     flex-shrink: 0;
   }
   input {
-    width: 4rem;
+    width: 4.5rem;
     color: $textColor;
     padding: 0 .25rem;
     background-color: $inputBg;
@@ -358,7 +357,7 @@ onMounted(() => {
     background-color: transparent;
   }
   select {
-    width: 4rem;
+    width: 4.5rem;
     flex-shrink: 0;
     border-radius: .25rem;
     color: $textColor;
@@ -393,7 +392,7 @@ onMounted(() => {
   .littoral-editor {
     color: $textColor;
     height: 1.5rem;
-    width: 4rem;
+    width: 4.5rem;
     font-size: .875rem;
     border-radius: .25rem;
     line-height: 1.714285;
