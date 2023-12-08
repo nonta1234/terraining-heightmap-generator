@@ -198,10 +198,11 @@ const resize = () => {
 
 onMounted(() => {
   window.addEventListener('resize', resize)
-  setCanvasSize()
 
   gCtx.value = gCanvas.value!.getContext('2d', { storage: 'persistent' }) as CanvasRenderingContext2D
   oCtx.value = oCanvas.value!.getContext('2d', { storage: 'persistent' }) as CanvasRenderingContext2D
+
+  setCanvasSize()
 
   setPositions()
   drawGrid(gCtx.value)
