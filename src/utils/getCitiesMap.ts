@@ -1,9 +1,10 @@
 import CalcMapWorker from '~/workers/calcCitiesMap.js?worker'  // eslint-disable-line
 
 type MessageData = {
-  tmpHeightMap: Float64Array;
-  waterMap: Float64Array;
-  waterwayMap: Float64Array;
+  scaleFactor: number;
+  tmpHeightMap: Float32Array;
+  waterMap: Float32Array;
+  waterwayMap: Float32Array;
   seaLevel: number;
   vertScale: number;
   smoothing: number;
@@ -49,9 +50,10 @@ export const getCitiesMap = async () => {
     adjustElevation(max)
 
     const messageData: MessageData = {
-      tmpHeightMap: new Float64Array(tmpHeightMap),
-      waterMap: new Float64Array(waterMap),
-      waterwayMap: new Float64Array(waterwayMap),
+      scaleFactor: mapbox.value.settings.gridInfo === 'cs2' ? mapbox.value.settings.elevationScale / 65535 : 0.015625,
+      tmpHeightMap,
+      waterMap,
+      waterwayMap,
       seaLevel: mapbox.value.settings.seaLevel,
       vertScale: mapbox.value.settings.vertScale,
       smoothing: mapbox.value.settings.smoothing,

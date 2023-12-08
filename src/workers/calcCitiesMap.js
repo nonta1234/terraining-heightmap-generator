@@ -87,6 +87,7 @@ const getSharpenMap = (map, smoothedMap, k) => {
 
 self.addEventListener('message', async function(e) {
   const {
+    scaleFactor,
     tmpHeightMap,
     waterMap,
     waterwayMap,
@@ -179,7 +180,7 @@ self.addEventListener('message', async function(e) {
   const citiesMap = new Uint8ClampedArray(mapSizePixels * mapSizePixels * 2)
 
   for (let i = 0; i < croppedMap.length; i++) {
-    const h = Math.round(croppedMap[i] / 0.015625)
+    const h = Math.round(croppedMap[i] / scaleFactor)
     citiesMap[i * 2] = h >> 8
     citiesMap[i * 2 + 1] = h & 255
   }

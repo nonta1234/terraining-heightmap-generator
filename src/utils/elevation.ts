@@ -19,7 +19,7 @@ export const remToPx = (rem: number) => {
 export const adjustElevation = (maxHeight: number) => {
   const mapbox = useMapbox()
   if (mapbox.value.settings.type !== 'manual') {
-    const csMaxHeight = 1023.984375 - mapbox.value.settings.depth
+    const csMaxHeight = ((mapbox.value.settings.gridInfo === 'cs1') ? 1023.984375 : mapbox.value.settings.elevationScale) - mapbox.value.settings.depth
     const elevationRange = maxHeight - mapbox.value.settings.seaLevel
     if (mapbox.value.settings.type === 'maximize' || elevationRange * mapbox.value.settings.vertScale > csMaxHeight) {
       mapbox.value.settings.vertScale = csMaxHeight / elevationRange
@@ -28,7 +28,7 @@ export const adjustElevation = (maxHeight: number) => {
 }
 
 
-export const getMinMaxHeight = (map: Array<number>) => {
+export const getMinMaxHeight = (map: Float32Array) => {
   const heights = { min: 100000, max: -100000 }
   for (let i = 0; i < map.length; i++) {
     const h = map[i]
@@ -54,9 +54,10 @@ export const height2TerrainRGB = (height: number) => {
 
 
 export const decodeElevation = (arr: Uint8ClampedArray) => {
-  const elevs = new Array<number>(arr.length / 4)
+  const arrLength = arr.length / 4
+  const elevs = new Float32Array(arrLength)
   let arrIndex = 0
-  for (let i = 0; i < elevs.length; i++) {
+  for (let i = 0; i < arrLength; i++) {
     elevs[i] = terrainRGB2Height(arr[arrIndex], arr[arrIndex + 1], arr[arrIndex + 2])
     arrIndex += 4
   }

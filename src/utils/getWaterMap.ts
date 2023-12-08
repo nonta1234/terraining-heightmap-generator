@@ -14,11 +14,12 @@ type Position = {
 
 export const getWaterMap = async () => {
   const mapbox = useMapbox()
-  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4  // 1085px (cs1) 1081 + 4
-  const tmpMapPixels = Math.ceil((resultPixels + 1) * Math.SQRT2)             // 1086√2 px (cs1)
-  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1      // 1080px (cs1)
+  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4          // cs1: 1085px  cs2: 4100px
+  const tmpMapPixels = Math.ceil((resultPixels + 1) * Math.SQRT2)                     // cs1: 1086√2px  cs2: 4101√2px
+  const fasesOffset = mapbox.value.settings.gridInfo === 'cs2' ? 0 : 1
+  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - fasesOffset    // cs1: 1080px  cs2: 4096px
   const waterAreaSize = mapbox.value.settings.size / mapFases * tmpMapPixels
-  const pixelsPerTile = 4096  // number of pixels in vector-tiles
+  const pixelsPerTile = 4096                                                          // number of pixels in vector-tiles
 
   const { topleft, bottomright } = getExtent(
     mapbox.value.settings.lng,
@@ -59,7 +60,9 @@ export const getWaterMap = async () => {
 
   const mapPixelsOnTile = Math.sqrt(mapWidth * mapWidth + mapHeight * mapHeight) / Math.SQRT2
   const scale = tmpMapPixels / mapPixelsOnTile
-  const lineWidth = mapbox.value.settings.littoral / 8
+
+  const length = mapbox.value.settings.gridInfo === 'cs2' ? Math.max(mapbox.value.settings.littoral, 3.5) : Math.max(mapbox.value.settings.littoral, 16)
+  const lineWidth = mapbox.value.settings.gridInfo === 'cs2' ? length / 1.75 : length / 8
 
   const tiles = new Array<Promise<T>>(Math.pow(tileCount, 2))
 
@@ -112,7 +115,7 @@ export const getWaterMap = async () => {
   waterwayCtx.fillStyle = '#FFFFFF'
   waterwayCtx.fillRect(0, 0, waterwayCanvas.value.width, waterwayCanvas.value.height)
   waterwayCtx.strokeStyle = '#000000'
-  waterwayCtx.lineWidth = 0.7
+  waterwayCtx.lineWidth = mapbox.value.settings.gridInfo === 'cs2' ? 2 : 0.7
 
 
   // fetch tiles & draw ------------------------------------------------------------------------------
@@ -267,7 +270,8 @@ export const getWaterMap = async () => {
 
 
   function decodeData(arr: Uint8ClampedArray) {
-    const elevs = new Array<number>(arr.length / 4)
+    const arrLength = arr.length / 4
+    const elevs = new Float32Array(arrLength)
     let arrIndex = 0
     for (let i = 0; i < elevs.length; i++) {
       elevs[i] = arr[arrIndex] / 255
@@ -303,9 +307,10 @@ export const getWaterMap = async () => {
   const resultWaterwayCtx = waterwayCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
   resultWaterwayCtx.globalCompositeOperation = 'source-over'
 
+
   // transpose & rotate ------------------------------------------------------------------------------
 
-  const halfSize = (resultPixels - 1) / 2   // 542px (cs1)
+  const halfSize = (resultPixels - fasesOffset) / 2                         // cs1: 542px  cs2: 2050px
 
   resultWaterCtx.translate(halfSize, halfSize)
   resultWaterCtx.rotate(-mapbox.value.settings.angle * (Math.PI / 180))
@@ -316,6 +321,8 @@ export const getWaterMap = async () => {
   waterwayCtx.rotate(-mapbox.value.settings.angle * (Math.PI / 180))
 
   resultWaterwayCtx.drawImage(waterwayCanvas.value, -waterwayCanvas.value.width / 2, -waterwayCanvas.value.height / 2)
+
+  // in CS2, add gaussian filter, on heightmap
 
 
   // decode data -------------------------------------------------------------------------------------

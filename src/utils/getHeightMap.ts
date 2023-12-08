@@ -9,11 +9,12 @@ type T = {
 
 
 const getInitParameter = (mapbox: Ref<Mapbox>) => {
-  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4  // 1085px (cs1) 1081 + 4
-  const calcPixels = resultPixels + 5                                         // 1090px (cs1)
-  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1      // 1080px (cs1)
+  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4          // cs1: 1085px  cs2: 4100px
+  const calcPixels = resultPixels + 5                                                 // cs1: 1090px  cs2: 4105px
+  const fasesOffset = mapbox.value.settings.gridInfo === 'cs2' ? 0 : 1
+  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - fasesOffset    // cs1: 1080px  cs2: 4096px
   const tmpAreaSize = mapbox.value.settings.size / mapFases * calcPixels
-  const pixelsPerTile = 512   // number of pixels in terrain-tiles
+  const pixelsPerTile = 512                                                           // number of pixels in terrain-tiles
   return { resultPixels, calcPixels, tmpAreaSize, pixelsPerTile }
 }
 
@@ -100,12 +101,13 @@ const getHeightMapBilinear = async () => {
 
   const elevations = decodeElevation(pixelData)
 
-  const heightMap = new Array<number>(resultPixels * resultPixels)
+  const heightMap = new Float32Array(resultPixels * resultPixels)
 
   const cosTheta = Math.cos(-mapbox.value.settings.angle * Math.PI / 180)
   const sinTheta = Math.sin(-mapbox.value.settings.angle * Math.PI / 180)
 
-  const halfSize = (resultPixels - 1) / 2  // 542px (cs1)
+  const fasesOffset = mapbox.value.settings.gridInfo === 'cs2' ? 0 : 1
+  const halfSize = (resultPixels - fasesOffset) / 2                         // cs1: 542px  cs2: 2050px
 
   // affine transformation & bilinear interpolation
 
@@ -207,16 +209,17 @@ const getHeightMapBicubic = async () => {
 
   const elevations = decodeElevation(pixelData)
 
-  const heightMap = new Array<number>(resultPixels * resultPixels)
+  const heightMap = new Float32Array(resultPixels * resultPixels)
 
   const cosTheta = Math.cos(-mapbox.value.settings.angle * Math.PI / 180)
   const sinTheta = Math.sin(-mapbox.value.settings.angle * Math.PI / 180)
 
-  const halfSize = (resultPixels - 1) / 2  // 542px (cs1)
+  const fasesOffset = mapbox.value.settings.gridInfo === 'cs2' ? 0 : 1
+  const halfSize = (resultPixels - fasesOffset) / 2                         // cs1: 542px  cs2: 2050px
 
   // affine transformation & bicubic interpolation
 
-  const a = -1
+  const a = mapbox.value.settings.gridInfo === 'cs2' ? -0.5 : -1
 
   for (let y = 0; y < resultPixels; y++) {
     for (let x = 0; x < resultPixels; x++) {
