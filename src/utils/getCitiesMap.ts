@@ -1,4 +1,5 @@
 import CalcMapWorker from '~/workers/calcCitiesMap.js?worker'  // eslint-disable-line
+import type { MapType } from '~/types/types'
 
 type MessageData = {
   scaleFactor: number;
@@ -37,11 +38,20 @@ const calcMap = (data: MessageData) => {
 }
 
 
-export const getCitiesMap = async () => {
+export const getCitiesMap = async (mapType: MapType) => {
   try {
     const mapbox = useMapbox()
-    const tmpHeightMap = await getHeightMap()
-    const { waterMap, waterwayMap } = await getWaterMap()
+
+    const heightMapTime0 = window.performance.now()
+    const tmpHeightMap = await getHeightMap(mapType)
+    const heightMapTime = window.performance.now() - heightMapTime0
+    console.log('heightmap:', heightMapTime)
+
+    const waterMapTime0 = window.performance.now()
+    const { waterMap, waterwayMap } = await getWaterMap(mapType)
+    const waterMapTime = window.performance.now() - waterMapTime0
+    console.log('watermap:', waterMapTime)
+
     const { min, max } = getMinMaxHeight(tmpHeightMap)
 
     if (mapbox.value.settings.adjLevel) {

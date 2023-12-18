@@ -10,7 +10,7 @@ const transposeArrayData = (arr, srcRows, srcCols) => {
 
 
 const getSharpenMask = (map, shrpThres, shrpFade) => {
-  const mask = new Array(map.length)
+  const mask = new Float32Array(map.length)
   const min = shrpThres
   const max = shrpThres + shrpFade
   for (let i = 0; i < map.length; i++) {
@@ -27,7 +27,7 @@ const getSharpenMask = (map, shrpThres, shrpFade) => {
 
 
 const getSmoothMask = (map, smthThres, smthFade) => {
-  const mask = new Array(map.length)
+  const mask = new Float32Array(map.length)
   const max = smthThres
   const min = smthThres - smthFade
   for (let i = 0; i < map.length; i++) {
@@ -45,7 +45,7 @@ const getSmoothMask = (map, smthThres, smthFade) => {
 
 const getSmoothedMap = (map) => {
   const size = Math.sqrt(map.length)
-  const tmpMap1 = new Array(map.length)
+  const tmpMap1 = new Float32Array(map.length)
 
   for (let y = 0; y < size; y++) {
     tmpMap1[y * size] = map[y * size] * 3 + map[y * size + 1] + map[y * size + 2]
@@ -58,16 +58,16 @@ const getSmoothedMap = (map) => {
   }
 
   const tmpMap2 = transposeArrayData(tmpMap1, size, size)
-  const tmpMap3 = new Array(map.length)
+  const tmpMap3 = new Float32Array(map.length)
 
   for (let y = 0; y < size; y++) {
-    tmpMap3[y * size] = tmpMap2[y * size] * 3 + tmpMap2[y * size + 1] + tmpMap2[y * size + 2]
-    tmpMap3[y * size + 1] = tmpMap2[y * size] * 2 + tmpMap2[y * size + 1] + tmpMap2[y * size + 2] + tmpMap2[y * size + 3]
+    tmpMap3[y * size] = (tmpMap2[y * size] * 3 + tmpMap2[y * size + 1] + tmpMap2[y * size + 2]) / 25
+    tmpMap3[y * size + 1] = (tmpMap2[y * size] * 2 + tmpMap2[y * size + 1] + tmpMap2[y * size + 2] + tmpMap2[y * size + 3]) / 25
     for (let x = 2; x < size - 2; x++) {
       tmpMap3[y * size + x] = (tmpMap2[y * size + x - 2] + tmpMap2[y * size + x - 1] + tmpMap2[y * size + x] + tmpMap2[y * size + x + 1] + tmpMap2[y * size + x + 2]) / 25
     }
-    tmpMap3[y * size + size - 2] = tmpMap2[y * size + size - 4] + tmpMap2[y * size + size - 3] + tmpMap2[y * size + size - 2] + tmpMap2[y * size + size - 1] * 2
-    tmpMap3[y * size + size - 1] = tmpMap2[y * size + size - 3] + tmpMap2[y * size + size - 2] + tmpMap2[y * size + size - 1] * 3
+    tmpMap3[y * size + size - 2] = (tmpMap2[y * size + size - 4] + tmpMap2[y * size + size - 3] + tmpMap2[y * size + size - 2] + tmpMap2[y * size + size - 1] * 2) / 25
+    tmpMap3[y * size + size - 1] = (tmpMap2[y * size + size - 3] + tmpMap2[y * size + size - 2] + tmpMap2[y * size + size - 1] * 3) / 25
   }
 
   const smoothedMap = transposeArrayData(tmpMap3, size, size)
@@ -77,7 +77,7 @@ const getSmoothedMap = (map) => {
 
 
 const getSharpenMap = (map, smoothedMap, k) => {
-  const sharpenMap = new Array(map.length)
+  const sharpenMap = new Float32Array(map.length)
   for (let i = 0; i < map.length; i++) {
     sharpenMap[i] = map[i] + (map[i] - smoothedMap[i]) * k
   }
@@ -111,7 +111,7 @@ self.addEventListener('message', async function(e) {
   const alphaSharpen = sharpen / 10
   const alphaSmooth = smoothing / 100
 
-  const effectedMap = new Array(tmpHeightMap.length)
+  const effectedMap = new Float32Array(tmpHeightMap.length)
 
   const smoothedMask = getSmoothMask(tmpHeightMap, smthThres, smthFade)
   const sharpenMask = getSharpenMask(tmpHeightMap, shrpThres, shrpFade)
@@ -129,12 +129,12 @@ self.addEventListener('message', async function(e) {
   const smoothedMap = [...vec]
 
   const sharpenMap = getSharpenMap(tmpHeightMap, tmpSmoothedMap, alphaSharpen)
-  const maskedSharpenMap = new Array(sharpenMap.length)
+  const maskedSharpenMap = new Float32Array(sharpenMap.length)
   for (let i = 0; i < sharpenMap.length; i++) {
     maskedSharpenMap[i] = tmpHeightMap[i] * (1 - sharpenMask[i]) + sharpenMap[i] * sharpenMask[i]
   }
 
-  const maskedSmoothMap = new Array(smoothedMap.length)
+  const maskedSmoothMap = new Float32Array(smoothedMap.length)
   for (let i = 0; i < smoothedMap.length; i++) {
     maskedSmoothMap[i] = maskedSharpenMap[i] * (1 - smoothedMask[i]) + smoothedMap[i] * smoothedMask[i]
   }

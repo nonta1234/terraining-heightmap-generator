@@ -19,7 +19,7 @@ export const remToPx = (rem: number) => {
 export const adjustElevation = (maxHeight: number) => {
   const mapbox = useMapbox()
   if (mapbox.value.settings.type !== 'manual') {
-    const csMaxHeight = ((mapbox.value.settings.gridInfo === 'cs1') ? 1023.984375 : mapbox.value.settings.elevationScale) - mapbox.value.settings.depth
+    const csMaxHeight = (mapbox.value.settings.gridInfo === 'cs1' ? 1023.984375 : mapbox.value.settings.elevationScale) - mapbox.value.settings.depth
     const elevationRange = maxHeight - mapbox.value.settings.seaLevel
     if (mapbox.value.settings.type === 'maximize' || elevationRange * mapbox.value.settings.vertScale > csMaxHeight) {
       mapbox.value.settings.vertScale = csMaxHeight / elevationRange

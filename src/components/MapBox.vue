@@ -32,7 +32,9 @@ onMounted(() => {
     addController()
     addGridLayer()
     setMouse()
-    if (debugMode.value) { mapbox.value.map!.showTileBoundaries = true }
+    if (debugMode.value) {
+      mapbox.value.map!.showTileBoundaries = true
+    }
   })
 
   mapbox.value.map?.on('idle', () => {
@@ -279,7 +281,6 @@ onMounted(() => {
       const currentAngle = turf.rhumbBearing(point1, point2)
       const delta = currentAngle - prevAngle
       mapbox.value.settings.angle = ((delta + mapbox.value.settings.angle + 540) % 360) - 180
-
       setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
 
       mapbox.value.settings.angle = getGridAngle()

@@ -8,6 +8,8 @@ export type HeightCalcType = 'manual' | 'limit' | 'maximize';
 
 export type Interpolation = 'bilinear' | 'bicubic';
 
+export type MapType = 'cs1' | 'cs2' | 'cs2play';
+
 export type GridInfoData = {
   mapPixels: number;
   size:      number;
@@ -57,13 +59,14 @@ export interface Settings {
   sharpen:           number;
   shrpThres:         number;
   shrpFade:          number;
-  gridInfo:          string;
+  gridInfo:          MapType;
   elevationScale:    number;
   interpolation:     Interpolation;
   noise:             number;
   noiseGrid:         number;
   displayEffectArea: boolean,
   applyEffectAmount: boolean,
+  accessToken:       string,
 }
 
 export interface Mapbox {

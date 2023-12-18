@@ -40,9 +40,29 @@ function parseBoolean(str: string): boolean {
     height: 100dvh;
     overflow: hidden;
   }
+  #water-tile-canvas {
+    position: absolute;
+    bottom: 40px;
+    left: 10px;
+    width: 250px;
+    height: 250px;
+    z-index: 5;
+    background-color: white;
+    @include shadow-panel;
+  }
   #tile-canvas {
     position: absolute;
     bottom: 40px;
+    right: 80px;
+    width: 250px;
+    height: 250px;
+    z-index: 5;
+    background-color: white;
+    @include shadow-panel;
+  }
+  #water-canvas {
+    position: absolute;
+    bottom: 320px;
     right: 80px;
     width: 250px;
     height: 250px;

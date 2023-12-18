@@ -56,17 +56,17 @@ const close = () => {
           </li>
           <li>
             <label>
-              <span>Elevation Scale&ThinSpace;:</span>
-              <NumberInput v-model="mapbox.settings.elevationScale" :max="100000" :min="0" :step="0.001" /><span>m</span>
-            </label>
-          </li>
-          <li>
-            <label>
               <span>Interpolation&ThinSpace;:</span>
               <span><select ref="interpolationRef" v-model="mapbox.settings.interpolation" name="interpolation">
                 <option value="bilinear">Bilinear</option>
                 <option value="bicubic">Bicubic</option>
               </select></span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <span>Elevation Scale&ThinSpace;:</span>
+              <NumberInput v-model="mapbox.settings.elevationScale" :max="100000" :min="0" :step="0.001" /><span>m</span>
             </label>
           </li>
           <li>
@@ -97,6 +97,12 @@ const close = () => {
             <label class="amount">
               <span>Reflecting the<br>amount of effect&ThinSpace;:</span>
               <ToggleSwitch v-model="mapbox.settings.applyEffectAmount" :name="'display-effect'" @change="toggleDisplayEffect" />
+            </label>
+          </li>
+          <li>
+            <label>
+              <span>Access Token&ThinSpace;:</span>
+              <input v-model="mapbox.settings.accessToken" class="access-token" />
             </label>
           </li>
         </ul>
@@ -170,7 +176,7 @@ const close = () => {
       }
     }
   }
-  button, select {
+  button, select, .access-token {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -214,6 +220,9 @@ const close = () => {
     color: $textDisabled;
     background-color: transparent;
   }
+  .access-token {
+
+  }
   .close {
     height: 2.25rem;
     border-radius: .25rem;
@@ -224,7 +233,7 @@ const close = () => {
     border: solid 1px $borderColor;
     background-color: rgba(255, 255, 255, .1);
     color: $textColor;
-    margin: 1rem 0 0 auto;
+    margin: 1.5rem 0 0 auto;
     cursor: pointer;
     &:hover, &:focus {
       color: aquamarine;

@@ -5,8 +5,8 @@ import type { Mapbox, Grid, LngLat } from '~/types/types'
 
 
 export const getExtent = (lng: number, lat: number, topleftSize: number, bottomrightSize: number) => {
-  const topleftDist = Math.sqrt(2 * Math.pow(topleftSize, 2))
-  const bottomrightDist = Math.sqrt(2 * Math.pow(bottomrightSize, 2))
+  const topleftDist = topleftSize * Math.SQRT2
+  const bottomrightDist = bottomrightSize * Math.SQRT2
   const point = turf.point([lng, lat])
   const topleft = turf.destination(point, topleftDist, -45, { units: 'kilometers' }).geometry.coordinates
   const bottomright = turf.destination(point, bottomrightDist, 135, { units: 'kilometers' }).geometry.coordinates
@@ -18,7 +18,6 @@ export const getGridAngle = () => {
   const mapbox = useMapbox()
   const point1 = [mapbox.value.settings.lng, mapbox.value.settings.lat]
   const point2 = mapbox.value.grid?.gridArea.features[0].geometry.coordinates[0][0]
-
   return ((turf.rhumbBearing(point1, point2!) + 585) % 360) - 180
 }
 

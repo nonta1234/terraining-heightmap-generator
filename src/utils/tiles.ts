@@ -23,6 +23,11 @@ export const lat2pixel = (lat: number, zoom: number, pixelsPerTile: number) => {
     (Math.atanh(Math.sin(Math.PI * 85.05112878 / 180)) - Math.atanh(Math.sin(Math.PI * lat / 180)))
 }
 
+export const pixel2tile = (x: number, pixelsPerTile: number) => {
+  return Math.floor(x / pixelsPerTile)
+}
+
+
 // C = 40075016.686m ≈ 2π * 6378.137km
 // rad = lat * π / 180
 // pxLength(km) * mapPixel = C * cos(rad) / 2 ^ zoom / pixelPerTile * mapPixel = mapLength

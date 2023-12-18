@@ -127,7 +127,13 @@ useListen('debug:operate', () => {
 const refresh = async () => {
   rotate.value = true
   try {
-    message.value = 'Downloading' + '\n' + 'elevation data.'
+    const mapbox = useMapbox()
+    const config = useRuntimeConfig()
+    if (mapbox.value.settings.gridInfo === 'cs2' && (mapbox.value.settings.accessToken === '' || mapbox.value.settings.accessToken === config.public.token)) {
+      alert('You will need your own Mapbox access token\nto access the elevation data for CS2.')
+      return
+    }
+    message.value = 'Downloading\nelevation data.'
     const heightMap = await getHeightMap()
     const { min, max } = getMinMaxHeight(heightMap)
     minHeight.value = min.toFixed(1)

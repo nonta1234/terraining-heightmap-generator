@@ -48,6 +48,20 @@ export const mapSpec: GridInfo = {
     ],
     side: [0, 23, 575, 552],
   },
+  cs2play: {
+    mapPixels: 16384,
+    size: 57.344,
+    cell: 24,
+    center: [275, 276, 300, 299],
+    play: [225, 230, 350, 345],
+    rotate: [
+      [0, 1, 25, 24],
+      [22, 23, 47, 46],
+      [550, 551, 575, 574],
+      [528, 529, 553, 552],
+    ],
+    side: [0, 23, 575, 552],
+  },
 }
 
 export const littoralArray: LittoralArray = {
@@ -96,4 +110,5 @@ export const initialValue = {
   noiseGrid:         10,
   displayEffectArea: false,
   applyEffectAmount: false,
+  accessToken:       '',
 }

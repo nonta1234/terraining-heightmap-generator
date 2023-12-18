@@ -1,5 +1,6 @@
 import { FetchError } from 'ofetch'
 import { VectorTile, Point } from 'mapbox-vector-tile'
+import type { MapType } from '~/types/types'
 
 type T = {
   data: globalThis.Ref<Blob | null>;
@@ -12,14 +13,18 @@ type Position = {
 }
 
 
-export const getWaterMap = async () => {
+export const getWaterMap = async (mapType: MapType = 'cs1') => {
   const mapbox = useMapbox()
-  const resultPixels = mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4          // cs1: 1085px  cs2: 4100px
-  const tmpMapPixels = Math.ceil((resultPixels + 1) * Math.SQRT2)                     // cs1: 1086√2px  cs2: 4101√2px
-  const fasesOffset = mapbox.value.settings.gridInfo === 'cs2' ? 0 : 1
-  const mapFases = mapSpec[mapbox.value.settings.gridInfo].mapPixels - fasesOffset    // cs1: 1080px  cs2: 4096px
+  const factor = mapType === 'cs2play' ? 4 : 1
+  let resultPixels = mapSpec[mapType].mapPixels + 4 * factor                  // cs1: 1085px    cs2: 4100px    cs2play: 16400px -> 4100px
+  let tmpMapPixels = Math.ceil((resultPixels + 1 * factor) * Math.SQRT2)      // cs1: 1086√2px  cs2: 4101√2px  cs2play: 16404√2px
+  const fasesOffset = (mapType === 'cs2' || mapType === 'cs2play') ? 0 : 1
+  const mapFases = mapSpec[mapType].mapPixels - fasesOffset                   // cs1: 1080px    cs2: 4096px    cs2play: 16384px
   const waterAreaSize = mapbox.value.settings.size / mapFases * tmpMapPixels
-  const pixelsPerTile = 4096                                                          // number of pixels in vector-tiles
+  const pixelsPerTile = 4096                                                  // number of pixels in vector-tiles
+  if (mapType === 'cs2play') {
+    resultPixels = resultPixels / 4
+  }
 
   const { topleft, bottomright } = getExtent(
     mapbox.value.settings.lng,
@@ -36,13 +41,13 @@ export const getWaterMap = async () => {
     referenceLat = bottomright[1]
   }
 
-  const zoom = Math.ceil(calculateZoomLevel(referenceLat, waterAreaSize, tmpMapPixels, pixelsPerTile)) + 1
+  const zoom = Math.ceil(calculateZoomLevel(referenceLat, waterAreaSize, tmpMapPixels, pixelsPerTile)) + fasesOffset
 
-  const x = lng2tile(topleft[0], zoom)
-  const y = lat2tile(topleft[1], zoom)
-  const x2 = lng2tile(bottomright[0], zoom)
-  const y2 = lat2tile(bottomright[1], zoom)
-  const tileCount = Math.max(x2 - x + 1, y2 - y + 1)
+  let tileX0 = lng2tile(topleft[0], zoom)
+  let tileY0 = lat2tile(topleft[1], zoom)
+  const tileX1 = lng2tile(bottomright[0], zoom)
+  const tileY1 = lat2tile(bottomright[1], zoom)
+  let tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
 
   const posX0 = lng2pixel(topleft[0], zoom, pixelsPerTile)
   const posY0 = lat2pixel(topleft[1], zoom, pixelsPerTile)
@@ -52,20 +57,40 @@ export const getWaterMap = async () => {
   const mapWidth = posX1 - posX0
   const mapHeight = posY1 - posY0
 
-  const tilePosX = x * pixelsPerTile
-  const tilePosY = y * pixelsPerTile
-
-  const offsetX = posX0 - tilePosX
-  const offsetY = posY0 - tilePosY
-
   const mapPixelsOnTile = Math.sqrt(mapWidth * mapWidth + mapHeight * mapHeight) / Math.SQRT2
   const scale = tmpMapPixels / mapPixelsOnTile
 
-  const length = mapbox.value.settings.gridInfo === 'cs2' ? Math.max(mapbox.value.settings.littoral, 3.5) : Math.max(mapbox.value.settings.littoral, 16)
-  const lineWidth = mapbox.value.settings.gridInfo === 'cs2' ? length / 1.75 : length / 8
+  let playAreaX0 = posX0
+  let playAreaY0 = posY0
+
+  if (mapType === 'cs2play') {
+    playAreaX0 = posX0 + (mapPixelsOnTile / 8 * 3)
+    tileX0 = pixel2tile(playAreaX0, pixelsPerTile)
+    playAreaY0 = posY0 + (mapPixelsOnTile / 8 * 3)
+    tileY0 = pixel2tile(playAreaY0, pixelsPerTile)
+
+    const playAreaX1 = posX0 + (mapPixelsOnTile / 8 * 5)
+    const playTileX1 = pixel2tile(playAreaX1, pixelsPerTile)
+    const playAreaY1 = posY0 + (mapPixelsOnTile / 8 * 5)
+    const playTileY1 = pixel2tile(playAreaY1, pixelsPerTile)
+
+    tmpMapPixels = Math.ceil((resultPixels + 1 * factor) * Math.SQRT2)
+    tileCount = Math.max(playTileX1 - tileX0 + 1, playTileY1 - tileY0 + 1)
+  }
+
+  const tilePosX = tileX0 * pixelsPerTile
+  const tilePosY = tileY0 * pixelsPerTile
+
+  const offsetX = (mapType === 'cs2play' ? playAreaX0 : posX0) - tilePosX
+  const offsetY = (mapType === 'cs2play' ? playAreaY0 : posY0) - tilePosY
+
+  const minLength = mapbox.value.settings.size / mapFases
+  const length = Math.max(mapbox.value.settings.littoral, minLength)
+  const lineWidth = length / (minLength / 2)
 
   const tiles = new Array<Promise<T>>(Math.pow(tileCount, 2))
 
+  console.log('watermap:', zoom, tileX0, tileY0, tileCount, tmpMapPixels, scale, offsetX, offsetY)
 
   // waterCanvas setting -----------------------------------------------------------------------------
 
@@ -79,6 +104,7 @@ export const getWaterMap = async () => {
   waterCtx.fillStyle = '#FFFFFF'
   waterCtx.fillRect(0, 0, waterCanvas.value.width, waterCanvas.value.height)
 
+  console.log(waterCanvas)
 
   // littCanvas setting ------------------------------------------------------------------------------
 
@@ -92,6 +118,7 @@ export const getWaterMap = async () => {
   littCtx.fillRect(0, 0, littCanvas.value.width, littCanvas.value.height)
   littCtx.globalCompositeOperation = 'lighten'
 
+  console.log(littCanvas)
 
   // tmplittCanvas setting ---------------------------------------------------------------------------
 
@@ -103,6 +130,7 @@ export const getWaterMap = async () => {
   const tmpLittCtx = tmpLittCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
   tmpLittCtx.globalCompositeOperation = 'lighten'
 
+  console.log(tmpLittCanvas)
 
   // waterwayCanvas setting --------------------------------------------------------------------------
 
@@ -115,14 +143,15 @@ export const getWaterMap = async () => {
   waterwayCtx.fillStyle = '#FFFFFF'
   waterwayCtx.fillRect(0, 0, waterwayCanvas.value.width, waterwayCanvas.value.height)
   waterwayCtx.strokeStyle = '#000000'
-  waterwayCtx.lineWidth = mapbox.value.settings.gridInfo === 'cs2' ? 2 : 0.7
+  waterwayCtx.lineWidth = mapbox.value.settings.gridInfo === 'cs2play' ? 2 : 1
 
+  console.log(waterwayCanvas)
 
   // fetch tiles & draw ------------------------------------------------------------------------------
 
   for (let i = 0; i < tileCount; i++) {
     for (let j = 0; j < tileCount; j++) {
-      tiles[j + i * tileCount] = useFetchVectorTiles(zoom, x + j, y + i)
+      tiles[j + i * tileCount] = useFetchVectorTiles(zoom, tileX0 + j, tileY0 + i)
     }
   }
 
@@ -155,6 +184,7 @@ export const getWaterMap = async () => {
 
           if (tile.layers.water) {
             const geo = tile.layers.water.feature(0).asPolygons() as Point[][][]
+            console.log(geo.length)
 
             tmpLittCtx.clearRect(0, 0, tmpLittCanvas.value!.width, tmpLittCanvas.value!.height)
             tmpLittCtx.fillStyle = '#000000'
