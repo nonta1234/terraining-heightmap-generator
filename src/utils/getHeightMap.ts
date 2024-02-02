@@ -12,11 +12,11 @@ const getInitParameter = (mapbox: Ref<Mapbox>, mapType: MapType) => {
   const factor = mapType === 'cs2play' ? 4 : 1
   let resultPixels = mapSpec[mapType].mapPixels + 4 * factor                // cs1: 1085px  cs2: 4100px  cs2play: 16400px -> 4100px
   const calcPixels = resultPixels + 5 * factor                              // cs1: 1090px  cs2: 4105px  cs2play: 16420px
-  const fasesOffset = (mapType === 'cs2' || mapType === 'cs2play') ? 0 : 1
+  const fasesOffset = mapType === 'cs1' ? 1 : 0
   const mapFases = mapSpec[mapType].mapPixels - fasesOffset                 // cs1: 1080px  cs2: 4096px  cs2play: 16384px
   const tmpAreaSize = mapbox.value.settings.size / mapFases * calcPixels
   const pixelsPerTile = 512                                                 // number of pixels in terrain-tiles
-  if (mapType === 'cs2play') { resultPixels = resultPixels / 4 }
+  if (mapType === 'cs2play') { resultPixels = resultPixels / 4 }            // cs2play: 16400px -> 4100px
   return { resultPixels, calcPixels, tmpAreaSize, pixelsPerTile }
 }
 
@@ -101,7 +101,7 @@ const getElevations = async (mapbox: Ref<Mapbox>, mapType: MapType) => {
   tileCanvas.value.width = tilePixels
   tileCanvas.value.height = tilePixels
 
-  const tileCtx = tileCanvas.value.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
+  const tileCtx = tileCanvas.value.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D
   tileCtx.fillStyle = 'rgb(1, 134, 160)'    // = 0m
   tileCtx.fillRect(0, 0, tileCanvas.value.width, tileCanvas.value!.height)
 

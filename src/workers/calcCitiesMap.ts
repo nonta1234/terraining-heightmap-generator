@@ -1,15 +1,38 @@
-const transposeArrayData = (arr, srcRows, srcCols) => {
+type MessageData = {
+  scaleFactor: number;
+  tmpHeightMap: Float32Array;
+  waterMap: Float32Array;
+  waterwayMap: Float32Array;
+  seaLevel: number;
+  vertScale: number;
+  smoothing: number;
+  smthThres: number;
+  smthFade: number;
+  smoothCount: number;
+  sharpen: number;
+  shrpThres: number;
+  shrpFade: number;
+  depth: number;
+  streamDepth: number;
+  mapSizePixels: number;
+  mapSizePixelsWithBuffer: number;
+  noise: number;
+  noiseGrid: number;
+}
+
+
+const transposeArrayData = (arr: Float32Array, srcRows: number, srcCols: number) => {
   const transposed = []
   for (let i = 0; i < srcCols; i++) {
     for (let j = 0; j < srcRows; j++) {
       transposed.push(arr[j * srcCols + i])
     }
   }
-  return transposed
+  return new Float32Array(transposed)
 }
 
 
-const getSharpenMask = (map, shrpThres, shrpFade) => {
+const getSharpenMask = (map: Float32Array, shrpThres: number, shrpFade: number) => {
   const mask = new Float32Array(map.length)
   const min = shrpThres
   const max = shrpThres + shrpFade
@@ -26,7 +49,7 @@ const getSharpenMask = (map, shrpThres, shrpFade) => {
 }
 
 
-const getSmoothMask = (map, smthThres, smthFade) => {
+const getSmoothMask = (map: Float32Array, smthThres: number, smthFade: number) => {
   const mask = new Float32Array(map.length)
   const max = smthThres
   const min = smthThres - smthFade
@@ -43,7 +66,7 @@ const getSmoothMask = (map, smthThres, smthFade) => {
 }
 
 
-const getSmoothedMap = (map) => {
+const getSmoothedMap = (map: Float32Array) => {
   const size = Math.sqrt(map.length)
   const tmpMap1 = new Float32Array(map.length)
 
@@ -76,7 +99,7 @@ const getSmoothedMap = (map) => {
 }
 
 
-const getSharpenMap = (map, smoothedMap, k) => {
+const getSharpenMap = (map: Float32Array, smoothedMap: Float32Array, k: number) => {
   const sharpenMap = new Float32Array(map.length)
   for (let i = 0; i < map.length; i++) {
     sharpenMap[i] = map[i] + (map[i] - smoothedMap[i]) * k
@@ -85,7 +108,9 @@ const getSharpenMap = (map, smoothedMap, k) => {
 }
 
 
-self.addEventListener('message', async function(e) {
+// self.addEventListener('message', async function(e) {
+
+self.onmessage = async (e) => {
   const {
     scaleFactor,
     tmpHeightMap,
@@ -106,7 +131,7 @@ self.addEventListener('message', async function(e) {
     mapSizePixelsWithBuffer,
     noise,
     noiseGrid,
-  } = e.data
+  } = e.data as MessageData
 
   const alphaSharpen = sharpen / 10
   const alphaSmooth = smoothing / 100
@@ -117,16 +142,16 @@ self.addEventListener('message', async function(e) {
   const sharpenMask = getSharpenMask(tmpHeightMap, shrpThres, shrpFade)
 
   const tmpSmoothedMap = getSmoothedMap(tmpHeightMap)
-  let vec = [...tmpSmoothedMap]
+  let vec = tmpSmoothedMap
 
   if (smoothCount > 1) {
     for (let i = 2; i <= smoothCount; i++) {
       const tmpVec = getSmoothedMap(vec)
-      vec = [...tmpVec]
+      vec = tmpVec
     }
   }
 
-  const smoothedMap = [...vec]
+  const smoothedMap = vec
 
   const sharpenMap = getSharpenMap(tmpHeightMap, tmpSmoothedMap, alphaSharpen)
   const maskedSharpenMap = new Float32Array(sharpenMap.length)
@@ -187,5 +212,6 @@ self.addEventListener('message', async function(e) {
 
   const resultMap = new Uint8Array(citiesMap)
 
+  // @ts-ignore
   self.postMessage(resultMap, [resultMap.buffer])
-}, false)
+}

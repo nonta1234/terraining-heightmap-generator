@@ -1,29 +1,139 @@
 import { FetchError } from 'ofetch'
+import * as PIXI from 'pixi.js-legacy'
+import '@pixi/math-extras'
 import { VectorTile, Point } from 'mapbox-vector-tile'
-import type { MapType } from '~/types/types'
+import { RingRope } from '~/utils/ringRope'
+import type { Mapbox, MapType } from '~/types/types'
 
 type T = {
   data: globalThis.Ref<Blob | null>;
   error: globalThis.Ref<FetchError<any> | null>;
 }
 
-type Position = {
-  x: number;
-  y: number;
+
+const destroyChild = (container: PIXI.Container | null) => {
+  if (container) {
+    container.children.forEach((child) => {
+      if (child instanceof PIXI.Container) {
+        child.destroy({ children: true })
+      } else {
+        child.destroy()
+      }
+    })
+  }
+}
+
+
+const createSlopeTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: number) => {
+  let unit = 16
+  if (mapType === 'cs2') {
+    unit = 14
+  } else if (mapType === 'cs2play') {
+    unit = 3.5
+  }
+  const size = Math.max(mapbox.value.settings.littoral / unit / scale, 1)
+  const pixels = Math.ceil(size)
+
+  const slopeCanvas = ref<HTMLCanvasElement>()
+  slopeCanvas.value = document.getElementById('litt-canvas') as HTMLCanvasElement
+  slopeCanvas.value.width = 1
+  slopeCanvas.value.height = pixels * 2
+  const ctx = slopeCanvas.value!.getContext('2d') as CanvasRenderingContext2D
+  ctx.clearRect(0, 0, slopeCanvas.value.width, slopeCanvas.value.height)
+
+  let gradient = ctx.createLinearGradient(0, pixels - size, 0, pixels)
+
+  gradient.addColorStop(0.0, 'rgb(0, 0, 0)')
+  for (let i = 1; i < 10; i++) {
+    const value = Math.round(mapbox.value.settings.littArray[i - 1] * 255)
+    gradient.addColorStop(i / 10, `rgb(${value}, 0, ${value})`)
+  }
+  gradient.addColorStop(1.0, 'rgb(255, 0, 255)')
+
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, pixels - size, 1, size)
+
+  gradient = ctx.createLinearGradient(0, pixels + size, 0, pixels)
+
+  gradient.addColorStop(0.0, 'rgb(0, 0, 0)')
+  for (let i = 1; i < 10; i++) {
+    const value = Math.round(mapbox.value.settings.littArray[i - 1] * 255)
+    gradient.addColorStop(i / 10, `rgb(${value}, 0, ${value})`)
+  }
+  gradient.addColorStop(1.0, 'rgb(255, 0, 255)')
+
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, pixels, 1, pixels + size)
+
+  return PIXI.Texture.from(slopeCanvas.value)
+}
+
+
+const createRadialTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: number) => {
+  let unit = 16
+  if (mapType === 'cs2') {
+    unit = 14
+  } else if (mapType === 'cs2play') {
+    unit = 3.5
+  }
+  const size = Math.max(mapbox.value.settings.littoral / unit / scale, 1)
+  const pixels = Math.ceil(size)
+
+  const radialCanvas = ref<HTMLCanvasElement>()
+  radialCanvas.value = document.createElement('canvas') as HTMLCanvasElement
+  radialCanvas.value.width = pixels * 2
+  radialCanvas.value.height = pixels * 2
+  const ctx = radialCanvas.value!.getContext('2d') as CanvasRenderingContext2D
+
+  const gradient = ctx.createRadialGradient(pixels, pixels, 0, pixels, pixels, size)
+
+  gradient.addColorStop(0.0, 'rgb(255, 0, 255)')
+  for (let i = 1; i < 10; i++) {
+    const value = Math.round(mapbox.value.settings.littArray[9 - i] * 255)
+    gradient.addColorStop(i / 10, `rgb(${value}, 0, ${value})`)
+  }
+  gradient.addColorStop(1.0, 'rgb(0, 0, 0)')
+
+  ctx.fillStyle = gradient
+  ctx.fillRect(pixels - size, pixels - size, size * 2, size * 2)
+
+  return PIXI.Texture.from(radialCanvas.value)
+}
+
+
+function createMask(pixelsPerTile: number) {
+  const tileMask = new PIXI.Graphics()
+  tileMask
+    .beginFill(0xFFFFFF)
+    .drawRect(-1, -1, pixelsPerTile + 1, pixelsPerTile + 1)
+    .endFill()
+  return tileMask
+}
+
+
+function decodeData(arr: Uint8ClampedArray) {
+  const arrLength = arr.length / 4
+  const elevs = new Float32Array(arrLength)
+  let arrIndex = 0
+  for (let i = 0; i < elevs.length; i++) {
+    elevs[i] = arr[arrIndex] / 255
+    arrIndex += 4
+  }
+  return elevs
 }
 
 
 export const getWaterMap = async (mapType: MapType = 'cs1') => {
   const mapbox = useMapbox()
   const factor = mapType === 'cs2play' ? 4 : 1
-  let resultPixels = mapSpec[mapType].mapPixels + 4 * factor                  // cs1: 1085px    cs2: 4100px    cs2play: 16400px -> 4100px
-  let tmpMapPixels = Math.ceil((resultPixels + 1 * factor) * Math.SQRT2)      // cs1: 1086√2px  cs2: 4101√2px  cs2play: 16404√2px
-  const fasesOffset = (mapType === 'cs2' || mapType === 'cs2play') ? 0 : 1
-  const mapFases = mapSpec[mapType].mapPixels - fasesOffset                   // cs1: 1080px    cs2: 4096px    cs2play: 16384px
+  let resultPixels = mapSpec[mapType].mapPixels + (4 * factor)                // cs1: 1085px             cs2: 4100px    cs2play: 16400px -> 4100px
+  let tmpMapPixels = Math.ceil((resultPixels + factor) * Math.SQRT2)          // cs1: 1086√2px (1536px)  cs2: 4101√2px  cs2play: 16404√2px -> 4101√2px (5800px)
+  const fasesOffset = mapType === 'cs1' ? 1 : 0
+  const mapFases = mapSpec[mapType].mapPixels - fasesOffset                   // cs1: 1080px             cs2: 4096px    cs2play: 16384px
   const waterAreaSize = mapbox.value.settings.size / mapFases * tmpMapPixels
   const pixelsPerTile = 4096                                                  // number of pixels in vector-tiles
   if (mapType === 'cs2play') {
-    resultPixels = resultPixels / 4
+    resultPixels = resultPixels / 4                                           // cs2play: 16400px -> 4100px
   }
 
   const { topleft, bottomright } = getExtent(
@@ -74,7 +184,7 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
     const playAreaY1 = posY0 + (mapPixelsOnTile / 8 * 5)
     const playTileY1 = pixel2tile(playAreaY1, pixelsPerTile)
 
-    tmpMapPixels = Math.ceil((resultPixels + 1 * factor) * Math.SQRT2)
+    tmpMapPixels = Math.ceil((resultPixels + 1) * Math.SQRT2)
     tileCount = Math.max(playTileX1 - tileX0 + 1, playTileY1 - tileY0 + 1)
   }
 
@@ -84,68 +194,22 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
   const offsetX = (mapType === 'cs2play' ? playAreaX0 : posX0) - tilePosX
   const offsetY = (mapType === 'cs2play' ? playAreaY0 : posY0) - tilePosY
 
-  const minLength = mapbox.value.settings.size / mapFases
-  const length = Math.max(mapbox.value.settings.littoral, minLength)
-  const lineWidth = length / (minLength / 2)
-
   const tiles = new Array<Promise<T>>(Math.pow(tileCount, 2))
 
   console.log('watermap:', zoom, tileX0, tileY0, tileCount, tmpMapPixels, scale, offsetX, offsetY)
 
-  // waterCanvas setting -----------------------------------------------------------------------------
+  // slope texture setup
+  const slopeTexture = createSlopeTexture(mapbox, mapType, scale)
+  slopeTexture.update()
 
-  const waterCanvas = ref<HTMLCanvasElement>()
-  waterCanvas.value = document.createElement('canvas')
-  waterCanvas.value.width = tmpMapPixels
-  waterCanvas.value.height = tmpMapPixels
+  const cornerTexture = createRadialTexture(mapbox, mapType, scale)
+  cornerTexture.update()
 
-  const waterCtx = waterCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
-  waterCtx.globalCompositeOperation = 'source-over'
-  waterCtx.fillStyle = '#FFFFFF'
-  waterCtx.fillRect(0, 0, waterCanvas.value.width, waterCanvas.value.height)
-
-  console.log(waterCanvas)
-
-  // littCanvas setting ------------------------------------------------------------------------------
-
-  const littCanvas = ref<HTMLCanvasElement>()
-  littCanvas.value = document.createElement('canvas')
-  littCanvas.value.width = tmpMapPixels
-  littCanvas.value.height = tmpMapPixels
-
-  const littCtx = littCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
-  littCtx.fillStyle = '#000000'
-  littCtx.fillRect(0, 0, littCanvas.value.width, littCanvas.value.height)
-  littCtx.globalCompositeOperation = 'lighten'
-
-  console.log(littCanvas)
-
-  // tmplittCanvas setting ---------------------------------------------------------------------------
-
-  const tmpLittCanvas = ref<HTMLCanvasElement>()
-  tmpLittCanvas.value = document.createElement('canvas')
-  tmpLittCanvas.value.width = tmpMapPixels
-  tmpLittCanvas.value.height = tmpMapPixels
-
-  const tmpLittCtx = tmpLittCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
-  tmpLittCtx.globalCompositeOperation = 'lighten'
-
-  console.log(tmpLittCanvas)
-
-  // waterwayCanvas setting --------------------------------------------------------------------------
-
-  const waterwayCanvas = ref<HTMLCanvasElement>()
-  waterwayCanvas.value = document.createElement('canvas')
-  waterwayCanvas.value.width = tmpMapPixels
-  waterwayCanvas.value.height = tmpMapPixels
-
-  const waterwayCtx = waterwayCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
-  waterwayCtx.fillStyle = '#FFFFFF'
-  waterwayCtx.fillRect(0, 0, waterwayCanvas.value.width, waterwayCanvas.value.height)
-  waterwayCtx.strokeStyle = '#000000'
-  waterwayCtx.lineWidth = mapbox.value.settings.gridInfo === 'cs2play' ? 2 : 1
-
-  console.log(waterwayCanvas)
+  // pixi setup
+  const app = useState<PIXI.Application>('pixi-app')
+  destroyChild(app.value.stage)
+  app.value.stage.removeChildren()
+  app.value.renderer.resize(tmpMapPixels, tmpMapPixels)
 
   // fetch tiles & draw ------------------------------------------------------------------------------
 
@@ -156,219 +220,195 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
   }
 
   const tileList = await Promise.allSettled(tiles)
-  await processTiles(tileList)
 
-  waterCtx.globalCompositeOperation = 'lighten'
-  waterCtx.drawImage(littCanvas.value, 0, 0)
+  const halfSize = tmpMapPixels / 2
 
+  const masterContainer = new PIXI.Container()
+  masterContainer.x = halfSize
+  masterContainer.y = halfSize
+  masterContainer.pivot.x = halfSize
+  masterContainer.pivot.y = halfSize
+  masterContainer.angle = -mapbox.value.settings.angle
+
+  app.value.stage.addChild(masterContainer)
+
+  const waterMapContainer = new PIXI.Container()
+  const waterWayMapContainer = new PIXI.Container()
+
+  const { waterContainer, littoralContainer, waterWayContainer } = await processTiles(tileList)
+
+  waterMapContainer.addChild(waterContainer)
+  waterMapContainer.addChild(littoralContainer)
+  waterWayMapContainer.addChild(waterWayContainer)
+
+  const halfMapSize = (resultPixels - fasesOffset) / 2
+
+  // get water data
+  masterContainer.addChild(waterMapContainer)
+  const waterRT = PIXI.RenderTexture.create({ width: app.value.stage.width, height: app.value.stage.height, resolution: app.value.renderer.resolution })
+  app.value.renderer.render(app.value.stage, { renderTexture: waterRT })
+  const waterCanvas = app.value.renderer.extract.canvas(app.value.stage)
+
+  const waterCtx = waterCanvas.getContext('2d')
+  const waterImgData = waterCtx!.getImageData(
+    waterCanvas.width / 2 - halfMapSize,
+    waterCanvas.height / 2 - halfMapSize,
+    resultPixels,
+    resultPixels,
+  ).data
+
+  destroyChild(masterContainer)
+
+  // get water way data
+  masterContainer.addChild(waterWayMapContainer)
+  const waterWayRT = PIXI.RenderTexture.create({ width: app.value.stage.width, height: app.value.stage.height, resolution: app.value.renderer.resolution })
+  app.value.renderer.render(app.value.stage, { renderTexture: waterWayRT })
+  const waterWayCanvas = app.value.renderer.extract.canvas(app.value.stage)
+
+  const waterWayCtx = waterWayCanvas.getContext('2d')
+  const waterWayImgData = waterWayCtx!.getImageData(
+    waterCanvas.width / 2 - halfMapSize,
+    waterCanvas.height / 2 - halfMapSize,
+    resultPixels,
+    resultPixels,
+  ).data
+
+  destroyChild(app.value.stage)
+
+  const waterMap = decodeData(waterImgData)
+  const waterwayMap = decodeData(waterWayImgData)
+
+  if (useDebug()) {
+    const debugImg = new PIXI.Sprite(waterRT)
+    app.value.stage.addChild(debugImg)
+  }
 
   // functions ---------------------------------------------------------------------------------------
 
-  function getColorFromValue(value: number) {
-    const intValue = Math.min(255, Math.round(value * 255))
-    const hex = intValue.toString(16).padStart(2, '0')
-    const colorCode = '#' + hex + hex + hex
-    return colorCode
-  }
-
-
   async function processTiles(list: PromiseSettledResult<T>[]) {
-    const tilePromises = list.map(async (tile, index) => {
-      if (tile.status === 'fulfilled') {
-        const arrayBuffer = await tile.value.data.value?.arrayBuffer()
-        if (arrayBuffer) {
-          const tile = new VectorTile(new Uint8Array(arrayBuffer))
+    const waterContainer = new PIXI.Container()
+    const littoralContainer = new PIXI.Container()
+    const waterWayContainer = new PIXI.Container()
 
-          const transX = Math.floor(index % tileCount) * pixelsPerTile - offsetX
-          const transY = Math.floor(index / tileCount) * pixelsPerTile - offsetY
+    const tilePromises = list.map(async (tileResult, index) => {
+      if (tileResult.status === 'fulfilled') {
+        const arrayBuffer = await tileResult.value.data.value?.arrayBuffer()
+        if (arrayBuffer) {
+          // tile scale & position
+          const tile = new VectorTile(new Uint8Array(arrayBuffer))
+          const transX = (Math.floor(index % tileCount) * pixelsPerTile - offsetX) * scale
+          const transY = (Math.floor(index / tileCount) * pixelsPerTile - offsetY) * scale
+
+          // set tile container
+          const tileWaterContainer = new PIXI.Container()
+          tileWaterContainer.scale.set(scale)
+          tileWaterContainer.position.set(transX, transY)
+
+          const tileLittoralContainer = new PIXI.Container()
+          tileLittoralContainer.scale.set(scale)
+          tileLittoralContainer.position.set(transX, transY)
+
+          const tileWaterWayContainer = new PIXI.Container()
+          tileWaterWayContainer.scale.set(scale)
+          tileWaterWayContainer.position.set(transX, transY)
+
+          // set tile mask
+          const waterMaskWrapper = new PIXI.Container()
+          const littMaskWrapper = new PIXI.Container()
+          const waterWayMaskWrapper = new PIXI.Container()
+
+          waterMaskWrapper.mask = createMask(pixelsPerTile)
+          littMaskWrapper.mask = createMask(pixelsPerTile)
+          waterWayMaskWrapper.mask = createMask(pixelsPerTile)
+
+          // draw start
+          const bgGraphics = new PIXI.Graphics()
+            .beginFill(0xFFFFFF)
+            .drawRect(-10, -10, pixelsPerTile + 20, pixelsPerTile + 20)
+            .endFill()
+          waterMaskWrapper.addChild(bgGraphics)
+
+          const wwBgGraphics = new PIXI.Graphics()
+            .beginFill(0xFFFFFF)
+            .drawRect(-10, -10, pixelsPerTile + 20, pixelsPerTile + 20)
+            .endFill()
+          waterWayMaskWrapper.addChild(wwBgGraphics)
 
           if (tile.layers.water) {
             const geo = tile.layers.water.feature(0).asPolygons() as Point[][][]
-            console.log(geo.length)
+            const waterAreaGraphics = new PIXI.Graphics()
 
-            tmpLittCtx.clearRect(0, 0, tmpLittCanvas.value!.width, tmpLittCanvas.value!.height)
-            tmpLittCtx.fillStyle = '#000000'
-            tmpLittCtx.fillRect(0, 0, tmpLittCanvas.value!.width, tmpLittCanvas.value!.height)
+            // draw water area & inner lands
+            for (let i = 0; i < geo.length; i++) {
+              const outerPath = geo[i][0]
+              waterAreaGraphics
+                .beginFill(0x000000)
+                .drawPolygon(outerPath)
+                .endFill()
+
+              for (let m = 1; m < geo[i].length; m++) {
+                const innerPath = geo[i][m]
+                waterAreaGraphics
+                  .beginFill(0xFFFFFF)
+                  .drawPolygon(innerPath)
+                  .endFill()
+              }
+            }
+            waterMaskWrapper.addChild(waterAreaGraphics)
 
             for (let i = 0; i < geo.length; i++) {
               for (let m = 0; m < geo[i].length; m++) {
-                const littArray: Array<Position> = []
-                const x0 = (geo[i][m][0].x + transX) * scale
-                const y0 = (geo[i][m][0].y + transY) * scale
-                waterCtx.beginPath()
-                waterCtx.moveTo(x0, y0)
-                littArray.push({ x: x0, y: y0 })
-
-                for (let n = 1; n < geo[i][m].length; n++) {
-                  const x = (geo[i][m][n].x + transX) * scale
-                  const y = (geo[i][m][n].y + transY) * scale
-                  waterCtx.lineTo(x, y)
-                  littArray.push({ x, y })
+                const path = []
+                for (let k = 0; k < geo[i][m].length; k++) {
+                  path.push(new PIXI.Point(geo[i][m][k].x, geo[i][m][k].y))
+                  const corner = new PIXI.Sprite(cornerTexture)
+                  corner.blendMode = PIXI.BLEND_MODES.LIGHTEN
+                  corner.anchor.set(0.5)
+                  corner.position.set(geo[i][m][k].x, geo[i][m][k].y)
+                  littMaskWrapper.addChild(corner)
                 }
-                waterCtx.closePath()
-                waterCtx.fillStyle = (m === 0) ? '#000000' : '#FFFFFF'
-                waterCtx.fill()
-
-                // draw littoral
-                for (let j = 0; j < littArray.length - 1; j++) {
-                  gradientLineTo(littArray[j], littArray[j + 1], lineWidth)
-                }
+                const littRope = new RingRope(slopeTexture, path)
+                littRope.blendMode = PIXI.BLEND_MODES.LIGHTEN
+                littMaskWrapper.addChild(littRope)
               }
             }
-            littCtx.drawImage(
-              tmpLittCanvas.value!,
-              transX * scale, transY * scale, 4096 * scale, 4096 * scale,
-              transX * scale, transY * scale, 4096 * scale, 4096 * scale,
-            )
           }
 
           if (tile.layers.waterway) {
             const geo = tile.layers.waterway.feature(0).loadGeometry()
-            waterwayCtx.beginPath()
+            const lineWidth = mapType === 'cs2play' ? 2 / scale : 1 / scale
+
+            const waterline = new PIXI.Graphics()
+            waterline.lineStyle(lineWidth, 0x000000)
 
             for (let m = 0; m < geo.length; m++) {
-              const x0 = (geo[m][0].x + transX) * scale
-              const y0 = (geo[m][0].y + transY) * scale
-              waterwayCtx.moveTo(x0, y0)
+              waterline.moveTo(geo[m][0].x, geo[m][0].y)
 
               for (let n = 1; n < geo[m].length; n++) {
-                const x = (geo[m][n].x + transX) * scale
-                const y = (geo[m][n].y + transY) * scale
-                waterwayCtx.lineTo(x, y)
+                waterline.lineTo(geo[m][n].x, geo[m][n].y)
               }
             }
-            waterwayCtx.stroke()
+            waterWayMaskWrapper.addChild(waterline)
           }
+
+          tileWaterContainer.addChild(waterMaskWrapper, waterMaskWrapper.mask)
+          tileLittoralContainer.addChild(littMaskWrapper, littMaskWrapper.mask)
+          tileWaterWayContainer.addChild(waterWayMaskWrapper, waterWayMaskWrapper.mask)
+
+          waterContainer.addChild(tileWaterContainer)
+          littoralContainer.addChild(tileLittoralContainer)
+          waterWayContainer.addChild(tileWaterWayContainer)
         }
       }
     })
     await Promise.all(tilePromises)
-  }
 
-
-  function gradientLineTo(from: Position, to: Position, width: number) {
-    const dx = to.x - from.x
-    const dy = to.y - from.y
-    const lineLength = Math.sqrt(dx * dx + dy * dy)
-    const angle = Math.atan2(dy, dx)
-
-    const centerX = dx / 2 + from.x
-    const centerY = dy / 2 + from.y
-
-    const rectX = centerX - lineLength / 2
-    const rectY = centerY - width / 2
-
-    tmpLittCtx.save()
-    tmpLittCtx.translate(centerX, centerY)
-    tmpLittCtx.rotate(angle)
-    tmpLittCtx.translate(-centerX, -centerY)
-
-    const littGradient = tmpLittCtx.createLinearGradient(
-      rectX,
-      rectY,
-      rectX,
-      rectY + width,
-    )
-
-    littGradient.addColorStop(0, '#000000')
-    for (let i = 1; i < 10; i++) {
-      littGradient.addColorStop(i / 20, getColorFromValue(mapbox.value.settings.littArray[i - 1]))
+    return {
+      waterContainer,
+      littoralContainer,
+      waterWayContainer,
     }
-    littGradient.addColorStop(0.5, '#FFFFFF')
-    for (let i = 11; i < 20; i++) {
-      littGradient.addColorStop(i / 20, getColorFromValue(mapbox.value.settings.littArray[19 - i]))
-    }
-    littGradient.addColorStop(1, '#000000')
-
-    tmpLittCtx.fillStyle = littGradient
-    tmpLittCtx.fillRect(rectX, rectY, lineLength, width)
-
-    tmpLittCtx.restore()
-
-    const cornerGradient = tmpLittCtx.createRadialGradient(to.x, to.y, 0, to.x, to.y, width / 2)
-    cornerGradient.addColorStop(0, '#FFFFFF')
-    for (let i = 1; i < 10; i++) {
-      cornerGradient.addColorStop(i / 10, getColorFromValue(mapbox.value.settings.littArray[9 - i]))
-    }
-    cornerGradient.addColorStop(1, '#000000')
-
-    tmpLittCtx.beginPath()
-    tmpLittCtx.arc(to.x, to.y, width / 2, 0, 2 * Math.PI, true)
-    tmpLittCtx.fillStyle = cornerGradient
-    tmpLittCtx.fill()
   }
-
-
-  function decodeData(arr: Uint8ClampedArray) {
-    const arrLength = arr.length / 4
-    const elevs = new Float32Array(arrLength)
-    let arrIndex = 0
-    for (let i = 0; i < elevs.length; i++) {
-      elevs[i] = arr[arrIndex] / 255
-      arrIndex += 4
-    }
-    return elevs
-  }
-
-
-  function clearCanvas(ctx: CanvasRenderingContext2D) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-    ctx.canvas.width = 0
-    ctx.canvas.height = 0
-    ctx.canvas.remove()
-  }
-
-
-  // result canvas -----------------------------------------------------------------------------------
-
-  const resultWater = ref<HTMLCanvasElement>()
-  resultWater.value = document.createElement('canvas')
-  resultWater.value.width = resultPixels
-  resultWater.value.height = resultPixels
-
-  const resultWaterCtx = waterCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
-  resultWaterCtx.globalCompositeOperation = 'source-over'
-
-  const resultWaterway = ref<HTMLCanvasElement>()
-  resultWaterway.value = document.createElement('canvas')
-  resultWaterway.value.width = resultPixels
-  resultWaterway.value.height = resultPixels
-
-  const resultWaterwayCtx = waterwayCanvas.value!.getContext('2d', { storage: 'discardable', willReadFrequently: true }) as CanvasRenderingContext2D
-  resultWaterwayCtx.globalCompositeOperation = 'source-over'
-
-
-  // transpose & rotate ------------------------------------------------------------------------------
-
-  const halfSize = (resultPixels - fasesOffset) / 2                         // cs1: 542px  cs2: 2050px
-
-  resultWaterCtx.translate(halfSize, halfSize)
-  resultWaterCtx.rotate(-mapbox.value.settings.angle * (Math.PI / 180))
-
-  resultWaterCtx.drawImage(waterCanvas.value, -waterCanvas.value.width / 2, -waterCanvas.value.height / 2)
-
-  waterwayCtx.translate(halfSize, halfSize)
-  waterwayCtx.rotate(-mapbox.value.settings.angle * (Math.PI / 180))
-
-  resultWaterwayCtx.drawImage(waterwayCanvas.value, -waterwayCanvas.value.width / 2, -waterwayCanvas.value.height / 2)
-
-  // in CS2, add gaussian filter, on heightmap
-
-
-  // decode data -------------------------------------------------------------------------------------
-
-  const waterPixelData = resultWaterCtx.getImageData(0, 0, resultPixels, resultPixels).data
-  const waterwayPixelData = resultWaterwayCtx.getImageData(0, 0, resultPixels, resultPixels).data
-
-  const waterMap = decodeData(waterPixelData)
-  const waterwayMap = decodeData(waterwayPixelData)
-
-  clearCanvas(littCtx)
-  clearCanvas(tmpLittCtx)
-  clearCanvas(waterCtx)
-  clearCanvas(waterwayCtx)
-  clearCanvas(resultWaterCtx)
-  clearCanvas(resultWaterwayCtx)
 
   return { waterMap, waterwayMap }
 }

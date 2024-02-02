@@ -1,4 +1,4 @@
-import CalcMapWorker from '~/workers/calcCitiesMap.js?worker'  // eslint-disable-line
+import CalcMapWorker from '~/workers/calcCitiesMap.ts?worker'  // eslint-disable-line
 import type { MapType } from '~/types/types'
 
 type MessageData = {
@@ -38,26 +38,35 @@ const calcMap = (data: MessageData) => {
 }
 
 
-export const getCitiesMap = async (mapType: MapType) => {
+export const getCitiesMap = async (mapType: MapType, minHeight?: number, maxHeight?: number) => {
   try {
     const mapbox = useMapbox()
 
     const heightMapTime0 = window.performance.now()
     const tmpHeightMap = await getHeightMap(mapType)
     const heightMapTime = window.performance.now() - heightMapTime0
-    console.log('heightmap:', heightMapTime)
+    console.log('heightmap:', heightMapTime.toFixed(1) + 'ms')
 
     const waterMapTime0 = window.performance.now()
     const { waterMap, waterwayMap } = await getWaterMap(mapType)
     const waterMapTime = window.performance.now() - waterMapTime0
-    console.log('watermap:', waterMapTime)
+    console.log('watermap:', waterMapTime.toFixed(1) + 'ms')
 
-    const { min, max } = getMinMaxHeight(tmpHeightMap)
+    let minH: number | undefined
+    let maxH: number | undefined
+    if (!minHeight || !maxHeight) {
+      const { min, max } = getMinMaxHeight(tmpHeightMap)
+      minH = min
+      maxH = max
+    } else {
+      minH = minHeight
+      maxH = maxHeight
+    }
 
     if (mapbox.value.settings.adjLevel) {
-      mapbox.value.settings.seaLevel = min
+      mapbox.value.settings.seaLevel = minH
     }
-    adjustElevation(max)
+    adjustElevation(maxH)
 
     const messageData: MessageData = {
       scaleFactor: mapbox.value.settings.gridInfo === 'cs2' ? mapbox.value.settings.elevationScale / 65535 : 0.015625,
@@ -83,7 +92,7 @@ export const getCitiesMap = async (mapType: MapType) => {
 
     const citiesMap = await calcMap(messageData)
 
-    return citiesMap
+    return { citiesMap, minH, maxH }
   } catch (error) {
     console.error('An error occurred in getCitiesMap:', error)
     throw error
