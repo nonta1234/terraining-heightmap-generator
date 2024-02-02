@@ -12,15 +12,15 @@ export class RingRopeGeometry extends MeshGeometry {
   public points: IPoint[]
 
   /**
-     * The width (i.e., thickness) of the rope.
-     * @readonly
-     */
+   * The width (i.e., thickness) of the rope.
+   * @readonly
+   */
   _width: number
 
   /**
-     * @param width - The width (i.e., thickness) of the rope.
-     * @param points - An array of {@link PIXI.Point} objects to construct this rope.
-     */
+   * @param width - The width (i.e., thickness) of the rope.
+   * @param points - An array of {@link PIXI.Point} objects to construct this rope.
+   */
   constructor(width = 200, points: IPoint[]) {
     if (points[0].equals(points[points.length - 1])) {
       points.pop()
@@ -37,9 +37,9 @@ export class RingRopeGeometry extends MeshGeometry {
   }
 
   /**
-     * The width (i.e., thickness) of the rope.
-     * @readonly
-     */
+   * The width (i.e., thickness) of the rope.
+   * @readonly
+   */
   get width(): number {
     return this._width
   }
