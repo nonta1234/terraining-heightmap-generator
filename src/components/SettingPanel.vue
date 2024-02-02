@@ -254,7 +254,7 @@ onMounted(() => {
         </div>
         <div class="section">
           <ul>
-            <li><label>Water Depth&ThinSpace;:</label><NumberInput v-model="mapbox.settings.depth" :max="100" :min="0" :step="1" /><span>m</span></li>
+            <li><label>Water Depth&ThinSpace;:</label><NumberInput v-model="mapbox.settings.depth" :max="200" :min="0" :step="1" /><span>m</span></li>
             <li><label>Littoral Length&ThinSpace;:</label><NumberInput v-model="mapbox.settings.littoral" :max="500" :min="0" :step="1" /><span>m</span></li>
             <li class="editor"><label>Littoral Editor&ThinSpace;:</label><button class="littoral-editor" @click="modal">{{ modalButtonText }}</button><span></span></li>
           </ul>
