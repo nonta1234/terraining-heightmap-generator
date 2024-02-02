@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import * as PIXI from 'pixi.js-legacy'
+
 const littEditVisi = ref(false)
 const configPanelVisi = ref(false)
+const waterCanvasRef = ref<HTMLCanvasElement>()
 
 useListen('map:leModal', () => {
   littEditVisi.value = !littEditVisi.value
@@ -18,6 +21,20 @@ function parseBoolean(str: string): boolean {
   const lowercaseStr = str.toLowerCase()
   return lowercaseStr === 'true'
 }
+
+onMounted(() => {
+  useState<PIXI.Application>('pixi-app', () => {
+    const app = new PIXI.Application({
+      antialias: true,
+      view: waterCanvasRef.value,
+      preserveDrawingBuffer: true,
+      backgroundAlpha: 0,
+      forceCanvas: true,
+    })
+    PIXI.settings.ROUND_PIXELS = false
+    return app
+  })
+})
 </script>
 
 
@@ -30,6 +47,8 @@ function parseBoolean(str: string): boolean {
       <ConfigurationPanel v-show="configPanelVisi" :modal="true" />
     </MapBox>
     <canvas v-show="debugMode" id="tile-canvas"></canvas>
+    <canvas v-show="debugMode" id="litt-canvas"></canvas>
+    <canvas v-show="debugMode" id="water-canvas" ref="waterCanvasRef"></canvas>
   </div>
 </template>
 
@@ -40,34 +59,34 @@ function parseBoolean(str: string): boolean {
     height: 100dvh;
     overflow: hidden;
   }
-  #water-tile-canvas {
+  #tile-canvas {
     position: absolute;
-    bottom: 40px;
-    left: 10px;
+    bottom: 596px;
+    right: 360px;
     width: 250px;
     height: 250px;
     z-index: 5;
-    background-color: white;
+    background-color: black;
     @include shadow-panel;
   }
-  #tile-canvas {
+  #litt-canvas {
     position: absolute;
-    bottom: 40px;
+    bottom: 596px;
     right: 80px;
     width: 250px;
     height: 250px;
     z-index: 5;
-    background-color: white;
+    background-color: black;
     @include shadow-panel;
   }
   #water-canvas {
     position: absolute;
-    bottom: 320px;
+    bottom: 36px;
     right: 80px;
-    width: 250px;
-    height: 250px;
+    width: 530px;
+    height: 530px;
     z-index: 5;
-    background-color: white;
+    background-color: black;
     @include shadow-panel;
   }
 </style>
