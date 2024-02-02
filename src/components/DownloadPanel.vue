@@ -23,8 +23,15 @@ const getRawHeightMap = async () => {
       alert('You will need your own Mapbox access token\nto download the elevation data for CS2.')
       return
     }
-    const citiesMap = await getCitiesMap('cs2play')
-    download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, citiesMap)
+    if (mapbox.value.settings.gridInfo === 'cs1') {
+      const { citiesMap } = await getCitiesMap('cs1')
+      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, citiesMap)
+    } else {
+      const { citiesMap: worldMap, minH, maxH } = await getCitiesMap('cs2')
+      download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, worldMap)
+      const { citiesMap } = await getCitiesMap('cs2play', minH, maxH)
+      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, citiesMap)
+    }
     saveSettings(mapbox.value.settings)
   } catch (e: any) {
     console.log(e.message)
@@ -43,15 +50,33 @@ const getPngHeightMap = async () => {
       alert('You will need your own Mapbox access token\nto download the elevation data for CS2.')
       return
     }
-    await init()
-    const mType = mapbox.value.settings.gridInfo === 'cs2' ? 'cs2play' : 'cs1'
-    const citiesMap = await getCitiesMap(mType)
-    const png = await encode_16g({
-      width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-      height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-      data: citiesMap,
-    })
-    download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png.data)
+    if (mapbox.value.settings.gridInfo === 'cs1') {
+      await init()
+      const { citiesMap } = await getCitiesMap('cs1')
+      const png = await encode_16g({
+        width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        data: citiesMap,
+      })
+      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png.data)
+    } else {
+      await init()
+      const { citiesMap: worldMap, minH, maxH } = await getCitiesMap('cs2')
+      const worldPng = await encode_16g({
+        width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        data: worldMap,
+      })
+      download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, worldPng.data)
+      await init()
+      const { citiesMap } = await getCitiesMap('cs2play', minH, maxH)
+      const citiesPng = await encode_16g({
+        width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        data: citiesMap,
+      })
+      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, citiesPng.data)
+    }
     saveSettings(mapbox.value.settings)
   } catch (e: any) {
     console.log(e.message)
