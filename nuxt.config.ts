@@ -46,6 +46,9 @@ export default defineNuxtConfig({
             if (id.includes('turf')) {
               return 'turf'
             }
+            if (id.includes('pixi.js')) {
+              return 'pixi'
+            }
           },
         },
       },
