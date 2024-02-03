@@ -46,9 +46,9 @@ const createSlopeTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: number
   gradient.addColorStop(0.0, 'rgb(0, 0, 0)')
   for (let i = 1; i < 10; i++) {
     const value = Math.round(mapbox.value.settings.littArray[i - 1] * 255)
-    gradient.addColorStop(i / 10, `rgb(${value}, 0, ${value})`)
+    gradient.addColorStop(i / 10, `rgb(${value}, ${value}, ${value})`)
   }
-  gradient.addColorStop(1.0, 'rgb(255, 0, 255)')
+  gradient.addColorStop(1.0, 'rgb(255, 255, 255)')
 
   ctx.fillStyle = gradient
   ctx.fillRect(0, pixels - size, 1, size)
@@ -58,9 +58,9 @@ const createSlopeTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: number
   gradient.addColorStop(0.0, 'rgb(0, 0, 0)')
   for (let i = 1; i < 10; i++) {
     const value = Math.round(mapbox.value.settings.littArray[i - 1] * 255)
-    gradient.addColorStop(i / 10, `rgb(${value}, 0, ${value})`)
+    gradient.addColorStop(i / 10, `rgb(${value}, ${value}, ${value})`)
   }
-  gradient.addColorStop(1.0, 'rgb(255, 0, 255)')
+  gradient.addColorStop(1.0, 'rgb(255, 255, 255)')
 
   ctx.fillStyle = gradient
   ctx.fillRect(0, pixels, 1, pixels + size)
@@ -87,10 +87,10 @@ const createRadialTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: numbe
 
   const gradient = ctx.createRadialGradient(pixels, pixels, 0, pixels, pixels, size)
 
-  gradient.addColorStop(0.0, 'rgb(255, 0, 255)')
+  gradient.addColorStop(0.0, 'rgb(255, 255, 255)')
   for (let i = 1; i < 10; i++) {
     const value = Math.round(mapbox.value.settings.littArray[9 - i] * 255)
-    gradient.addColorStop(i / 10, `rgb(${value}, 0, ${value})`)
+    gradient.addColorStop(i / 10, `rgb(${value}, ${value}, ${value})`)
   }
   gradient.addColorStop(1.0, 'rgb(0, 0, 0)')
 
@@ -105,7 +105,7 @@ function createMask(pixelsPerTile: number) {
   const tileMask = new PIXI.Graphics()
   tileMask
     .beginFill(0xFFFFFF)
-    .drawRect(-1, -1, pixelsPerTile + 1, pixelsPerTile + 1)
+    .drawRect(-3, -3, pixelsPerTile + 3, pixelsPerTile + 3)
     .endFill()
   return tileMask
 }
@@ -232,27 +232,40 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
 
   app.value.stage.addChild(masterContainer)
 
-  const waterMapContainer = new PIXI.Container()
+  const waterAreaContainer = new PIXI.Container()
+  const waterlittContainer = new PIXI.Container()
   const waterWayMapContainer = new PIXI.Container()
 
   const { waterContainer, littoralContainer, waterWayContainer } = await processTiles(tileList)
 
-  waterMapContainer.addChild(waterContainer)
-  waterMapContainer.addChild(littoralContainer)
+  waterAreaContainer.addChild(waterContainer)
+  waterlittContainer.addChild(littoralContainer)
   waterWayMapContainer.addChild(waterWayContainer)
 
   const halfMapSize = (resultPixels - fasesOffset) / 2
 
   // get water data
-  masterContainer.addChild(waterMapContainer)
-  const waterRT = PIXI.RenderTexture.create({ width: app.value.stage.width, height: app.value.stage.height, resolution: app.value.renderer.resolution })
+  const bg1 = new PIXI.Graphics()
+    .beginFill(0xFFFFFF)
+    .drawRect(-10, -10, tmpMapPixels + 20, tmpMapPixels + 20)
+    .endFill()
+  masterContainer.addChild(bg1)
+  masterContainer.addChild(waterAreaContainer)
+  masterContainer.addChild(waterlittContainer)
+  const waterRT = PIXI.RenderTexture.create({
+    width: app.value.stage.width,
+    height: app.value.stage.height,
+    resolution: app.value.renderer.resolution,
+  })
   app.value.renderer.render(app.value.stage, { renderTexture: waterRT })
   const waterCanvas = app.value.renderer.extract.canvas(app.value.stage)
 
+  let stageRect = app.value.stage.getBounds()
+
   const waterCtx = waterCanvas.getContext('2d')
   const waterImgData = waterCtx!.getImageData(
-    waterCanvas.width / 2 - halfMapSize,
-    waterCanvas.height / 2 - halfMapSize,
+    app.value.screen.width / 2 - halfMapSize - stageRect.x,
+    app.value.screen.height / 2 - halfMapSize - stageRect.y,
     resultPixels,
     resultPixels,
   ).data
@@ -260,15 +273,27 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
   destroyChild(masterContainer)
 
   // get water way data
+  const bg2 = new PIXI.Graphics()
+    .beginFill(0xFFFFFF)
+    .drawRect(-10, -10, tmpMapPixels + 20, tmpMapPixels + 20)
+    .endFill()
+  masterContainer.addChild(bg2)
   masterContainer.addChild(waterWayMapContainer)
-  const waterWayRT = PIXI.RenderTexture.create({ width: app.value.stage.width, height: app.value.stage.height, resolution: app.value.renderer.resolution })
+  const waterWayRT = PIXI.RenderTexture.create({
+    width: app.value.stage.width,
+    height: app.value.stage.height,
+    resolution: app.value.renderer.resolution,
+    multisample: PIXI.MSAA_QUALITY.HIGH,
+  })
   app.value.renderer.render(app.value.stage, { renderTexture: waterWayRT })
   const waterWayCanvas = app.value.renderer.extract.canvas(app.value.stage)
 
+  stageRect = app.value.stage.getBounds()
+
   const waterWayCtx = waterWayCanvas.getContext('2d')
   const waterWayImgData = waterWayCtx!.getImageData(
-    waterCanvas.width / 2 - halfMapSize,
-    waterCanvas.height / 2 - halfMapSize,
+    app.value.screen.width / 2 - halfMapSize - stageRect.x,
+    app.value.screen.height / 2 - halfMapSize - stageRect.y,
     resultPixels,
     resultPixels,
   ).data
@@ -279,8 +304,10 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
   const waterwayMap = decodeData(waterWayImgData)
 
   if (useDebug()) {
-    const debugImg = new PIXI.Sprite(waterRT)
-    app.value.stage.addChild(debugImg)
+    const debugWaterImg = new PIXI.Sprite(waterRT)
+    const debugWaterWayImg = new PIXI.Sprite(waterWayRT)
+    debugWaterWayImg.blendMode = PIXI.BLEND_MODES.DARKEN
+    app.value.stage.addChild(debugWaterImg, debugWaterWayImg)
   }
 
   // functions ---------------------------------------------------------------------------------------
@@ -322,18 +349,6 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
           waterWayMaskWrapper.mask = createMask(pixelsPerTile)
 
           // draw start
-          const bgGraphics = new PIXI.Graphics()
-            .beginFill(0xFFFFFF)
-            .drawRect(-10, -10, pixelsPerTile + 20, pixelsPerTile + 20)
-            .endFill()
-          waterMaskWrapper.addChild(bgGraphics)
-
-          const wwBgGraphics = new PIXI.Graphics()
-            .beginFill(0xFFFFFF)
-            .drawRect(-10, -10, pixelsPerTile + 20, pixelsPerTile + 20)
-            .endFill()
-          waterWayMaskWrapper.addChild(wwBgGraphics)
-
           if (tile.layers.water) {
             const geo = tile.layers.water.feature(0).asPolygons() as Point[][][]
             const waterAreaGraphics = new PIXI.Graphics()
