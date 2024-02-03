@@ -40,7 +40,7 @@ const getExtentData = (mapbox: Ref<Mapbox>, areaSize: number) => {
 }
 
 
-const getTileInfo = (mapbox: Ref<Mapbox>, topleft: turf.Position, bottomright: turf.Position, zoom: number, pixelsPerTile: number, calcPixels: number, mapType: MapType) => {
+const getTileInfo = (topleft: turf.Position, bottomright: turf.Position, zoom: number, pixelsPerTile: number, calcPixels: number, mapType: MapType) => {
   let tileX0 = lng2tile(topleft[0], zoom)
   let tileY0 = lat2tile(topleft[1], zoom)
   const tileX1 = lng2tile(bottomright[0], zoom)
@@ -51,11 +51,12 @@ const getTileInfo = (mapbox: Ref<Mapbox>, topleft: turf.Position, bottomright: t
   const posY0 = lat2pixel(topleft[1], zoom, pixelsPerTile)
   const posX1 = lng2pixel(bottomright[0], zoom, pixelsPerTile)
   const posY1 = lat2pixel(bottomright[1], zoom, pixelsPerTile)
-  const centerX = lng2pixel(mapbox.value.settings.lng, zoom, pixelsPerTile)
-  const centerY = lat2pixel(mapbox.value.settings.lat, zoom, pixelsPerTile)
 
   const mapWidth = posX1 - posX0
   const mapHeight = posY1 - posY0
+
+  const centerX = mapWidth / 2 + posX0
+  const centerY = mapWidth / 2 + posY0
 
   const mapPixelsOnTile = Math.sqrt(mapWidth * mapWidth + mapHeight * mapHeight) / Math.SQRT2
   const scale = mapPixelsOnTile / (calcPixels * Math.SQRT2)
@@ -92,7 +93,7 @@ const getElevations = async (mapbox: Ref<Mapbox>, mapType: MapType) => {
   const { resultPixels, calcPixels, tmpAreaSize, pixelsPerTile } = getInitParameter(mapbox, mapType)
   const { topleft, bottomright, referenceLat } = getExtentData(mapbox, tmpAreaSize)
   const zoom = Math.min(Math.ceil(calculateZoomLevel(referenceLat, tmpAreaSize, calcPixels, pixelsPerTile)), 14)
-  const { tileX, tileY, tileCount, tilePixels, scale, offsetX, offsetY } = getTileInfo(mapbox, topleft, bottomright, zoom, pixelsPerTile, calcPixels, mapType)
+  const { tileX, tileY, tileCount, tilePixels, scale, offsetX, offsetY } = getTileInfo(topleft, bottomright, zoom, pixelsPerTile, calcPixels, mapType)
 
   const tiles = new Array<Promise<T>>(Math.pow(tileCount, 2))
 
