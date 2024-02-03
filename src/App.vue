@@ -28,7 +28,7 @@ onMounted(() => {
       antialias: true,
       view: waterCanvasRef.value,
       preserveDrawingBuffer: true,
-      backgroundAlpha: 0,
+      backgroundColor: 0x000000,
       forceCanvas: true,
     })
     PIXI.settings.ROUND_PIXELS = false
