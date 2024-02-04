@@ -43,12 +43,6 @@ export default defineNuxtConfig({
             if (id.includes('mapbox-gl') && !id.includes('mapbox-gl.css')) {
               return 'mapbox'
             }
-            if (id.includes('turf')) {
-              return 'turf'
-            }
-            if (id.includes('pixi.js')) {
-              return 'pixi'
-            }
           },
         },
       },
