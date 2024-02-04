@@ -33,7 +33,7 @@
     "eslint-plugin-vue": "^9.12.0",
     "geojsontoosm": "nonta1234/geojsontoosm",
     "latest": "^0.2.0",
-    "mapbox-gl": "3.0.0-beta.5",
+    "mapbox-gl": "^3.1.2",
     "mapbox-vector-tile": "^0.3.0",
     "mitt": "^3.0.0",
     "nuxt": "^3.8.0",
