@@ -17,11 +17,14 @@ export class RingRopeGeometry extends MeshGeometry {
    */
   _width: number
 
+  _scale: number
+
   /**
    * @param width - The width (i.e., thickness) of the rope.
    * @param points - An array of {@link PIXI.Point} objects to construct this rope.
+   * @param scale - Texture scale
    */
-  constructor(width = 200, points: IPoint[]) {
+  constructor(width = 200, points: IPoint[], scale: number) {
     if (points[0].equals(points[points.length - 1])) {
       points.pop()
     }
@@ -31,7 +34,8 @@ export class RingRopeGeometry extends MeshGeometry {
       new Uint16Array((points.length - 1) * 6))
 
     this.points = points
-    this._width = width
+    this._width = width * scale
+    this._scale = scale
 
     this.build()
   }
@@ -42,6 +46,13 @@ export class RingRopeGeometry extends MeshGeometry {
    */
   get width(): number {
     return this._width
+  }
+
+  /**
+   * @readonly
+   */
+  get scale(): number {
+    return this._scale
   }
 
   /** Refreshes Rope indices and uvs */
@@ -103,9 +114,9 @@ export class RingRopeGeometry extends MeshGeometry {
       indices[indexCount++] = index + 1
       indices[indexCount++] = index + 2
 
+      indices[indexCount++] = index + 3
       indices[indexCount++] = index + 2
       indices[indexCount++] = index + 1
-      indices[indexCount++] = index + 3
     }
 
     // ensure that the changes are uploaded
