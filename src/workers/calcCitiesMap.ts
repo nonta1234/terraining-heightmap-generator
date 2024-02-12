@@ -181,7 +181,7 @@ self.onmessage = async (e) => {
 
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
-        const noiseValue = noise2D(x * noiseGrid / size, y * noiseGrid / size) * noise
+        const noiseValue = noise2D(x * noiseGrid / (size - 1), y * noiseGrid / (size - 1)) * noise
         let h = (maskedSharpenMap[y * size + x] * (1 - alphaSmooth) + maskedSmoothMap[y * size + x] * alphaSmooth) - seaLevel
         if (h < 0) {
           h = 0
