@@ -2,8 +2,10 @@ import { FetchError } from 'ofetch'
 import * as PIXI from 'pixi.js-legacy'
 import '@pixi/math-extras'
 import { VectorTile, Point } from 'mapbox-vector-tile'
+import * as StackBlur from 'stackblur-canvas'
 import { RingRope } from '~/utils/ringRope'
 import type { Mapbox, MapType } from '~/types/types'
+
 
 type T = {
   data: globalThis.Ref<Blob | null>;
@@ -295,12 +297,16 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
     app.value.screen.height / 2 - halfMapSize - stageRect.y,
     resultPixels,
     resultPixels,
-  ).data
+  )
+
+  const resultWwImgData = mapType === 'cs2play'
+    ? StackBlur.imageDataRGB(waterWayImgData, 0, 0, resultPixels, resultPixels, 2).data
+    : waterWayImgData.data
 
   destroyChild(app.value.stage)
 
   const waterMap = decodeData(waterImgData)
-  const waterwayMap = decodeData(waterWayImgData)
+  const waterwayMap = decodeData(resultWwImgData)
 
   if (useDebug()) {
     const debugWaterImg = new PIXI.Sprite(waterRT)
