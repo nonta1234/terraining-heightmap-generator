@@ -31,7 +31,7 @@ const createSlopeTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: number
   } else if (mapType === 'cs2play') {
     unit = 3.5
   }
-  const size = Math.max(mapbox.value.settings.littoral / unit / scale, 1)
+  const size = Math.max(mapbox.value.settings.littoral / unit / scale * 2, 2)
   const pixels = Math.ceil(size)
 
   const slopeCanvas = ref<HTMLCanvasElement>()
@@ -43,24 +43,24 @@ const createSlopeTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: number
 
   let gradient = ctx.createLinearGradient(0, pixels - size, 0, pixels)
 
-  gradient.addColorStop(0.0, 'rgb(0, 0, 0)')
+  gradient.addColorStop(0.0, 'rgba(0, 0, 0, 1.0)')
   for (let i = 1; i < 10; i++) {
     const value = Math.round(mapbox.value.settings.littArray[i - 1] * 255)
-    gradient.addColorStop(i / 10, `rgb(${value}, ${value}, ${value})`)
+    gradient.addColorStop(i / 10, `rgba(${value}, ${value}, ${value}, 1.0)`)
   }
-  gradient.addColorStop(1.0, 'rgb(255, 255, 255)')
+  gradient.addColorStop(1.0, 'rgba(255, 255, 255, 1.0)')
 
   ctx.fillStyle = gradient
   ctx.fillRect(0, pixels - size, 1, size)
 
   gradient = ctx.createLinearGradient(0, pixels + size, 0, pixels)
 
-  gradient.addColorStop(0.0, 'rgb(0, 0, 0)')
+  gradient.addColorStop(0.0, 'rgba(0, 0, 0, 1.0)')
   for (let i = 1; i < 10; i++) {
     const value = Math.round(mapbox.value.settings.littArray[i - 1] * 255)
-    gradient.addColorStop(i / 10, `rgb(${value}, ${value}, ${value})`)
+    gradient.addColorStop(i / 10, `rgba(${value}, ${value}, ${value}, 1.0)`)
   }
-  gradient.addColorStop(1.0, 'rgb(255, 255, 255)')
+  gradient.addColorStop(1.0, 'rgba(255, 255, 255, 1.0)')
 
   ctx.fillStyle = gradient
   ctx.fillRect(0, pixels, 1, pixels + size)
@@ -76,7 +76,7 @@ const createRadialTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: numbe
   } else if (mapType === 'cs2play') {
     unit = 3.5
   }
-  const size = Math.max(mapbox.value.settings.littoral / unit / scale, 1)
+  const size = Math.max(mapbox.value.settings.littoral / unit / scale * 2, 2)
   const pixels = Math.ceil(size)
 
   const radialCanvas = ref<HTMLCanvasElement>()
@@ -87,12 +87,12 @@ const createRadialTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: numbe
 
   const gradient = ctx.createRadialGradient(pixels, pixels, 0, pixels, pixels, size)
 
-  gradient.addColorStop(0.0, 'rgb(255, 255, 255)')
+  gradient.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)')
   for (let i = 1; i < 10; i++) {
     const value = Math.round(mapbox.value.settings.littArray[9 - i] * 255)
-    gradient.addColorStop(i / 10, `rgb(${value}, ${value}, ${value})`)
+    gradient.addColorStop(i / 10, `rgba(${value}, ${value}, ${value}, 1.0)`)
   }
-  gradient.addColorStop(1.0, 'rgb(0, 0, 0)')
+  gradient.addColorStop(1.0, 'rgba(0, 0, 0, 1.0)')
 
   ctx.fillStyle = gradient
   ctx.fillRect(pixels - size, pixels - size, size * 2, size * 2)
@@ -283,7 +283,6 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
     width: app.value.stage.width,
     height: app.value.stage.height,
     resolution: app.value.renderer.resolution,
-    multisample: PIXI.MSAA_QUALITY.HIGH,
   })
   app.value.renderer.render(app.value.stage, { renderTexture: waterWayRT })
   const waterWayCanvas = app.value.renderer.extract.canvas(app.value.stage)
@@ -378,11 +377,13 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
                   path.push(new PIXI.Point(geo[i][m][k].x, geo[i][m][k].y))
                   const corner = new PIXI.Sprite(cornerTexture)
                   corner.blendMode = PIXI.BLEND_MODES.LIGHTEN
+                  corner.scale.set(0.5)
                   corner.anchor.set(0.5)
                   corner.position.set(geo[i][m][k].x, geo[i][m][k].y)
                   littMaskWrapper.addChild(corner)
                 }
                 const littRope = new RingRope(slopeTexture, path)
+                littRope.canvasPadding = 5
                 littRope.blendMode = PIXI.BLEND_MODES.LIGHTEN
                 littMaskWrapper.addChild(littRope)
               }
