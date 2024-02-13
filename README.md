@@ -12,38 +12,40 @@
 
 ## Features
 
-- Select a square area on the map, with sizes ranging from 17.28&ThinSpace;km to 69.12&ThinSpace;km.
+- Easily get the heightmap for CS1 and CS2.
+- Choose a square area on the map between 17.28&ThinSpace;km and 69.12&ThinSpace;km for CS1 and between 57.344&ThinSpace;km and 229.376&ThinSpace;km for CS2.
 - Easily rotate the selected square area.
-- Download 16-bit grayscale PNG heightmap and map images.
+- Download the heightmap, map images, and OSM data. For CS2, you can get both the heightmap and the world map.
 
 ## How to
 
 1. Choose the area you want to download.
 1. Customize the settings within the settings panel to match your preferences.
-1. Download either the heightmap or map image.
+1. Download either the heightmap or map image, etc.
 
 ## Setting panel
 
-- **Lng & Lat**: Adjust your position by modifying the values.
-- **Min & Max Height**: Click the refresh button at the bottom to retrieve current area's minimum and maximum elevations. Please note that slight variations in values may occur due to interpolation based on map size.
-- **Map Size**: Set the size within the range of 17.28&ThinSpace;km to 62.12&ThinSpace;km square.
-- **Sea Level**: Elevations below this level are automatically adjusted to 0&ThinSpace;m.
-- **Adjust Level**: The sea level is automatically aligned with the minimum height.
-- **Height Ratio**: Define the vertical-to-horizontal distance ratio.
-- **Height Scale**: Set the proportion relative to actual terrain height.  
+- **Lng & Lat**&ThinSpace;: Adjust your position by modifying the values.
+- **Min & Max Height**&ThinSpace;: Click the refresh button at the bottom to retrieve current area's minimum and maximum elevations. Please note that slight variations in values may occur due to interpolation based on map size.
+- **Map Size**&ThinSpace;: Set the map size.
+- **Sea Level**&ThinSpace;: Elevations below this level are automatically adjusted to 0&ThinSpace;m.
+- **Adjust Level**&ThinSpace;: The sea level is automatically aligned with the minimum height.
+- **Height Ratio**&ThinSpace;: Define the vertical-to-horizontal distance ratio.
+- **Height Scale**&ThinSpace;: Set the proportion relative to actual terrain height.  
 *‡Height Ratio and Height Scale are interrelated and are linked to map size. You can lock one.*
-- **Elev. Type**: Auto-configures Height Ratio and Height Scale.
-  * Manual: No automatic adjustments.
-  * Limit: If exceeded, adjusts the maximum elevation to 1,023.98&ThinSpace;m.
-  * Maxi.: Set the maximum elevation at 1,023.98&ThinSpace;m.
-- **Water Depth**: Modify the water depth.
-- **Littoral Length**: Adjust the littoral zone distance. Increasing it creates a gradual slope from the coast to the seabed.
-- **Littoral Editor**: Configure the shape of the littoral slope.
-- **Smoothing & Sharpen**: Set ranges for terrain smoothing and sharpening.
+- **Elev. Type**&ThinSpace;: Auto-configures Height Ratio and Height Scale.
+  * Manual&ThinSpace;: No automatic adjustments.
+  * Limit&ThinSpace;: If exceeded, adjusts the maximum elevation to 1,023.98&ThinSpace;m (CS1) or elevation scale value (CS2). 
+  * Maxi.&ThinSpace;: Set the maximum elevation at 1,023.98&ThinSpace;m (CS1) or elevation scale value (CS2).
+- **Water Depth**&ThinSpace;: Modify the water depth.
+- **Littoral Length**&ThinSpace;: Adjust the littoral zone distance. Increasing it creates a gradual slope from the coast to the seabed.
+- **Littoral Editor**&ThinSpace;: Configure the shape of the littoral slope.
+- **Smoothing & Sharpen**&ThinSpace;: Set ranges for terrain smoothing and sharpening.
 
 ## Control panel
 
-- Download the following data:
+- Download the following data&ThinSpace;:
+  * Heightmap in raw data
   * Heightmap in 16-bit grayscale PNG format
   * Map image
   * OSM data
@@ -53,13 +55,17 @@
 
 ## Configuration Panel
 
-- **Heightmap Type**: Selection of CS2 will soon be available.
-- **Interpolation**: Choose from Bilinear or Bicubic.
-- **Stream Depth**: Aiding in the depiction of streams.
-- **Smooth Count**: Determine the number of times the smooth effect is repeated.
-- **Noise Value**: Add or subtract height.
-- **Noise Grid**: Adjust the level of detail for noise. The smaller the number, the finer the details.
+- **Heightmap Type**&ThinSpace;: Choose for CS1 or CS2.
+- **Interpolation**&ThinSpace;: Choose from Bilinear or Bicubic.
+- **Elevation Scale**&ThinSpace;: The maximum elevation for CS2.
+- **Stream Depth**&ThinSpace;: Aiding in the depiction of streams.
+- **Smooth Count**&ThinSpace;: Determine the number of times the smooth effect is repeated.
+- **Noise Value**&ThinSpace;: Add or subtract height.
+- **Noise Detail**&ThinSpace;: Adjust the level of detail for noise. The higher the value, the finer the noise.
+- **Reflecting the amount of effect**&ThinSpace;: Reflect the sharpen and smooth intensity on the map.
+- **Access Token**&ThinSpace;: You will need your own Mapbox access token to download the heightmap for CS2.
 
-## Plans
+## ToDo
 
-- I plan to achieve compatibility with Cities: Skylines II.
+- Improved littoral slope shape.
+- Make the download process completely a web worker.
