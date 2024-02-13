@@ -20,7 +20,7 @@ const getRawHeightMap = async () => {
     const mapbox = useMapbox()
     const config = useRuntimeConfig()
     if (mapbox.value.settings.gridInfo === 'cs2' && (mapbox.value.settings.accessToken === '' || mapbox.value.settings.accessToken === config.public.token)) {
-      alert('You will need your own Mapbox access token\nto download the elevation data for CS2.')
+      alert('You will need your own Mapbox access token\nto download the heightmap data for CS2.')
       return
     }
     if (mapbox.value.settings.gridInfo === 'cs1') {
@@ -47,7 +47,7 @@ const getPngHeightMap = async () => {
     const mapbox = useMapbox()
     const config = useRuntimeConfig()
     if (mapbox.value.settings.gridInfo === 'cs2' && (mapbox.value.settings.accessToken === '' || mapbox.value.settings.accessToken === config.public.token)) {
-      alert('You will need your own Mapbox access token\nto download the elevation data for CS2.')
+      alert('You will need your own Mapbox access token\nto download the heightmap data for CS2.')
       return
     }
     if (mapbox.value.settings.gridInfo === 'cs1') {
