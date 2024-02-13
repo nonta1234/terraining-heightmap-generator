@@ -89,7 +89,7 @@ const close = () => {
           </li>
           <li>
             <label>
-              <span>Noise Grid&ThinSpace;:</span>
+              <span>Noise Detail&ThinSpace;:</span>
               <NumberInput v-model="mapbox.settings.noiseGrid" :max="100" :min="1" :step="1" />
             </label>
           </li>
