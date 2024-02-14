@@ -63,7 +63,7 @@
   * Right click&ThinSpace;: Rotate the map so that the grid is facing up.
 - Displays the shape and smooth effect area on the map.
 
-## Configuration Panel
+## Configuration panel
 
 - **Heightmap Type**&ThinSpace;: Choose either CS1 or CS2.
 - **Interpolation**&ThinSpace;: Choose from Bilinear or Bicubic.
