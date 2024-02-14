@@ -50,7 +50,7 @@
   * Map image
   * OSM data
 - Configuration Panel
-- Visualize smooth and sharpen areas on the map. Keep in mind that, due to Mapbox specifications, the representation is approximate.
+- GitHub link
 
 ## Control Buttons
 
@@ -58,7 +58,7 @@
 - Zoom in
 - Zoom out
 - Compass
-- Grid
+- Grid&ThinSpace;:
   * Left click&ThinSpace;: Reset the grid direction to north.
   * Right click&ThinSpace;: Rotate the map so that the grid is facing up.
 - Displays the shape and smooth effect area on the map.
