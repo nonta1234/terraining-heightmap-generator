@@ -107,7 +107,7 @@ function createMask(pixelsPerTile: number) {
   const tileMask = new PIXI.Graphics()
   tileMask
     .beginFill(0xFFFFFF)
-    .drawRect(-3, -3, pixelsPerTile + 3, pixelsPerTile + 3)
+    .drawRect(-3, -3, pixelsPerTile + 6, pixelsPerTile + 6)
     .endFill()
   return tileMask
 }
