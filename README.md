@@ -52,7 +52,7 @@
 - Configuration Panel
 - GitHub link
 
-## Control Buttons
+## Control buttons
 
 - Home
 - Zoom in
