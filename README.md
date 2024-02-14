@@ -25,7 +25,7 @@
 
 ## Setting panel
 
-- **Lng & Lat**&ThinSpace;: Adjust your position by modifying the values.
+- **Lng & Lat**&ThinSpace;: Adjust your geographic coordinates by modifying these values.
 - **Min & Max Height**&ThinSpace;: Click the refresh button at the bottom to retrieve current area's minimum and maximum elevations. Please note that slight variations in values may occur due to interpolation based on map size.
 - **Map Size**&ThinSpace;: Set the map size.
 - **Sea Level**&ThinSpace;: Elevations below this level are automatically adjusted to 0&ThinSpace;m.
@@ -42,7 +42,7 @@
 - **Littoral Editor**&ThinSpace;: Configure the shape of the littoral slope.
 - **Smoothing & Sharpen**&ThinSpace;: Set ranges for terrain smoothing and sharpening.
 
-## Control panel
+## Download panel
 
 - Download the following data&ThinSpace;:
   * Heightmap in raw data
@@ -51,11 +51,21 @@
   * OSM data
 - Configuration Panel
 - Visualize smooth and sharpen areas on the map. Keep in mind that, due to Mapbox specifications, the representation is approximate.
-- Navigate to the grid position.
+
+## Control Buttons
+
+- Home
+- Zoom in
+- Zoom out
+- Compass
+- Grid
+  * Left click&ThinSpace;: Reset the grid direction to north.
+  * Right click&ThinSpace;: Rotate the map so that the grid is facing up.
+- Displays the shape and smooth effect area on the map.
 
 ## Configuration Panel
 
-- **Heightmap Type**&ThinSpace;: Choose for CS1 or CS2.
+- **Heightmap Type**&ThinSpace;: Choose either CS1 or CS2.
 - **Interpolation**&ThinSpace;: Choose from Bilinear or Bicubic.
 - **Elevation Scale**&ThinSpace;: The maximum elevation for CS2.
 - **Stream Depth**&ThinSpace;: Aiding in the depiction of streams.
@@ -67,5 +77,5 @@
 
 ## ToDo
 
-- Improved littoral slope shape.
-- Make the download process completely a web worker.
+- Improve the littoral slope shape.
+- Make the entire download process a web worker.
