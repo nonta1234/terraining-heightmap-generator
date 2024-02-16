@@ -10,6 +10,9 @@ type GridState = 'none' | 'isMove' | 'isRotate' | 'isResize'
 let gridState: GridState = 'none'
 let prevAngle = 0
 
+const maxSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size * 4)
+const minSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size / 2)
+
 const { $throttle } = useNuxtApp()
 
 onMounted(() => {
@@ -333,8 +336,8 @@ onMounted(() => {
   function onResize(e: any) {
     const resize = () => {
       let distance = turf.pointToLineDistance([e.lngLat.lng, e.lngLat.lat], lineString, { units: 'kilometers' })
-      if (distance < mapSpec[mapbox.value.settings.gridInfo].size) { distance = mapSpec[mapbox.value.settings.gridInfo].size }
-      if (distance > mapSpec[mapbox.value.settings.gridInfo].size * 4) { distance = mapSpec[mapbox.value.settings.gridInfo].size * 4 }
+      if (distance < minSize.value) { distance = minSize.value }
+      if (distance > maxSize.value) { distance = maxSize.value }
       const tmpRatio = mapbox.value.settings.vertScale / mapSpec[mapbox.value.settings.gridInfo].size * mapbox.value.settings.size
       mapbox.value.settings.size = distance
       if (mapbox.value.settings.fixedRatio) {

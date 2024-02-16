@@ -6,6 +6,7 @@ import {
   faArrowsRotate,
   faThumbtack,
   faGear,
+  faArrowRotateRight,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faCircleQuestion,
@@ -20,6 +21,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     faThumbtack,
     faCircleQuestion,
     faGear,
+    faArrowRotateRight,
   )
   nuxtApp.vueApp.component('font-awesome-icon', FontAwesomeIcon)
 })

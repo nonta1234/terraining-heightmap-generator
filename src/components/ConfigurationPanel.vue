@@ -10,12 +10,9 @@ onMounted(() => {
 })
 
 const onHeightmapTypeChange = () => {
-  if (mapbox.value.settings.gridInfo === 'cs1' && mapbox.value.settings.size < mapSpec.cs1.size) {
-    mapbox.value.settings.size = mapSpec.cs1.size
-  } else if (mapbox.value.settings.gridInfo === 'cs2' && mapbox.value.settings.size < mapSpec.cs2.size) {
-    mapbox.value.settings.size = mapSpec.cs2.size
-  }
-  setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+  useEvent('map:changeMapSize', mapSpec[mapbox.value.settings.gridInfo].size)
+  mapbox.value.settings.fixedRatio = true
+  mapbox.value.settings.vertScale = 1
 }
 
 const toggleDisplayEffect = () => {

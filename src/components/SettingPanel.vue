@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// import Multiselect from '@vueform/multiselect'
 import type { HeightCalcType } from '~/types/types'
 
 const mapbox = useMapbox()
@@ -33,7 +32,7 @@ const minHeight = ref('-')
 const maxHeight = ref('-')
 
 const maxSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size * 4)
-const minSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size)
+const minSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size / 2)
 
 const hScale = computed(() => mapSpec[mapbox.value.settings.gridInfo].size / mapbox.value.settings.size)
 const vScale = computed(() => mapbox.value.settings.vertScale)
@@ -115,7 +114,11 @@ useListen('map:changeLngLat', () => {
   maxHeight.value = '-'
 })
 
-useListen('map:changeMapSize', () => {
+useListen('map:changeMapSize', (value) => {
+  const tmpRatio = ratio.value
+  mapbox.value.settings.size = value
+  if (mapbox.value.settings.fixedRatio) { ratio.value = tmpRatio }
+  setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], true)
   minHeight.value = '-'
   maxHeight.value = '-'
 })
@@ -123,6 +126,10 @@ useListen('map:changeMapSize', () => {
 useListen('debug:operate', () => {
   // console.log('debug:operate')
 })
+
+const resetSize = () => {
+  onSizeChange(mapSpec[mapbox.value.settings.gridInfo].size)
+}
 
 const refresh = async () => {
   rotate.value = true
@@ -161,10 +168,6 @@ const onLatChange = (value: number) => {
 }
 
 const onSizeChange = (value: number) => {
-  const tmpRatio = ratio.value
-  mapbox.value.settings.size = value
-  if (mapbox.value.settings.fixedRatio) { ratio.value = tmpRatio }
-  setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], true)
   useEvent('map:changeMapSize', value)
 }
 
@@ -229,7 +232,11 @@ onMounted(() => {
         </div>
         <div class="section">
           <ul>
-            <li><label>Map Size&ThinSpace;:</label><NumberInput :value="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.001" @change="onSizeChange" /><span>㎞</span></li>
+            <li>
+              <label>Map Size&ThinSpace;:</label>
+              <button class="reset-size" @click="resetSize"><font-awesome-icon :icon="['fas', 'arrow-rotate-right']" class="fa-fw fa-xs" /></button>
+              <NumberInput :value="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.001" @change="onSizeChange" /><span>㎞</span>
+            </li>
             <li><label>Sea Level&ThinSpace;:</label><NumberInput v-model="mapbox.settings.seaLevel" :max="9999" :min="-9999" :step="0.1" /><span>m</span></li>
             <li><label>Adjust Level&ThinSpace;:</label><ToggleSwitch v-model="mapbox.settings.adjLevel" :name="'adjust-level'" /></li>
             <li>
@@ -410,6 +417,27 @@ onMounted(() => {
     &:hover, &:focus {
       color: aquamarine;
       background-color: rgba(0, 206, 209, .35);
+    }
+  }
+  .reset-size {
+    position: relative;
+    top: 2px;
+    color: $textColor;
+    height: 1.375rem;
+    width: 21px;
+    border-radius: .25rem;
+    background-color: rgba(255, 255, 255, .1);
+    border: solid 1px $borderColor;
+    margin-right: 6px;
+    &:hover {
+      cursor: pointer;
+    }
+    &:hover, &:focus {
+      color: aquamarine;
+      background-color: rgba(0, 206, 209, .35);
+    }
+    svg {
+      margin-bottom: 1px;
     }
   }
   ul li {
