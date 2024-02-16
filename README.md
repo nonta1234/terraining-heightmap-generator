@@ -13,7 +13,7 @@
 ## Features
 
 - Easily get the heightmap for CS1 and CS2.
-- Choose a square area on the map between 17.28&#8202;km and 69.12&#8202;km for CS1 and between 57.344&#8202;km and 229.376&#8202;km for CS2.
+- Choose a square area on the map between 8.64&#8202;km and 69.12&#8202;km for CS1 and between 28.672&#8202;km and 229.376&#8202;km for CS2.
 - Easily rotate the selected square area.
 - Download the heightmap, map images, and OSM data. For CS2, you can get both the heightmap and the world map.
 
@@ -31,7 +31,7 @@
 
 - **Lng & Lat**&#8202;: Adjust your geographic coordinates by modifying these values.
 - **Min & Max Height**&#8202;: Click the refresh button at the bottom to retrieve current area's minimum and maximum elevations. Please note that slight variations in values may occur due to interpolation based on map size.
-- **Map Size**&#8202;: Set the map size.
+- **Map Size**&#8202;: Set the map size. You can change the map size between 1/2 and 4x the default size (CS1&#8202;: 17.28&#8202;km, CS2&#8202;: 57.344&#8202;km) .
 - **Sea Level**&#8202;: Elevations below this level are automatically adjusted to 0&#8202;m.
 - **Adjust Level**&#8202;: The sea level is automatically aligned with the minimum height.
 - **Height Ratio**&#8202;: Define the vertical-to-horizontal distance ratio.
@@ -40,7 +40,7 @@
 - **Elev. Type**&#8202;: Auto-configures Height Ratio and Height Scale.
   * Manual&#8202;: No automatic adjustments.
   * Limit&#8202;: If exceeded, adjusts the maximum elevation to 1,023.98&#8202;m (CS1) or elevation scale value (CS2). 
-  * Maxi.&#8202;: Set the maximum elevation at 1,023.98&#8202;m (CS1) or elevation scale value (CS2).
+  * Maximise&#8202;: Set the maximum elevation at 1,023.98&#8202;m (CS1) or elevation scale value (CS2).
 - **Water Depth**&#8202;: Modify the water depth.
 - **Littoral Length**&#8202;: Adjust the littoral zone distance. Increasing it creates a gradual slope from the coast to the seabed.
 - **Littoral Editor**&#8202;: Configure the shape of the littoral slope.
