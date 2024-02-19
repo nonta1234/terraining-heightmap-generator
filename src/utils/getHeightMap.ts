@@ -25,8 +25,7 @@ const getExtentData = (mapbox: Ref<Mapbox>, areaSize: number) => {
   const { topleft, bottomright } = getExtent(
     mapbox.value.settings.lng,
     mapbox.value.settings.lat,
-    areaSize * Math.SQRT2 / 2,
-    areaSize * Math.SQRT2 / 2,
+    areaSize * Math.SQRT2,
   )
   let referenceLat: number
 

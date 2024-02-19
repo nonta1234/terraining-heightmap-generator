@@ -92,9 +92,9 @@ const getMapImage = async (e: Event) => {
   let url = ''
 
   if (mapbox.value.settings.angle === 0) {
-    const { minLng, minLat, maxLng, maxLat } = getBoundsLngLat(mapbox.value.settings.size)
+    const { minX, minY, maxX, maxY } = getExtent(mapbox.value.settings.lng, mapbox.value.settings.lat, mapbox.value.settings.size)
     url = 'https://api.mapbox.com/styles/v1/mapbox/' +
-          `${value}/static/[${minLng},${minLat},${maxLng},${maxLat}` +
+          `${value}/static/[${minX},${minY},${maxX},${maxY}` +
           `]/1080x1080@2x?access_token=${config.public.token}`
   } else {
     let decimals = 1

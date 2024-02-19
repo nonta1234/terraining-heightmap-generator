@@ -1,24 +1,40 @@
 import mapboxgl, { Map, GeoJSONSource } from 'mapbox-gl'
 import * as turf from '@turf/turf'
 import type { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
+import { extentGrid } from '~/utils/extentGrid'
 import type { Mapbox, Grid, LngLat } from '~/types/types'
 
 
-export const getExtent = (lng: number, lat: number, topleftSize: number, bottomrightSize: number) => {
-  const topleftDist = topleftSize * Math.SQRT2
-  const bottomrightDist = bottomrightSize * Math.SQRT2
-  const point = turf.point([lng, lat])
-  const topleft = turf.destination(point, topleftDist, -45, { units: 'kilometers' }).geometry.coordinates
-  const bottomright = turf.destination(point, bottomrightDist, 135, { units: 'kilometers' }).geometry.coordinates
-  return { topleft, bottomright }
+export const getExtent = (lng: number, lat: number, size: number) => {
+  const buffer = turf.buffer(
+    turf.point([lng, lat]),
+    size / 2,
+    { units: 'kilometers' },
+  )
+
+  const north = buffer.geometry.coordinates[0][8][1]
+  const south = buffer.geometry.coordinates[0][24][1]
+  const east = buffer.geometry.coordinates[0][0][0]
+  const west = buffer.geometry.coordinates[0][16][0]
+
+  return {
+    topleft: [west, north] as turf.helpers.Position,
+    topright: [east, north] as turf.helpers.Position,
+    bottomleft: [west, south] as turf.helpers.Position,
+    bottomright: [east, south] as turf.helpers.Position,
+    minX: west,
+    minY: south,
+    maxX: east,
+    maxY: north,
+  }
 }
 
 
 export const getGridAngle = () => {
   const mapbox = useMapbox()
   const point1 = [mapbox.value.settings.lng, mapbox.value.settings.lat]
-  const point2 = mapbox.value.grid?.gridArea.features[0].geometry.coordinates[0][0]
-  return ((turf.rhumbBearing(point1, point2!) + 585) % 360) - 180
+  const point2 = mapbox.value.grid?.gridArea.features[0].geometry.coordinates[0][0]   // default: -135
+  return (turf.rhumbBearing(point1, point2!) + 315) % 360 - 180
 }
 
 
@@ -88,10 +104,10 @@ const getRotateArea = (features: Feature<Polygon, GeoJsonProperties>[]) => {
 
 const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'topleft' | 'topright' | 'bottomright' | 'bottomleft') => {
   const corner = {
-    topleft: 0,
-    topright: 3,
-    bottomright: 2,
-    bottomleft: 1,
+    topleft: 1,
+    topright: 2,
+    bottomright: 3,
+    bottomleft: 0,
   }
   return [
     feature.geometry.coordinates[0][corner[position]][0],
@@ -102,11 +118,11 @@ const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'to
 
 const getGrid = (lng: number, lat: number, size: number, angle: number) => {
   const mapbox = useMapbox()
-  const extent = getExtent(lng, lat, size * 1.03 / 2, size * 1.03 / 2)
-  const gridArea = turf.squareGrid(
-    [extent.topleft[0], extent.topleft[1], extent.bottomright[0], extent.bottomright[1]],
-    size / mapSpec[mapbox.value.settings.gridInfo].cell,
-    { units: 'kilometers' },
+  const { minX, minY, maxX, maxY } = getExtent(lng, lat, size)
+
+  const gridArea = extentGrid(
+    [minX, minY, maxX, maxY],
+    mapSpec[mapbox.value.settings.gridInfo].cell,
   )
 
   if (angle !== 0) {
@@ -118,20 +134,20 @@ const getGrid = (lng: number, lat: number, size: number, angle: number) => {
   const rotateArea = getRotateArea(gridArea.features)
 
   const sideLines = turf.multiLineString([
-    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]], 'topleft'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[3]], 'topright')],
-    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[3]], 'topright'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[2]], 'bottomright')],
-    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[2]], 'bottomright'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[1]], 'bottomleft')],
-    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[1]], 'bottomleft'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]], 'topleft')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]], 'bottomleft'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[1]], 'topleft')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[1]], 'topleft'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[2]], 'topright')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[2]], 'topright'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[3]], 'bottomright')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[3]], 'bottomright'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]], 'bottomleft')],
   ])
 
   const midpoint = turf.midpoint(
-    getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[0]], 'topleft'),
-    getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[3]], 'topright'),
+    getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[1]], 'topleft'),
+    getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[2]], 'topright'),
   )
 
   const direction =  turf.multiLineString([
-    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[1]], 'bottomleft'), midpoint.geometry.coordinates],
-    [midpoint.geometry.coordinates, getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[2]], 'bottomright')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[0]], 'bottomleft'), midpoint.geometry.coordinates],
+    [midpoint.geometry.coordinates, getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].center[3]], 'bottomright')],
   ])
 
   const grid: Grid = { gridArea, playArea, centerArea, rotateArea, sideLines, direction }
@@ -215,27 +231,26 @@ export const useMapbox = () => {
  *    grid features ~ turf.squareGrid (Figure 1)
  *
  *    +---+---+---+---+---+---+---+---+---+
- *    | 0 | 9 |18 |27 |36 |45 |54 |63 |72 |
+ *    | 8 |17 |26 |   |   |   |   |   |80 |
  *    +---+---+---+---+---+---+---+---+---+
- *    | 1 |   |   |   |   |   |   |   |   |
- *    +---+---0---+---+---+---+---+---+---+
- *    | 2 |   |20 | P | P | P | P |   |   |
- *    +---+---+---+---+---+---+---+---+---+
- *    | 3 |   | P |30 | P | P | P |   |   |
- *    +---+---+---+---0---+---+---+---+---+
- *    | 4 |   | P | P |40 | P | P |   |   |
- *    +---+---+---+---+---2---+---+---+---+
- *    | 5 |   | P | P | P |50 | P |   |   |
- *    +---+---+---+---+---+---+---+---+---+
- *    | 6 |   | P | P | P | P |60 |   |   |
- *    +---+---+---+---+---+---+---2---+---+
  *    | 7 |   |   |   |   |   |   |   |   |
+ *    +---+---1---+---+---+---+---2---+---+
+ *    | 6 |   |24 | P | P | P |60 |   |   |
  *    +---+---+---+---+---+---+---+---+---+
- *    | 8 |   |   |   |   |   |   |   |80 |
+ *    | 5 |   | P | P | P |50 | P |   |   |
+ *    +---+---+---+---1---2---+---+---+---+
+ *    | 4 |   | P | P |40 | P | P |   |   |
+ *    +---+---+---+---0---3---+---+---+---+
+ *    | 3 |   | P |30 | P | P | P |   |   |
+ *    +---+---+---+---+---+---+---+---+---+
+ *    | 2 |   |20 | P | P | P |56 |   |   |
+ *    +---+---0---+---+---+---+---3---+---+
+ *    | 1 |   |   |   |   |   |   |   |   |
+ *    +---+---+---+---+---+---+---+---+---+
+ *    | 0 | 9 |18 |   |   |   |   |   |72 |
  *    +---+---+---+---+---+---+---+---+---+
  *
- *    4
- *    0---3
- *    |   |
  *    1---2
+ *    |   |
+ *    0---3/4
  */

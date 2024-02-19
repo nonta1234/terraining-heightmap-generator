@@ -283,9 +283,8 @@ onMounted(() => {
       const point2 = [e.lngLat.lng, e.lngLat.lat]
       const currentAngle = turf.rhumbBearing(point1, point2)
       const delta = currentAngle - prevAngle
-      mapbox.value.settings.angle = ((delta + mapbox.value.settings.angle + 540) % 360) - 180
+      mapbox.value.settings.angle = mapbox.value.settings.angle + delta
       setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
-
       mapbox.value.settings.angle = getGridAngle()
       prevAngle = currentAngle
     }

@@ -141,8 +141,7 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
   const { topleft, bottomright } = getExtent(
     mapbox.value.settings.lng,
     mapbox.value.settings.lat,
-    waterAreaSize / 2,
-    waterAreaSize / 2,
+    waterAreaSize,
   )
 
   let referenceLat: number

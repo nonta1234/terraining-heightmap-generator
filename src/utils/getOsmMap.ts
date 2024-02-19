@@ -9,12 +9,12 @@ export const getOsmMap = async () => {
   let area: turf.FeatureCollection = turf.flatten(turf.bboxPolygon([0, 0, 0, 0]))
 
   if (mapbox.value.settings.angle === 0) {
-    const { minLng, minLat, maxLng, maxLat } = getBoundsLngLat(mapbox.value.settings.size)
-    url = `https://overpass-api.de/api/map?bbox=${minLng},${minLat},${maxLng},${maxLat}`
+    const { minX, minY, maxX, maxY } = getExtent(mapbox.value.settings.lng, mapbox.value.settings.lat, mapbox.value.settings.size)
+    url = `https://overpass-api.de/api/map?bbox=${minX},${minY},${maxX},${maxY}`
   } else {
-    const { minLng, minLat, maxLng, maxLat } = getBoundsLngLat(mapbox.value.settings.size * Math.SQRT2)
-    url = `https://overpass-api.de/api/map?bbox=${minLng},${minLat},${maxLng},${maxLat}`
-    const { minLng: minX, minLat: minY, maxLng: maxX, maxLat: maxY } = getBoundsLngLat(mapbox.value.settings.size)
+    const { minX: minX1, minY: minY1, maxX: maxX1, maxY: maxY1 } = getExtent(mapbox.value.settings.lng, mapbox.value.settings.lat, mapbox.value.settings.size * Math.SQRT2)
+    url = `https://overpass-api.de/api/map?bbox=${minX1},${minY1},${maxX1},${maxY1}`
+    const { minX, minY, maxX, maxY } = getExtent(mapbox.value.settings.lng, mapbox.value.settings.lat, mapbox.value.settings.size)
     area = turf.flatten(turf.bboxPolygon([minX, minY, maxX, maxY]))
   }
 

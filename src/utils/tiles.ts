@@ -36,14 +36,3 @@ export const pixel2tile = (x: number, pixelsPerTile: number) => {
 export const calculateZoomLevel = (lat: number, mapSize: number, requiredPixels: number, pixelsPerTile: number) => {
   return Math.log2((2 * Math.PI * 6378.137 * requiredPixels * Math.cos(lat * Math.PI / 180)) / (mapSize * pixelsPerTile))
 }
-
-export const getBoundsLngLat = (size: number) => {
-  const mapbox = useMapbox()
-  const bounds = getExtent(mapbox.value.settings.lng, mapbox.value.settings.lat, size / 2, size / 2)
-  const minLng = Math.min(bounds.topleft[0], bounds.bottomright[0])
-  const minLat = Math.min(bounds.topleft[1], bounds.bottomright[1])
-  const maxLng = Math.max(bounds.topleft[0], bounds.bottomright[0])
-  const maxLat = Math.max(bounds.topleft[1], bounds.bottomright[1])
-
-  return { minLng, minLat, maxLng, maxLat }
-}
