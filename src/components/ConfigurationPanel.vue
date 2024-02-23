@@ -10,7 +10,7 @@ onMounted(() => {
 })
 
 const onHeightmapTypeChange = () => {
-  useEvent('map:changeMapSize', mapSpec[mapbox.value.settings.gridInfo].size)
+  mapbox.value.settings.size = mapSpec[mapbox.value.settings.gridInfo].size
   mapbox.value.settings.fixedRatio = true
   mapbox.value.settings.vertScale = 1
 }
