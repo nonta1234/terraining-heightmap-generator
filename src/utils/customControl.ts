@@ -133,8 +133,9 @@ export class ResetGridDirection {
     }
 
     div.addEventListener('click', () => {
-      const mapbox = useMapbox()
       const startAngle = getGridAngle()
+      if (startAngle === 0) { return }
+      const mapbox = useMapbox()
       const startTime = Date.now()
       const duration = 1000
 
