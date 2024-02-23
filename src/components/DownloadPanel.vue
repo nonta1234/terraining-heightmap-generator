@@ -100,9 +100,8 @@ const getMapImage = async (e: Event) => {
     let decimals = 1
     let zoom = 0
     let pixel = 0
-    const startIndex = Math.min((mapSpec[mapbox.value.settings.gridInfo].mapPixels - 1) / 2, 1280)
 
-    for (let i = startIndex; i < 1281; i++) {
+    for (let i = 640; i < 1281; i++) {
       const calcZoom = calculateZoomLevel(
         mapbox.value.settings.lat,
         mapbox.value.settings.size,
