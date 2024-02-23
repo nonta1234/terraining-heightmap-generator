@@ -114,11 +114,7 @@ useListen('map:changeLngLat', () => {
   maxHeight.value = '-'
 })
 
-useListen('map:changeMapSize', (value) => {
-  const tmpRatio = ratio.value
-  mapbox.value.settings.size = value
-  if (mapbox.value.settings.fixedRatio) { ratio.value = tmpRatio }
-  setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], true)
+useListen('map:changeMapSize', () => {
   minHeight.value = '-'
   maxHeight.value = '-'
 })
@@ -126,10 +122,6 @@ useListen('map:changeMapSize', (value) => {
 useListen('debug:operate', () => {
   // console.log('debug:operate')
 })
-
-const resetSize = () => {
-  onSizeChange(mapSpec[mapbox.value.settings.gridInfo].size)
-}
 
 const refresh = async () => {
   rotate.value = true
@@ -167,8 +159,20 @@ const onLatChange = (value: number) => {
   setGrid(mapbox, [mapbox.value.settings.lng, value], true)
 }
 
+const changeMapSize = (size: number) => {
+  const tmpRatio = ratio.value
+  mapbox.value.settings.size = size
+  if (mapbox.value.settings.fixedRatio) { ratio.value = tmpRatio }
+  setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], true)
+  useEvent('map:changeMapSize', size)
+}
+
+const resetSize = () => {
+  changeMapSize(mapSpec[mapbox.value.settings.gridInfo].size)
+}
+
 const onSizeChange = (value: number) => {
-  useEvent('map:changeMapSize', value)
+  changeMapSize(value)
 }
 
 const onTypeChange = (e: Event) => {
