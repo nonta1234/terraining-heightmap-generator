@@ -3,19 +3,32 @@ import * as turf from '@turf/turf'
 import type { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
 import { extentGrid } from '~/utils/extentGrid'
 import type { Mapbox, Grid, LngLat } from '~/types/types'
+import { pixel2lat, pixel2lng } from '~/utils/tiles'
 
 
 export const getExtent = (lng: number, lat: number, size: number) => {
+  const x = lng2pixel(lng, 0)
+  const y = lat2pixel(lat, 0)
+
   const buffer = turf.buffer(
     turf.point([lng, lat]),
     size / 2,
     { units: 'kilometers' },
   )
 
-  const north = buffer.geometry.coordinates[0][8][1]
-  const south = buffer.geometry.coordinates[0][24][1]
-  const east = buffer.geometry.coordinates[0][0][0]
-  const west = buffer.geometry.coordinates[0][16][0]
+  const _north = buffer.geometry.coordinates[0][8][1]
+  const _south = buffer.geometry.coordinates[0][24][1]
+  const _east = buffer.geometry.coordinates[0][0][0]
+  const _west = buffer.geometry.coordinates[0][16][0]
+
+  const width = lng2pixel(_east, 0) - lng2pixel(_west, 0)
+  const height = lat2pixel(_south, 0) - lat2pixel(_north, 0)
+  const halfSide = Math.sqrt(width * width + height * height) / Math.SQRT2 / 2
+
+  const north = pixel2lat(y - halfSide, 0)
+  const south = pixel2lat(y + halfSide, 0)
+  const east = pixel2lng(x + halfSide, 0)
+  const west = pixel2lng(x - halfSide, 0)
 
   return {
     topleft: [west, north] as turf.helpers.Position,
