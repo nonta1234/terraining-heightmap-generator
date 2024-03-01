@@ -251,6 +251,7 @@ const debug = () => {
       }
       svg {
         margin: auto;
+        fill: currentColor;
       }
     }
   }
@@ -292,6 +293,9 @@ const debug = () => {
   :deep(.select-button) {
     .is-active {
       color: aquamarine;
+    }
+    svg {
+      fill: currentColor;
     }
   }
 </style>
