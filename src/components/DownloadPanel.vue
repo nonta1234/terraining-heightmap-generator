@@ -256,7 +256,10 @@ const debug = () => {
     }
   }
   .dl-icon {
-    padding: 4px;
+    svg {
+      width: 28px;
+      height: 30px;
+    }
   }
   .is-mobile {
     bottom: 2.25rem;
@@ -296,6 +299,9 @@ const debug = () => {
     }
     svg {
       fill: currentColor;
+      padding: 1px 2px;
+      width: 32px;
+      height: 32px;
     }
   }
 </style>
