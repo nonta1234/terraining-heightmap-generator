@@ -147,10 +147,14 @@ const getGrid = (lng: number, lat: number, size: number, angle: number) => {
   const rotateArea = getRotateArea(gridArea.features)
 
   const sideLines = turf.multiLineString([
-    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]], 'bottomleft'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[1]], 'topleft')],
-    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[1]], 'topleft'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[2]], 'topright')],
-    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[2]], 'topright'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[3]], 'bottomright')],
-    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[3]], 'bottomright'), getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]], 'bottomleft')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]], 'bottomleft'),
+      getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[1]], 'topleft')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[1]], 'topleft'),
+      getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[2]], 'topright')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[2]], 'topright'),
+      getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[3]], 'bottomright')],
+    [getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[3]], 'bottomright'),
+      getPosition(gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]], 'bottomleft')],
   ])
 
   const midpoint = turf.midpoint(
