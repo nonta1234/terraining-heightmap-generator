@@ -5,12 +5,20 @@ const littEditVisi = ref(false)
 const configPanelVisi = ref(false)
 const waterCanvasRef = ref<HTMLCanvasElement>()
 
-useListen('map:leModal', () => {
-  littEditVisi.value = !littEditVisi.value
+useListen('map:leModal', (value) => {
+  if (value === undefined) {
+    littEditVisi.value = !littEditVisi.value
+  } else {
+    littEditVisi.value = value
+  }
 })
 
-useListen('map:cpModal', () => {
-  configPanelVisi.value = !configPanelVisi.value
+useListen('map:cpModal', (value) => {
+  if (value === undefined) {
+    configPanelVisi.value = !configPanelVisi.value
+  } else {
+    configPanelVisi.value = value
+  }
 })
 
 const { debugMode, updateDebugMode } = useDebug()

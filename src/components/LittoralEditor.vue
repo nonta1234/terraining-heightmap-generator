@@ -10,7 +10,7 @@ const props = withDefaults(defineProps<Props>(), {
 const resetEl = ref<HTMLSelectElement>()
 
 const close = () => {
-  useEvent('map:leModal')
+  useEvent('map:leModal', false)
 }
 
 useListen('modal:pointDragged', () => {

@@ -29,7 +29,7 @@ const toggleDisplayEffect = () => {
 }
 
 const close = () => {
-  useEvent('map:cpModal')
+  useEvent('map:cpModal', false)
   setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
   saveSettings(mapbox.value.settings)
 }
