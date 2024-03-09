@@ -66,14 +66,36 @@ function drawPoints(ctx: CanvasRenderingContext2D) {
   ctx.strokeStyle = '#9BA0A5'
   ctx.lineWidth = 3
 
+  const calcPoints = [
+    { x: displayPadding[3], y: ref(ctx.canvas.height - displayPadding[2]) } as circle,
+    { x: displayPadding[3], y: ref(ctx.canvas.height - displayPadding[2]) } as circle,
+    ...points,
+    { x: ctx.canvas.width - displayPadding[1], y: ref(displayPadding[0]) } as circle,
+    { x: ctx.canvas.width - displayPadding[1], y: ref(displayPadding[0]) } as circle,
+  ]
+
+  const i6 = 1 / 6
+
   ctx.beginPath()
 
-  ctx.moveTo(0 + displayPadding[3], ctx.canvas.height - displayPadding[2])
-  for (let i = 0; i < points.length; i++) {
-    ctx.lineTo(points[i].x, points[i].y.value)
+  ctx.moveTo(calcPoints[1].x, calcPoints[1].y.value)
+
+  for (let i = 2; i < points.length + 3; i++) {
+    const p0 = calcPoints[i - 2]
+    const p1 = calcPoints[i - 1]
+    const p2 = calcPoints[i]
+    const p3 = calcPoints[i + 1]
+
+    ctx.bezierCurveTo(
+      p2.x * i6 + p1.x - p0.x * i6,
+      p2.y.value * i6 + p1.y.value - p0.y.value * i6,
+      p3.x * -i6 + p2.x + p1.x * i6,
+      p3.y.value * -i6 + p2.y.value + p1.y.value * i6,
+      p2.x,
+      p2.y.value,
+    )
+    ctx.stroke()
   }
-  ctx.lineTo(ctx.canvas.width - displayPadding[1], displayPadding[0])
-  ctx.stroke()
 
   ctx.beginPath()
   ctx.fillStyle = 'lightskyblue'
