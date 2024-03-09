@@ -36,7 +36,7 @@
     "mapbox-gl": "^3.1.2",
     "mapbox-vector-tile": "^0.3.0",
     "mitt": "^3.0.0",
-    "nuxt": "^3.8.0",
+    "nuxt": "^3.10.3",
     "osm2geojson-lite": "^0.9.4",
     "overlayscrollbars": "^2.4.4",
     "overlayscrollbars-vue": "^0.5.6",
