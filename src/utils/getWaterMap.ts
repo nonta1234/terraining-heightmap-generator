@@ -26,6 +26,21 @@ const destroyChild = (container: PIXI.Container | null) => {
 }
 
 
+function catmull(t: number, p0: number, p1: number, p2: number, p3: number) {
+  return 0.5 * ((2 * p1) + (-p0 + p2) * t +
+    (2 * p0 - 5 * p1 + 4 * p2 - p3) * (t ** 2) +
+    (-p0 + 3 * p1 - 3 * p2 + p3) * (t ** 3))
+}
+
+function getStartPos(stop: number) {
+  return Math.round(stop) + 0.5
+}
+
+function getEndPos(stop: number) {
+  return Math.round(stop) - 0.5
+}
+
+
 const createSlopeTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: number) => {
   let unit = 16
   if (mapType === 'cs2') {
@@ -41,31 +56,47 @@ const createSlopeTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: number
   slopeCanvas.value.width = 1
   slopeCanvas.value.height = pixels * 2
   const ctx = slopeCanvas.value!.getContext('2d') as CanvasRenderingContext2D
-  ctx.clearRect(0, 0, slopeCanvas.value.width, slopeCanvas.value.height)
 
-  let gradient = ctx.createLinearGradient(0, pixels - size, 0, pixels)
+  ctx.fillStyle = 'rgba(0, 0, 0, 1.0)'
+  ctx.fillRect(0, 0, slopeCanvas.value.width, slopeCanvas.value.height)
 
-  gradient.addColorStop(0.0, 'rgba(0, 0, 0, 1.0)')
-  for (let i = 1; i < 10; i++) {
-    const value = Math.round(mapbox.value.settings.littArray[i - 1] * 255)
-    gradient.addColorStop(i / 10, `rgba(${value}, ${value}, ${value}, 1.0)`)
+  const stopPosition: number[] = []
+  const offset = pixels - size
+  const amount = size / 10
+
+  stopPosition.push(offset - amount)
+  stopPosition.push(offset)
+
+  for (let i = 0; i < mapbox.value.settings.littArray.length; i++) {
+    stopPosition.push((i + 1) * amount + offset)
   }
-  gradient.addColorStop(1.0, 'rgba(255, 255, 255, 1.0)')
 
-  ctx.fillStyle = gradient
-  ctx.fillRect(0, pixels - size, 1, size)
+  stopPosition.push(pixels)
+  stopPosition.push(pixels + amount)
 
-  gradient = ctx.createLinearGradient(0, pixels + size, 0, pixels)
+  const stopValue = [
+    mapbox.value.settings.littArray[0],
+    0,
+    ...mapbox.value.settings.littArray,
+    1,
+    mapbox.value.settings.littArray[mapbox.value.settings.littArray.length - 1],
+  ]
 
-  gradient.addColorStop(0.0, 'rgba(0, 0, 0, 1.0)')
-  for (let i = 1; i < 10; i++) {
-    const value = Math.round(mapbox.value.settings.littArray[i - 1] * 255)
-    gradient.addColorStop(i / 10, `rgba(${value}, ${value}, ${value}, 1.0)`)
+  for (let i = 1; i < stopPosition.length - 2; i++) {
+    const startPos = getStartPos(stopPosition[i])
+    const endPos = getEndPos(stopPosition[i + 1])
+    const range = stopPosition[i + 1] - stopPosition[i]
+
+    for (let j = startPos; j <= endPos; j += 1) {
+      const t = (j - stopPosition[i]) / range
+      const value = catmull(t, stopValue[i - 1], stopValue[i], stopValue[i + 1], stopValue[i + 2]) * 255
+      const colorValue = Math.round(Math.max(Math.min(value, 255), 0))
+
+      ctx.fillStyle = `rgba(${colorValue}, ${colorValue}, ${colorValue}, 1.0)`
+      ctx.fillRect(0, Math.floor(j), 1, 1)
+      ctx.fillRect(0, slopeCanvas.value.height - Math.floor(j) - 1, 1, 1)
+    }
   }
-  gradient.addColorStop(1.0, 'rgba(255, 255, 255, 1.0)')
-
-  ctx.fillStyle = gradient
-  ctx.fillRect(0, pixels, 1, pixels + size)
 
   return PIXI.Texture.from(slopeCanvas.value)
 }
@@ -87,17 +118,47 @@ const createRadialTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: numbe
   radialCanvas.value.height = pixels * 2
   const ctx = radialCanvas.value!.getContext('2d') as CanvasRenderingContext2D
 
-  const gradient = ctx.createRadialGradient(pixels, pixels, 0, pixels, pixels, size)
+  ctx.fillStyle = 'rgba(0, 0, 0, 1.0)'
+  ctx.fillRect(0, 0, radialCanvas.value.width, radialCanvas.value.height)
 
-  gradient.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)')
-  for (let i = 1; i < 10; i++) {
-    const value = Math.round(mapbox.value.settings.littArray[9 - i] * 255)
-    gradient.addColorStop(i / 10, `rgba(${value}, ${value}, ${value}, 1.0)`)
+  const stopPosition: number[] = []
+  const offset = pixels - size
+  const amount = size / 10
+
+  stopPosition.push(offset - amount)
+  stopPosition.push(offset)
+
+  for (let i = 0; i < mapbox.value.settings.littArray.length; i++) {
+    stopPosition.push((i + 1) * amount + offset)
   }
-  gradient.addColorStop(1.0, 'rgba(0, 0, 0, 1.0)')
 
-  ctx.fillStyle = gradient
-  ctx.fillRect(pixels - size, pixels - size, size * 2, size * 2)
+  stopPosition.push(pixels)
+  stopPosition.push(pixels + amount)
+
+  const stopValue = [
+    mapbox.value.settings.littArray[0],
+    0,
+    ...mapbox.value.settings.littArray,
+    1,
+    mapbox.value.settings.littArray[mapbox.value.settings.littArray.length - 1],
+  ]
+
+  for (let i = 1; i < stopPosition.length - 2; i++) {
+    const startPos = getStartPos(stopPosition[i])
+    const endPos = getEndPos(stopPosition[i + 1])
+    const range = stopPosition[i + 1] - stopPosition[i]
+
+    for (let j = startPos; j <= endPos; j += 1) {
+      const t = (j - stopPosition[i]) / range
+      const value = catmull(t, stopValue[i - 1], stopValue[i], stopValue[i + 1], stopValue[i + 2]) * 255
+      const colorValue = Math.round(Math.max(Math.min(value, 255), 0))
+
+      ctx.fillStyle = `rgba(${colorValue}, ${colorValue}, ${colorValue}, 1.0)`
+      ctx.beginPath()
+      ctx.arc(pixels, pixels, pixels - Math.floor(j), 0, 2 * Math.PI)
+      ctx.fill()
+    }
+  }
 
   return PIXI.Texture.from(radialCanvas.value)
 }

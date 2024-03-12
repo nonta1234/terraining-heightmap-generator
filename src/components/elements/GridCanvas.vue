@@ -67,11 +67,11 @@ function drawPoints(ctx: CanvasRenderingContext2D) {
   ctx.lineWidth = 3
 
   const calcPoints = [
-    { x: displayPadding[3], y: ref(ctx.canvas.height - displayPadding[2]) } as circle,
+    { x: displayPadding[3] - hGridSize.value, y: ref(points[0].y) } as circle,
     { x: displayPadding[3], y: ref(ctx.canvas.height - displayPadding[2]) } as circle,
     ...points,
     { x: ctx.canvas.width - displayPadding[1], y: ref(displayPadding[0]) } as circle,
-    { x: ctx.canvas.width - displayPadding[1], y: ref(displayPadding[0]) } as circle,
+    { x: ctx.canvas.width - displayPadding[1] + hGridSize.value, y: ref(points[points.length - 1].y) } as circle,
   ]
 
   const i6 = 1 / 6
