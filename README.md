@@ -89,5 +89,7 @@
 
 ## ToDo
 
-- Improve the littoral slope shape.
-- Make the entire download process a web worker.
+- [x] Improve the littoral slope shape.
+- [ ] Make the entire download process a web worker.
+- [ ] Support for Larger map mod.
+- [ ] Download map information.
