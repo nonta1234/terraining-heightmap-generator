@@ -108,8 +108,6 @@ const getSharpenMap = (map: Float32Array, smoothedMap: Float32Array, k: number) 
 }
 
 
-// self.addEventListener('message', async function(e) {
-
 self.onmessage = async (e) => {
   const {
     scaleFactor,
