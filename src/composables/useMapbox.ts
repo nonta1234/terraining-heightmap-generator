@@ -21,7 +21,7 @@ export const getExtent = (lng: number, lat: number, size: number) => {
   const _east = buffer.geometry.coordinates[0][0][0]
   const _west = buffer.geometry.coordinates[0][16][0]
 
-  const width = lng2pixel(_east, 0) - lng2pixel(_west, 0)
+  const width = lng2pixel(_east, 0) + (_east > _west ? 0 : 256) - lng2pixel(_west, 0)
   const height = lat2pixel(_south, 0) - lat2pixel(_north, 0)
   const halfSide = Math.sqrt(width * width + height * height) / Math.SQRT2 / 2
 
