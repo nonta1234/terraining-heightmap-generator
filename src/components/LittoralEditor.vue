@@ -36,7 +36,6 @@ const reset = (e: Event) => {
       <div class="footer">
         <label class="select">
           <select ref="resetEl" name="reset" @change="reset">
-            <div>aaa</div>
             <option hidden disabled selected class="msg">Reset Slope</option>
             <option value="linear">Linear</option>
             <option value="sine">Sine</option>
