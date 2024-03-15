@@ -223,38 +223,38 @@ onMounted(() => {
       </button>
       <div class="coordinates">
         <ul>
-          <li><label>Lng&ThinSpace;:</label><NumberInput :value="mapbox.settings.lng" :max="180" :min="-180" :step="0.00001" @change="onLngChange" /></li>
-          <li><label>Lat&ThinSpace;:</label><NumberInput :value="mapbox.settings.lat" :max="85.05112" :min="-85.05112" :step="0.00001" @change="onLatChange" /></li>
+          <li><label>Lng&#8202;:</label><NumberInput :value="mapbox.settings.lng" :max="180" :min="-180" :step="0.00001" @change="onLngChange" /></li>
+          <li><label>Lat&#8202;:</label><NumberInput :value="mapbox.settings.lat" :max="85.05112" :min="-85.05112" :step="0.00001" @change="onLatChange" /></li>
         </ul>
       </div>
     </section>
     <OverlayScrollbars :class="['setting', {'m-active': visMobile, 'd-active': visDesktop}]">
       <section ref="contents" class="contents">
         <div class="elevation section">
-          <dl><dt>Min. Height&ThinSpace;:</dt><dd>{{ minHeight }}<span>m</span></dd></dl>
-          <dl><dt>Max. Height&ThinSpace;:</dt><dd>{{ maxHeight }}<span>m</span></dd></dl>
+          <dl><dt>Min. Height&#8202;:</dt><dd>{{ minHeight }}<span>m</span></dd></dl>
+          <dl><dt>Max. Height&#8202;:</dt><dd>{{ maxHeight }}<span>m</span></dd></dl>
         </div>
         <div class="section">
           <ul>
             <li>
-              <label>Map Size&ThinSpace;:</label>
+              <label>Map Size&#8202;:</label>
               <button class="reset-size" @click="resetSize"><font-awesome-icon :icon="['fas', 'arrow-rotate-right']" class="fa-fw fa-xs" /></button>
               <NumberInput :value="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.001" @change="onSizeChange" /><span>㎞</span>
             </li>
-            <li><label>Sea Level&ThinSpace;:</label><NumberInput v-model="mapbox.settings.seaLevel" :max="9999" :min="-9999" :step="0.1" /><span>m</span></li>
-            <li><label>Adjust Level&ThinSpace;:</label><ToggleSwitch v-model="mapbox.settings.adjLevel" :name="'adjust-level'" /></li>
+            <li><label>Sea Level&#8202;:</label><NumberInput v-model="mapbox.settings.seaLevel" :max="9999" :min="-9999" :step="0.1" /><span>m</span></li>
+            <li><label>Adjust Level&#8202;:</label><ToggleSwitch v-model="mapbox.settings.adjLevel" :name="'adjust-level'" /></li>
             <li>
-              <label>Height Ratio&ThinSpace;:</label>
+              <label>Height Ratio&#8202;:</label>
               <NumberInput v-model="ratio" :max="10" :min="0" :step="0.001" :disabled="controlDisabled" />
               <ToggleIcon v-model="mapbox.settings.fixedRatio" :name="'fixedRatio'" :disabled="controlDisabled" :icon="['fas', 'thumbtack']" :icon-class="'fa-sm fa-fw'" />
             </li>
             <li>
-              <label>Height Scale&ThinSpace;:</label>
+              <label>Height Scale&#8202;:</label>
               <NumberInput v-model="mapbox.settings.vertScale" :max="2.5" :min="0" :step="0.001" :disabled="controlDisabled" />
               <ToggleIcon v-model="fixedS" :name="'fixedScale'" :disabled="controlDisabled" :icon="['fas', 'thumbtack']" :icon-class="'fa-sm fa-fw'" />
             </li>
             <li>
-              <label>Elev. Type&ThinSpace;:</label>
+              <label>Elev. Type&#8202;:</label>
               <select name="type" :value="mapbox.settings.type" @change="onTypeChange">
                 <option value="manual">Manual</option>
                 <option value="limit">Limit</option>
@@ -265,23 +265,23 @@ onMounted(() => {
         </div>
         <div class="section">
           <ul>
-            <li><label>Water Depth&ThinSpace;:</label><NumberInput v-model="mapbox.settings.depth" :max="200" :min="0" :step="1" /><span>m</span></li>
-            <li><label>Littoral Length&ThinSpace;:</label><NumberInput v-model="mapbox.settings.littoral" :max="500" :min="0" :step="1" /><span>m</span></li>
-            <li class="editor"><label>Littoral Editor&ThinSpace;:</label><button class="littoral-editor" @click="modal">{{ modalButtonText }}</button><span></span></li>
+            <li><label>Water Depth&#8202;:</label><NumberInput v-model="mapbox.settings.depth" :max="200" :min="0" :step="1" /><span>m</span></li>
+            <li><label>Littoral Zone&#8202;:</label><NumberInput v-model="mapbox.settings.littoral" :max="500" :min="0" :step="1" /><span>m</span></li>
+            <li class="editor"><label>Littoral Editor&#8202;:</label><button class="littoral-editor" @click="modal">{{ modalButtonText }}</button><span></span></li>
           </ul>
         </div>
         <div class="section">
           <ul>
-            <li><label>Smoothing&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smoothing" :max="100" :min="0" :step="1" /><span>%</span></li>
-            <li><label>Threshold&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smthThres" :max="10000" :min="0" :step="10" /><span>m</span></li>
-            <li><label>Fade&ThinSpace;:</label><NumberInput v-model="mapbox.settings.smthFade" :max="1000" :min="0" :step="10" /><span>m</span></li>
+            <li><label>Smoothing&#8202;:</label><NumberInput v-model="mapbox.settings.smoothing" :max="100" :min="0" :step="1" /><span>%</span></li>
+            <li><label>Threshold&#8202;:</label><NumberInput v-model="mapbox.settings.smthThres" :max="10000" :min="0" :step="10" /><span>m</span></li>
+            <li><label>Fade&#8202;:</label><NumberInput v-model="mapbox.settings.smthFade" :max="1000" :min="0" :step="10" /><span>m</span></li>
           </ul>
         </div>
         <div class="section">
           <ul>
-            <li><label>Sharpen&ThinSpace;:</label><NumberInput v-model="mapbox.settings.sharpen" :max="200" :min="0" :step="1" /><span>%</span></li>
-            <li><label>Threshold&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpThres" :max="10000" :min="0" :step="10" /><span>m</span></li>
-            <li><label>Fade&ThinSpace;:</label><NumberInput v-model="mapbox.settings.shrpFade" :max="1000" :min="0" :step="10" /><span>m</span></li>
+            <li><label>Sharpen&#8202;:</label><NumberInput v-model="mapbox.settings.sharpen" :max="200" :min="0" :step="1" /><span>%</span></li>
+            <li><label>Threshold&#8202;:</label><NumberInput v-model="mapbox.settings.shrpThres" :max="10000" :min="0" :step="10" /><span>m</span></li>
+            <li><label>Fade&#8202;:</label><NumberInput v-model="mapbox.settings.shrpFade" :max="1000" :min="0" :step="10" /><span>m</span></li>
           </ul>
         </div>
         <div class="section footer">

@@ -44,7 +44,7 @@ const close = () => {
         <ul>
           <li>
             <label>
-              <span>Heightmap Type&ThinSpace;:</span>
+              <span>Heightmap Type&#8202;:</span>
               <span><select ref="heightmapTypeRef" v-model="mapbox.settings.gridInfo" name="heightmapType" @change="onHeightmapTypeChange">
                 <option value="cs1">CS1</option>
                 <option value="cs2">CS2</option>
@@ -53,7 +53,7 @@ const close = () => {
           </li>
           <li>
             <label>
-              <span>Interpolation&ThinSpace;:</span>
+              <span>Interpolation&#8202;:</span>
               <span><select ref="interpolationRef" v-model="mapbox.settings.interpolation" name="interpolation">
                 <option value="bilinear">Bilinear</option>
                 <option value="bicubic">Bicubic</option>
@@ -62,43 +62,43 @@ const close = () => {
           </li>
           <li>
             <label>
-              <span>Elevation Scale&ThinSpace;:</span>
+              <span>Elevation Scale&#8202;:</span>
               <NumberInput v-model="mapbox.settings.elevationScale" :max="100000" :min="0" :step="0.001" /><span>m</span>
             </label>
           </li>
           <li>
             <label>
-              <span>Stream Depth&ThinSpace;:</span>
+              <span>Stream Depth&#8202;:</span>
               <NumberInput v-model="mapbox.settings.streamDepth" :max="100" :min="0" :step="1" /><span>m</span>
             </label>
           </li>
           <li>
             <label>
-              <span>Smooth Count&ThinSpace;:</span>
+              <span>Smooth Count&#8202;:</span>
               <NumberInput v-model="mapbox.settings.smoothCount" :max="20" :min="1" :step="1" />
             </label>
           </li>
           <li>
             <label>
-              <span>Noise Value&ThinSpace;:</span><span class="prefix">&plusmn;</span>
+              <span>Noise Value&#8202;:</span><span class="prefix">&plusmn;</span>
               <NumberInput v-model="mapbox.settings.noise" :max="100" :min="0" :step="1" /><span>m</span>
             </label>
           </li>
           <li>
             <label>
-              <span>Noise Detail&ThinSpace;:</span>
+              <span>Noise Detail&#8202;:</span>
               <NumberInput v-model="mapbox.settings.noiseGrid" :max="100" :min="1" :step="1" />
             </label>
           </li>
           <li>
             <label class="amount">
-              <span>Reflecting the<br>amount of effect&ThinSpace;:</span>
+              <span>Reflecting the<br>amount of effect&#8202;:</span>
               <ToggleSwitch v-model="mapbox.settings.applyEffectAmount" :name="'display-effect'" @change="toggleDisplayEffect" />
             </label>
           </li>
           <li>
             <label>
-              <span>Access Token&ThinSpace;:</span>
+              <span>Access Token&#8202;:</span>
               <input v-model="mapbox.settings.accessToken" class="access-token" />
             </label>
           </li>
@@ -125,7 +125,7 @@ const close = () => {
     display: block;
   }
   label {
-    width: 17rem;
+    width: 16rem;
     display: flex;
     align-items: center;
     margin-bottom: 1rem;
@@ -148,9 +148,9 @@ const close = () => {
         text-align: center;
       }
       &:first-child {
-        width: 9.75rem;
+        width: 8.75rem;
         &:has(+ .prefix) {
-          width: 8.5rem;
+          width: 7.5rem;
         }
       }
       &:last-child:not(:has(select)) {

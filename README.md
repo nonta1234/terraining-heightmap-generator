@@ -42,7 +42,7 @@
   * Limit&#8202;: If exceeded, adjusts the maximum elevation to 1,023.98&#8202;m (CS1) or elevation scale value (CS2). 
   * Maximise&#8202;: Set the maximum elevation at 1,023.98&#8202;m (CS1) or elevation scale value (CS2).
 - **Water Depth**&#8202;: Modify the water depth.
-- **Littoral Length**&#8202;: Adjust the littoral zone distance. Increasing it creates a gradual slope from the coast to the seabed.
+- **Littoral Zone**&#8202;: Adjust the width of littoral zone. Increasing it creates a gradual slope from the coast to the seafloor.
 - **Littoral Editor**&#8202;: Configure the shape of the littoral slope.
 - **Smoothing & Sharpen**&#8202;: Set ranges for terrain smoothing and sharpening.
 
