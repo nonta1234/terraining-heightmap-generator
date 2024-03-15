@@ -119,4 +119,7 @@ const reset = (e: Event) => {
       pointer-events: none;
     }
   }
+  option {
+    background: rgb(5, 6, 40);
+  }
 </style>

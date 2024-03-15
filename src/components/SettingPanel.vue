@@ -521,10 +521,7 @@ onMounted(() => {
   .editor{
     padding-top: .375rem;
   }
-  // MultiSelect
-
-
-
-
-
+  option {
+    background: rgb(5, 6, 40);
+  }
 </style>

@@ -102,10 +102,19 @@ defineExpose({
     width: 40px;
     height: 40px;
     opacity: 0;
+    padding: 8px;
+    width: 112px;
+    margin-right: -72px;
+    border: none;
   }
   option {
     position: relative;
     top: 100px;
+    background: rgb(5, 6, 40);
+    color: $textColor;
+    &:first-child {
+      color: $textDisabled;
+    }
   }
   .rotate {
     svg {
