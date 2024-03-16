@@ -198,6 +198,9 @@ const close = () => {
       background-color: $inputBgF;
     }
   }
+  option {
+    background: rgb(5, 6, 40);
+  }
   input {
     width: 6rem;
     color: $textColor;
