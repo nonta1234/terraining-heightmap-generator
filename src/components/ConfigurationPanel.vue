@@ -125,7 +125,7 @@ const close = () => {
     display: block;
   }
   label {
-    width: 16rem;
+    width: 16.25rem;
     display: flex;
     align-items: center;
     margin-bottom: 1rem;
@@ -148,9 +148,9 @@ const close = () => {
         text-align: center;
       }
       &:first-child {
-        width: 8.75rem;
+        width: 9rem;
         &:has(+ .prefix) {
-          width: 7.5rem;
+          width: 7.75rem;
         }
       }
       &:last-child:not(:has(select)) {
