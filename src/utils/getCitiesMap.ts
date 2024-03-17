@@ -1,4 +1,4 @@
-import CalcMapWorker from '~/workers/calcCitiesMap.ts?worker'  // eslint-disable-line
+import CalcMapWorker from '~/workers/calcCitiesMap.ts?worker'
 import type { MapType } from '~/types/types'
 
 type MessageData = {

@@ -1,3 +1,5 @@
+import { createNoise2D } from 'simplex-noise'
+
 type MessageData = {
   scaleFactor: number;
   tmpHeightMap: Float32Array;
@@ -19,6 +21,9 @@ type MessageData = {
   noise: number;
   noiseGrid: number;
 }
+
+
+const ctx: Worker = self as any
 
 
 const transposeArrayData = (arr: Float32Array, srcRows: number, srcCols: number) => {
@@ -108,7 +113,7 @@ const getSharpenMap = (map: Float32Array, smoothedMap: Float32Array, k: number) 
 }
 
 
-self.onmessage = async (e) => {
+ctx.onmessage = (e) => {
   const {
     scaleFactor,
     tmpHeightMap,
@@ -174,7 +179,6 @@ self.onmessage = async (e) => {
     }
   } else {
     const size = Math.sqrt(effectedMap.length)
-    const { createNoise2D } = await import('simplex-noise')
     const noise2D = createNoise2D()
 
     for (let y = 0; y < size; y++) {
@@ -210,6 +214,8 @@ self.onmessage = async (e) => {
 
   const resultMap = new Uint8Array(citiesMap)
 
-  // @ts-ignore
-  self.postMessage(resultMap, [resultMap.buffer])
+  ctx.postMessage(resultMap, [resultMap.buffer])
 }
+
+
+export default ctx
