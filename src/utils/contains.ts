@@ -32,7 +32,7 @@ import { getGeom } from '@turf/invariant'
 export default function booleanContains(
   feature1: Feature<any> | Geometry,
   feature2: Feature<any> | Geometry,
-) {
+): boolean {
   const geom1 = getGeom(feature1)
   const geom2 = getGeom(feature2)
   const type1 = geom1.type
@@ -222,7 +222,7 @@ export function isLineInPoly(polygon: Polygon, linestring: LineString) {
 export function isPolyInPoly(
   feature1: Feature<Polygon> | Polygon,
   feature2: Feature<Polygon> | Polygon,
-) {
+): boolean {
   // Handle Nulls
   if (feature1.type === 'Feature' && feature1.geometry === null) {
     return false
@@ -268,7 +268,7 @@ export function doBBoxOverlap(bbox1: BBox, bbox2: BBox) {
  * @param {Position} pair2 point [x,y]
  * @returns {boolean} true/false if coord pairs match
  */
-export function compareCoords(pair1: number[], pair2: number[]) {
+export function compareCoords(pair1: number[], pair2: number[]): boolean {
   return pair1[0] === pair2[0] && pair1[1] === pair2[1]
 }
 export function getMidpoint(pair1: number[], pair2: number[]) {
