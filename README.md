@@ -36,7 +36,7 @@
 - **Adjust Level**&#8202;: The sea level is automatically aligned with the minimum height.
 - **Height Ratio**&#8202;: Define the vertical-to-horizontal distance ratio.
 - **Height Scale**&#8202;: Set the proportion relative to actual terrain height.  
-*‡Height Ratio and Height Scale are interrelated and are linked to map size. You can lock one.*
+*‡ Height Ratio and Height Scale are interrelated and are linked to map size. You can lock one.*
 - **Elev. Type**&#8202;: Auto-configures Height Ratio and Height Scale.
   * Manual&#8202;: No automatic adjustments.
   * Limit&#8202;: If exceeded, adjusts the maximum elevation to 1,023.98&#8202;m (CS1) or elevation scale value (CS2). 
