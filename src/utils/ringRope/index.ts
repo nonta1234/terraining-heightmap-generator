@@ -37,7 +37,7 @@ export class RingRope extends Mesh {
 
   _renderCanvas(renderer: CanvasRenderer): void {
     const geometry: RingRopeGeometry = this.geometry as any
-    if (this.autoUpdate || geometry._width !== this.shader.texture.height + this._scale) {
+    if (this.autoUpdate || geometry._width !== this.shader.texture.height * this._scale) {
       geometry._width = this.shader.texture.height * this._scale
       geometry.update()
     }
