@@ -31,7 +31,7 @@ export class RingRopeGeometry extends MeshGeometry {
 
     super(new Float32Array(points.length * 4),
       new Float32Array(points.length * 4),
-      new Uint16Array((points.length - 1) * 6))
+      new Uint16Array(points.length * 6))
 
     this.points = points
     this._width = width * scale
