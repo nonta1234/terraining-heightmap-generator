@@ -5,3 +5,14 @@ html {
 body {
   font-family: Inter, sans-serif;
 }
+
+#water-canvas {
+  position: absolute;
+  bottom: 36px;
+  right: 80px;
+  width: 530px;
+  height: 530px;
+  z-index: 5;
+  background-color: black;
+  @include shadow-panel;
+}

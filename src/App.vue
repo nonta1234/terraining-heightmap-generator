@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import * as PIXI from 'pixi.js-legacy'
+import { Application, WebGLRenderer, TextureStyle } from 'pixi.js'
 
 const littEditVisi = ref(false)
 const configPanelVisi = ref(false)
@@ -30,18 +30,24 @@ function parseBoolean(str: string): boolean {
   return lowercaseStr === 'true'
 }
 
-onMounted(() => {
-  useState<PIXI.Application>('pixi-app', () => {
-    const app = new PIXI.Application({
-      antialias: true,
-      view: waterCanvasRef.value,
-      preserveDrawingBuffer: true,
-      backgroundColor: 0x000000,
-      forceCanvas: true,
-    })
-    PIXI.settings.ROUND_PIXELS = false
+onMounted(async () => {
+  const app = useState<Application<WebGLRenderer<HTMLCanvasElement>>>('pixi-app', () => {
+    const app = new Application<WebGLRenderer<HTMLCanvasElement>>()
     return app
   })
+  await app.value.init({
+    preference: 'webgl',
+    antialias: true,
+    preserveDrawingBuffer: true,
+    backgroundColor: 0x000000,
+    useBackBuffer: true,
+    // resolution: 1,
+  })
+  const attr = document.createAttribute('id')
+  attr.value = 'water-canvas'
+  app.value.canvas.setAttributeNode(attr)
+  document.body.appendChild(app.value.canvas)
+  TextureStyle.defaultOptions.scaleMode = 'linear'
 })
 </script>
 
@@ -56,7 +62,7 @@ onMounted(() => {
     </MapBox>
     <canvas v-show="debugMode" id="tile-canvas"></canvas>
     <canvas v-show="debugMode" id="litt-canvas"></canvas>
-    <canvas v-show="debugMode" id="water-canvas" ref="waterCanvasRef"></canvas>
+    <!--<canvas v-show="debugMode" id="water-canvas" ref="waterCanvasRef"></canvas>-->
   </div>
 </template>
 

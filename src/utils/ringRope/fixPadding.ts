@@ -1,3 +1,4 @@
+/**
 import { CanvasMeshRenderer } from '@pixi/canvas-mesh'
 import { canvasUtils } from '@pixi/canvas-renderer'
 import { DRAW_MODES, Texture } from '@pixi/core'
@@ -131,3 +132,4 @@ CanvasMeshRenderer.prototype._renderDrawTriangle = function(mesh: Mesh, index0: 
   context.restore()
   this.renderer.canvasContext.invalidateBlendMode()
 }
+*/

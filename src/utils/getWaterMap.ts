@@ -1,11 +1,10 @@
 import { FetchError } from 'ofetch'
-import * as PIXI from 'pixi.js-legacy'
-import '@pixi/math-extras'
+import 'pixi.js/advanced-blend-modes'
+import * as PIXI from 'pixi.js'
 import { VectorTile, Point } from 'mapbox-vector-tile'
 import * as StackBlur from 'stackblur-canvas'
 import { RingRope } from '~/utils/ringRope'
 import type { Mapbox, MapType } from '~/types/types'
-
 
 type T = {
   data: globalThis.Ref<Blob | null>;
@@ -19,7 +18,7 @@ const destroyChild = (container: PIXI.Container | null) => {
       if (child instanceof PIXI.Container) {
         child.destroy({ children: true })
       } else {
-        child.destroy()
+        (child as PIXI.Container).destroy()
       }
     })
   }
@@ -167,9 +166,8 @@ const createRadialTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: numbe
 function createMask(pixelsPerTile: number) {
   const tileMask = new PIXI.Graphics()
   tileMask
-    .beginFill(0xFFFFFF)
-    .drawRect(-3, -3, pixelsPerTile + 6, pixelsPerTile + 6)
-    .endFill()
+    .rect(-3, -3, pixelsPerTile + 6, pixelsPerTile + 6)
+    .fill(0xFFFFFF)
   return tileMask
 }
 
@@ -268,7 +266,7 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
   cornerTexture.update()
 
   // pixi setup
-  const app = useState<PIXI.Application>('pixi-app')
+  const app = useState<PIXI.Application<PIXI.WebGLRenderer<HTMLCanvasElement>>>('pixi-app')
   destroyChild(app.value.stage)
   app.value.stage.removeChildren()
   app.value.renderer.resize(tmpMapPixels, tmpMapPixels)
@@ -308,21 +306,21 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
 
   // get water data
   const bg1 = new PIXI.Graphics()
-    .beginFill(0xFFFFFF)
-    .drawRect(-10, -10, tmpMapPixels + 20, tmpMapPixels + 20)
-    .endFill()
+    .rect(-10, -10, tmpMapPixels + 20, tmpMapPixels + 20)
+    .fill(0xFFFFFF)
   masterContainer.addChild(bg1)
   masterContainer.addChild(waterAreaContainer)
   masterContainer.addChild(waterlittContainer)
   const waterRT = PIXI.RenderTexture.create({
     width: app.value.stage.width,
     height: app.value.stage.height,
+    antialias: true,
     resolution: app.value.renderer.resolution,
   })
-  app.value.renderer.render(app.value.stage, { renderTexture: waterRT })
+  app.value.renderer.render({ container: app.value.stage, target: waterRT })
   const waterCanvas = app.value.renderer.extract.canvas(app.value.stage)
 
-  let stageRect = app.value.stage.getBounds()
+  let stageRect = app.value.stage.getBounds().rectangle
 
   const waterCtx = waterCanvas.getContext('2d')
   const waterImgData = waterCtx!.getImageData(
@@ -335,21 +333,23 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
   destroyChild(masterContainer)
 
   // get water way data
+  const blur = new PIXI.BlurFilter()
+  waterWayMapContainer.filters = [blur]
   const bg2 = new PIXI.Graphics()
-    .beginFill(0xFFFFFF)
-    .drawRect(-10, -10, tmpMapPixels + 20, tmpMapPixels + 20)
-    .endFill()
+    .rect(-10, -10, tmpMapPixels + 20, tmpMapPixels + 20)
+    .fill(0xFFFFFF)
   masterContainer.addChild(bg2)
   masterContainer.addChild(waterWayMapContainer)
   const waterWayRT = PIXI.RenderTexture.create({
     width: app.value.stage.width,
     height: app.value.stage.height,
+    antialias: true,
     resolution: app.value.renderer.resolution,
   })
-  app.value.renderer.render(app.value.stage, { renderTexture: waterWayRT })
+  app.value.renderer.render({ container: app.value.stage, target: waterWayRT })
   const waterWayCanvas = app.value.renderer.extract.canvas(app.value.stage)
 
-  stageRect = app.value.stage.getBounds()
+  stageRect = app.value.stage.getBounds().rectangle
 
   const waterWayCtx = waterWayCanvas.getContext('2d')
   const waterWayImgData = waterWayCtx!.getImageData(
@@ -360,7 +360,7 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
   )
 
   const resultWwImgData = mapType === 'cs2play'
-    ? StackBlur.imageDataRGB(waterWayImgData, 0, 0, resultPixels, resultPixels, 2).data
+    ? waterWayImgData.data // StackBlur.imageDataRGB(waterWayImgData, 0, 0, resultPixels, resultPixels, 2).data
     : waterWayImgData.data
 
   destroyChild(app.value.stage)
@@ -371,7 +371,7 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
   if (useDebug()) {
     const debugWaterImg = new PIXI.Sprite(waterRT)
     const debugWaterWayImg = new PIXI.Sprite(waterWayRT)
-    debugWaterWayImg.blendMode = PIXI.BLEND_MODES.DARKEN
+    debugWaterWayImg.blendMode = 'darken'
     app.value.stage.addChild(debugWaterImg, debugWaterWayImg)
   }
 
@@ -422,35 +422,31 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
             for (let i = 0; i < geo.length; i++) {
               const outerPath = geo[i][0]
               waterAreaGraphics
-                .beginFill(0x000000)
-                .drawPolygon(outerPath)
-                .endFill()
+                .poly(outerPath)
+                .fill(0x000000)
 
               for (let m = 1; m < geo[i].length; m++) {
                 const innerPath = geo[i][m]
                 waterAreaGraphics
-                  .beginFill(0xFFFFFF)
-                  .drawPolygon(innerPath)
-                  .endFill()
+                  .poly(innerPath)
+                  .fill(0xFFFFFF)
               }
             }
             waterMaskWrapper.addChild(waterAreaGraphics)
 
             for (let i = 0; i < geo.length; i++) {
               for (let m = 0; m < geo[i].length; m++) {
-                const path = []
+                const path: PIXI.PointData[] = []
                 for (let k = 0; k < geo[i][m].length; k++) {
-                  path.push(new PIXI.Point(geo[i][m][k].x, geo[i][m][k].y))
-                  const corner = new PIXI.Sprite(cornerTexture)
-                  corner.blendMode = PIXI.BLEND_MODES.LIGHTEN
+                  path.push({ x: geo[i][m][k].x, y: geo[i][m][k].y })
+                  const corner = new PIXI.Sprite({ texture: cornerTexture, blendMode: 'lighten' })
                   corner.scale.set(0.5)
                   corner.anchor.set(0.5)
                   corner.position.set(geo[i][m][k].x, geo[i][m][k].y)
                   littMaskWrapper.addChild(corner)
                 }
-                const littRope = new RingRope(slopeTexture, path)
-                littRope.canvasPadding = 5
-                littRope.blendMode = PIXI.BLEND_MODES.LIGHTEN
+                const littRope = new RingRope({ texture: slopeTexture, points: path, blendMode: 'lighten' })
+                // littRope.canvasPadding = 5
                 littMaskWrapper.addChild(littRope)
               }
             }
@@ -461,7 +457,8 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
             const lineWidth = mapType === 'cs2play' ? 2 / scale : 1 / scale
 
             const waterline = new PIXI.Graphics()
-            waterline.lineStyle(lineWidth, 0x000000)
+            waterline.setStrokeStyle({ width: lineWidth, color: 0x000000 })
+            waterline.beginPath()
 
             for (let m = 0; m < geo.length; m++) {
               waterline.moveTo(geo[m][0].x, geo[m][0].y)
@@ -470,6 +467,7 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
                 waterline.lineTo(geo[m][n].x, geo[m][n].y)
               }
             }
+            waterline.stroke()
             waterWayMaskWrapper.addChild(waterline)
           }
 
