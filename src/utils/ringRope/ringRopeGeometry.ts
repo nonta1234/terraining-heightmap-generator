@@ -27,7 +27,7 @@ export class RingRopeGeometry extends MeshGeometry {
     super({
       positions: new Float32Array(points.length * 4),
       uvs: new Float32Array(points.length * 4),
-      indices: new Uint32Array((points.length - 1) * 6),
+      indices: new Uint32Array((points.length) * 6),
     })
 
     this.points = points
