@@ -467,7 +467,6 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
                 waterline.lineTo(geo[m][n].x, geo[m][n].y)
               }
             }
-            waterline.stroke()
             waterWayMaskWrapper.addChild(waterline)
           }
 

@@ -32,8 +32,7 @@ function parseBoolean(str: string): boolean {
 
 onMounted(async () => {
   const app = useState<Application<WebGLRenderer<HTMLCanvasElement>>>('pixi-app', () => {
-    const app = new Application<WebGLRenderer<HTMLCanvasElement>>()
-    return app
+    return new Application<WebGLRenderer<HTMLCanvasElement>>()
   })
   await app.value.init({
     preference: 'webgl',
@@ -41,7 +40,8 @@ onMounted(async () => {
     preserveDrawingBuffer: true,
     backgroundColor: 0x000000,
     useBackBuffer: true,
-    // resolution: 1,
+    resolution: 1,
+    preferWebGLVersion: 2,
   })
   const attr = document.createAttribute('id')
   attr.value = 'water-canvas'
