@@ -2,6 +2,7 @@ import { visualizer } from 'rollup-plugin-visualizer'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import { splitVendorChunkPlugin } from 'vite'
 import wasmpack from 'vite-plugin-wasm-pack'
+import type { OutputOptions } from 'rollup'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
@@ -29,6 +30,18 @@ export default defineNuxtConfig({
     'mapbox-gl/dist/mapbox-gl.css',
     'overlayscrollbars/styles/overlayscrollbars.css',
   ],
+  hooks: {
+    'vite:extendConfig'(config, { isClient })  {
+      if (isClient) {
+        (config.build!.rollupOptions!.output as OutputOptions).manualChunks = function (_id) {
+          if (_id.includes('mapbox-gl') && !_id.includes('mapbox-gl.css')) {
+            return 'mapbox'
+          }
+          return 'index'
+        }
+      }
+    },
+  },
   vite: {
     build: {
       chunkSizeWarningLimit: 2000,
@@ -38,13 +51,6 @@ export default defineNuxtConfig({
             open: false,
           }),
         ],
-        output: {
-          manualChunks(id) {
-            if (id.includes('mapbox-gl') && !id.includes('mapbox-gl.css')) {
-              return 'mapbox'
-            }
-          },
-        },
       },
     },
     server: {
