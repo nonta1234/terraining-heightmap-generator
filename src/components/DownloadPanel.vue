@@ -92,10 +92,16 @@ const getMapImage = async (e: Event) => {
   let url = ''
 
   if (mapbox.value.settings.angle === 0) {
-    const { minX, minY, maxX, maxY } = getExtent(mapbox.value.settings.lng, mapbox.value.settings.lat, mapbox.value.settings.size)
+    const pixels = mapbox.value.settings.gridInfo === 'cs1' ? '1080' : '1280'
+    const { minX, minY, maxX, maxY } = getExtent(
+      mapbox.value.settings.lng,
+      mapbox.value.settings.lat,
+      mapbox.value.settings.size,
+      mapbox.value.settings.gridInfo === 'cs1' ? 0 : 0.375,
+    )
     url = 'https://api.mapbox.com/styles/v1/mapbox/' +
           `${value}/static/[${minX},${minY},${maxX},${maxY}` +
-          `]/1080x1080@2x?access_token=${config.public.token}`
+          `]/${pixels}x${pixels}@2x?access_token=${config.public.token}`
   } else {
     let decimals = 1
     let zoom = 0
@@ -104,7 +110,7 @@ const getMapImage = async (e: Event) => {
     for (let i = 640; i < 1281; i++) {
       const calcZoom = calculateZoomLevel(
         mapbox.value.settings.lat,
-        mapbox.value.settings.size,
+        mapbox.value.settings.size / (mapbox.value.settings.gridInfo === 'cs1' ? 1 : 4),
         i,
         512,
       )
