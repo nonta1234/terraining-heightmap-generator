@@ -1,4 +1,6 @@
 import { Map } from 'mapbox-gl'
+import type { StyleList } from '~/types/types'
+
 /**
 const defaultHillshade = [
   'interpolate',
@@ -45,7 +47,9 @@ const effectedHillshade = [
 ]
 */
 
-export class HomeButton {
+/** */
+
+export class HomeButton implements mapboxgl.IControl {
   onAdd(map: Map) {
     const div = document.createElement('div')
     div.className = 'mapboxgl-ctrl mapboxgl-ctrl-group'
@@ -65,7 +69,7 @@ export class HomeButton {
 }
 
 
-export class ResetGridDirection {
+export class ResetGridDirection implements mapboxgl.IControl {
   private _pressPosition: Array<number>
   private _pressTimer: string | number | NodeJS.Timeout | undefined
   private _isIos: boolean
@@ -156,11 +160,56 @@ export class ResetGridDirection {
     return div
   }
 
-  onRemove() {}
+  onRemove() {
+    this._pressPosition = []
+    this._pressTimer = undefined
+  }
 }
 
 
-export class EffectedArea {
+export class StyleButton implements mapboxgl.IControl {
+  private _list: StyleList
+
+  constructor(list: StyleList) {
+    this._list = list
+  }
+
+  onAdd(map: Map) {
+    const device = useDevice()
+    const listStr: string[] = []
+    for (const key in this._list) {
+      listStr.push(`<option value="${this._list[key].value}">${this._list[key].text + (device.isFirefox ? '' : '&nbsp;&nbsp;')}</option>\n`)
+    }
+    const chunk = listStr.join('')
+    const div = document.createElement('div')
+    div.className = 'mapboxgl-ctrl mapboxgl-ctrl-group'
+    div.innerHTML = `<button type="button" class="style-button" aria-label="Change map style" aria-disabled="false" title="Change map style">
+      <svg xmlns="http://www.w3.org/2000/svg" height="19px" viewBox="0 0 576 512" fill="#F1F3F4"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M264.5 5.2c14.9-6.9 32.1-6.9 47 0l218.6 101c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 149.8C37.4 145.8 32 137.3 32 128s5.4-17.9 13.9-21.8L264.5 5.2zM476.9 209.6l53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 277.8C37.4 273.8 32 265.3 32 256s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0l152-70.2zm-152 198.2l152-70.2 53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 405.8C37.4 401.8 32 393.3 32 384s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0z"/></svg>
+      </button>
+      <select id="select-style">
+      <option value="" disabled>--Select style--${device.isFirefox ? '' : '&nbsp;&nbsp;'}</option>
+      ${chunk}</select>`
+    div.addEventListener('contextmenu', e => e.preventDefault())
+    div.addEventListener('change', (e) => {
+      if (!(e.target instanceof HTMLSelectElement)) {
+        return
+      }
+      if (e.target.value !== this._list[map.getStyle().name!].value) {
+        map.setStyle(getStyleUrl(e.target.value))
+        const mapbox = useMapbox()
+        saveSettings(mapbox.value.settings)
+      }
+    })
+    return div
+  }
+
+  onRemove() {
+    this._list = {}
+  }
+}
+
+
+export class EffectedArea implements mapboxgl.IControl {
   private _visibility: boolean
   constructor(visibility: boolean) {
     this._visibility = visibility
@@ -203,6 +252,10 @@ export class EffectedArea {
 }
 
 
-function ease(x: number): number {
+function ease(x: number) {
   return 1 - Math.pow(1 - x, 3)
+}
+
+function getStyleUrl(value: string) {
+  return `mapbox://styles/mapbox/${value}?optimize=true`
 }

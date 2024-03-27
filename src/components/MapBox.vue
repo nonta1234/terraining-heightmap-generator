@@ -22,19 +22,15 @@ onMounted(() => {
 
   mapbox.value.map?.on('load', () => {
     mapCanvas = mapbox.value.map!.getCanvasContainer()
-    mapbox.value.map!.setStyle({
-      ...mapbox.value.map!.getStyle(),
-      version: 8,
-    })
+    addController()
+    setMouse()
   })
 
-  mapbox.value.map?.on('style.load', () => {
+  mapbox.value.map?.on('style.load', (e) => {
     addSource()
     addTerrain()
-    addEffectLayer()
-    addController()
-    addGridLayer()
-    setMouse()
+    addEffectLayer(e.style.stylesheet.name)
+    addGridLayer(e.style.stylesheet.name)
     if (debugMode.value) {
       mapbox.value.map!.showTileBoundaries = true
     }
@@ -102,14 +98,17 @@ onMounted(() => {
     mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: mapbox.value.settings.vertScale })
   }
 
-  function addGridLayer() {
+  function addGridLayer(styleName: string) {
+    const gridColor = styleList[styleName!].grid
+    const alpha = styleList[styleName!].alpha
+
     mapbox.value.map?.addLayer({
       id: 'gridArea',
       type: 'fill',
       source: 'grid',
       paint: {
-        'fill-color': 'rgba(128, 128, 128, 0.5)',
-        'fill-outline-color': 'black',
+        'fill-color': `rgba(0, 0, 0, ${alpha})`,
+        'fill-outline-color': gridColor,
         'fill-opacity': 0.5,
       },
     })
@@ -161,13 +160,15 @@ onMounted(() => {
       source: 'direction',
       paint: {
         'line-width': 0.5,
-        'line-color': 'black',
+        'line-color': gridColor,
         'line-opacity': 0.7,
       },
     })
   }
 
-  function addEffectLayer() {
+  function addEffectLayer(styleName: string) {
+    const layerPosition = styleList[styleName!].before
+
     mapbox.value.map?.addLayer(
       {
         id: 'smoothLayer',
@@ -181,7 +182,7 @@ onMounted(() => {
           'raster-resampling': 'nearest',
         } as any,   // RasterPaint type settings are in beta
       },
-      'waterway-shadow',
+      layerPosition,
     )
 
     mapbox.value.map?.addLayer(
@@ -197,7 +198,7 @@ onMounted(() => {
           'raster-resampling': 'nearest',
         } as any,   // RasterPaint type settings are in beta
       },
-      'waterway-shadow',
+      layerPosition,
     )
 
     mapbox.value.map?.addLayer(
@@ -206,7 +207,7 @@ onMounted(() => {
         source: 'hillshade-dem',
         type: 'hillshade',
       },
-      'waterway-shadow',
+      layerPosition,
     )
 
     if (!mapbox.value.settings.displayEffectArea) {
@@ -238,6 +239,12 @@ onMounted(() => {
     )
   }
 
+  const addStyleButton = () => {
+    mapbox.value.map?.addControl(
+      new StyleButton(styleList), isMobile ? 'top-right' : 'bottom-right',
+    )
+  }
+
   const addEffectArea = () => {
     mapbox.value.map?.addControl(
       new EffectedArea(mapbox.value.settings.displayEffectArea), isMobile ? 'top-right' : 'bottom-right',
@@ -249,9 +256,11 @@ onMounted(() => {
       addHomeButton()
       addNavigationControl()
       addResetGridDirection()
+      addStyleButton()
       addEffectArea()
     } else {
       addEffectArea()
+      addStyleButton()
       addResetGridDirection()
       addNavigationControl()
       addHomeButton()
@@ -494,6 +503,28 @@ onMounted(() => {
       &:hover {
         color: aquamarine;
         border: solid 1px aquamarine;
+      }
+    }
+    .style-button + select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 41px;
+      width: 41px;
+      opacity: 0;
+      padding: 8px;
+      border: none;
+      outline: none;
+      option {
+        background: $optionTagColor;
+        color: $textColor;
+        font-size: 1rem;
+        &:first-child {
+          color: $textDisabled;
+        }
       }
     }
   }

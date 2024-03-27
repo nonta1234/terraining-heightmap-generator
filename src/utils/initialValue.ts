@@ -1,23 +1,22 @@
-import type { GridInfo, LittoralArray } from '~/types/types'
+import type { GridInfo, LittoralArray, StyleList } from '~/types/types'
 
 export const mapStyle = {
   streets:    'mapbox://styles/mapbox/streets-v12?optimize=true',
   outdoors:   'mapbox://styles/mapbox/outdoors-v12?optimize=true',
-  satellite:  'mapbox://styles/mapbox/satellite-v9',
-  satStreets: 'mapbox://styles/mapbox/satellite-streets-v12',
   light:      'mapbox://styles/mapbox/light-v11?optimize=true',
   dark:       'mapbox://styles/mapbox/dark-v11?optimize=true',
-  standard:   'mapbox://styles/mapbox/standard-beta',
+  satellite:  'mapbox://styles/mapbox/satellite-v9?optimize=true',
+  satStreets: 'mapbox://styles/mapbox/satellite-streets-v12?optimize=true',
 }
 
-export const styleList = [
-  { text: 'Streets', value: 'streets-v12' },
-  { text: 'Outdoors', value: 'outdoors-v12' },
-  { text: 'Satellite', value: 'satellite-v9' },
-  { text: 'Sat. Streets', value: 'satellite-streets-v12' },
-  { text: 'Light', value: 'light-v11' },
-  { text: 'Dark', value: 'dark-v11' },
-]
+export const styleList: StyleList = {
+  'Mapbox Streets': { text: 'Streets', value: 'streets-v12', before: 'pitch-outline', grid: 'black', alpha: '0.2' },
+  'Mapbox Outdoors': { text: 'Outdoors', value: 'outdoors-v12', before: 'pitch-outline', grid: 'black', alpha: '0.2' },
+  'Mapbox Light': { text: 'Light', value: 'light-v11', before: 'waterway', grid: 'black', alpha: '0.2' },
+  'Mapbox Dark': { text: 'Dark', value: 'dark-v11', before: 'waterway', grid: 'gray', alpha: '0.2' },
+  'Mapbox Satellite': { text: 'Satellite', value: 'satellite-v9', before: '', grid: 'white', alpha: '0.4' },
+  'Mapbox Satellite Streets': { text: 'Sat. Streets', value: 'satellite-streets-v12', before: '', grid: 'white', alpha: '0.4' },
+}
 
 export const mapSpec: GridInfo = {
   cs1: {
