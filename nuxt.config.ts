@@ -49,7 +49,7 @@ export default defineNuxtConfig({
         plugins: [
           visualizer({
             open: false,
-          }),
+          }) as any,
         ],
       },
     },

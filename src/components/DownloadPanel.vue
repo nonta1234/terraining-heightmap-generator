@@ -85,11 +85,41 @@ const getPngHeightMap = async () => {
   }
 }
 
+// Splits lat/long square by 6x6 tiles.
+const getTiles = (minX: number, minY: number, maxX: number, maxY: number) => {
+  // Define the number of tiles per side
+  const tilesPerSide = 6
+
+  // Calculate the size of each tile
+  const tileWidth = (maxX - minX) / tilesPerSide
+  const tileHeight = (maxY - minY) / tilesPerSide
+
+  // Create an array to hold the tiles
+  let tiles = []
+
+  // Generate the tiles
+  for (let y = tilesPerSide; y > 0; y--) {
+    for (let x = 0; x < tilesPerSide; x++) {
+      let tileMinX = minX + x * tileWidth
+      let tileMinY = minY + y * tileHeight
+      let tileMaxX = tileMinX + tileWidth
+      let tileMaxY = tileMinY + tileHeight
+
+      tiles.push({
+        minX: tileMinX,
+        minY: tileMinY,
+        maxX: tileMaxX,
+        maxY: tileMaxY,
+      })
+    }
+  }
+  return tiles
+}
 
 const getMapImage = async (e: Event) => {
   imgButton.value?.startIconRotation()
   const value = (e.target as HTMLSelectElement).value
-  let url = ''
+  let urls = []
 
   if (mapbox.value.settings.angle === 0) {
     const pixels = mapbox.value.settings.gridInfo === 'cs1' ? '1080' : '1280'
@@ -99,9 +129,14 @@ const getMapImage = async (e: Event) => {
       mapbox.value.settings.size,
       mapbox.value.settings.gridInfo === 'cs1' ? 0 : 0.375,
     )
-    url = 'https://api.mapbox.com/styles/v1/mapbox/' +
-          `${value}/static/[${minX},${minY},${maxX},${maxY}` +
+
+    for (const tile of getTiles(minX, minY, maxX, maxY)) {
+      urls.push(
+        'https://api.mapbox.com/styles/v1/mapbox/' +
+          `${value}/static/[${tile.minX},${tile.minY},${tile.maxX},${tile.maxY}` +
           `]/${pixels}x${pixels}@2x?access_token=${config.public.token}`
+      )
+    }
   } else {
     let decimals = 1
     let zoom = 0
@@ -125,26 +160,29 @@ const getMapImage = async (e: Event) => {
     const roundedZoom = Math.round(zoom * 100) / 100
     const bearing = (mapbox.value.settings.angle > 0) ? mapbox.value.settings.angle : mapbox.value.settings.angle + 360
 
-    url = 'https://api.mapbox.com/styles/v1/mapbox/' +
-          `${value}/static/` +
-          `${mapbox.value.settings.lng},${mapbox.value.settings.lat},${roundedZoom},${bearing}` +
-          `/${pixel}x${pixel}@2x?access_token=${config.public.token}`
+    urls.push(
+      'https://api.mapbox.com/styles/v1/mapbox/' +
+        `${value}/static/` +
+        `${mapbox.value.settings.lng},${mapbox.value.settings.lat},${roundedZoom},${bearing}` +
+        `/${pixel}x${pixel}@2x?access_token=${config.public.token}`
+    )
   }
 
-  try {
-    const res = await fetch(url)
-    if (res.ok) {
-      const png = await res.blob()
-      download(`map-image_${value}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png)
-      saveSettings(mapbox.value.settings)
-    } else {
-      throw new Error(`download map image error: ${res.status}`)
+  for (const [index, url] of urls.entries()) {
+    try {
+      const res = await fetch(url)
+      if (res.ok) {
+        const png = await res.blob()
+        download(`map-image_${value}_${index + 1}.png`, png)
+        saveSettings(mapbox.value.settings)
+      } else {
+        throw new Error(`download map image error: ${res.status}`)
+      }
+    } catch (e: any) {
+      console.log(e.message)
     }
-  } catch (e: any) {
-    console.log(e.message)
-  } finally {
-    imgButton.value?.stopIconRotation()
   }
+  imgButton.value?.stopIconRotation()
 }
 
 
