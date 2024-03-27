@@ -9,6 +9,11 @@ const props = withDefaults(defineProps<Props>(), {
 })
 const device = useDevice()
 const buttonEl = ref<HTMLInputElement>()
+const selectEl = ref<HTMLSelectElement>()
+
+const resetSelect = () => {
+  selectEl.value!.selectedIndex = -1
+}
 
 const startIconRotation = () => {
   buttonEl.value?.classList.add('rotate')
@@ -30,7 +35,11 @@ defineExpose({
     <button ref="buttonEl" tabindex="-1">
       <slot />
     </button>
-    <select>
+    <select
+      ref="selectEl"
+      @focus="resetSelect"
+      @blur="resetSelect"
+    >
       <option value="" disabled>{{ '--Select style--' + (device.isFirefox ? '' : '&nbsp;&nbsp;') }}</option>
       <option v-for="item in props.list" :key="item.value" :value="item.value">{{ item.text + (device.isFirefox ? '' : '&nbsp;&nbsp;') }}</option>
     </select>
