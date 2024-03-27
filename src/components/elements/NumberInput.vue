@@ -66,9 +66,9 @@ const onFocus = () => {
   _value.value = props.value ?? props.modelValue ?? 0
 }
 
-const onInput = (e: Event) => {
+const onInput = () => {
   if (!isComposing) {
-    displayText.value = (e.target as HTMLInputElement).value
+    displayText.value = nInput.value!.value
   }
   nInput.value?.setAttribute('input', '')
   emit('input')
@@ -78,9 +78,9 @@ const onCompositionStart = () => {
   isComposing = true
 }
 
-const onCompositionEnd = async (e: Event) => {
+const onCompositionEnd = async () => {
   await new Promise(resolve => setTimeout(() => {
-    resolve(displayText.value = (e.target as HTMLInputElement).value)
+    resolve(displayText.value = nInput.value!.value)
   }, 0))
   isComposing = false
 }
@@ -105,9 +105,9 @@ const handleChange = (value: number) => {
   emit('change', _value.value)
 }
 
-const onChange = (e: Event) => {
+const onChange = () => {
   if (!isComposing) {
-    handleChange(parseFloat(filter((e.target as HTMLInputElement).value)))
+    handleChange(parseFloat(filter(nInput.value!.value)))
   }
 }
 
