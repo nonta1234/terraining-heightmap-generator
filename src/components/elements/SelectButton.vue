@@ -1,47 +1,21 @@
 <script setup lang="ts">
+import type { StyleList } from '~/types/types'
 interface Props {
-  list: { text: string, value: string }[];
+  list: StyleList;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  list: () => [],
+  list: () => styleList,
 })
-
-const label = ref<HTMLLabelElement>()
-const select = ref<HTMLSelectElement>()
-const isActive = ref(false)
-const isFocus = ref(false)
+const device = useDevice()
+const buttonEl = ref<HTMLInputElement>()
 
 const startIconRotation = () => {
-  label.value?.classList.add('rotate')
+  buttonEl.value?.classList.add('rotate')
 }
 
 const stopIconRotation = () => {
-  label.value?.classList.remove('rotate')
-}
-
-const onMouseenter = () => {
-  if (!isFocus.value) {
-    isActive.value = true
-  }
-}
-
-const onMouseleave = () => {
-  if (!isFocus.value) {
-    isActive.value = false
-  }
-}
-
-const onFocus = () => {
-  isFocus.value = true
-  isActive.value = true
-  select.value!.selectedIndex = 0
-}
-
-const onBlur = () => {
-  isFocus.value = false
-  isActive.value = false
-  select.value!.selectedIndex = 0
+  buttonEl.value?.classList.remove('rotate')
 }
 
 defineExpose({
@@ -53,18 +27,12 @@ defineExpose({
 
 <template>
   <div class="select-button">
-    <label ref="label" :class="{ 'is-active': isActive }">
+    <button ref="buttonEl" tabindex="-1">
       <slot />
-    </label>
-    <select
-      ref="select"
-      @mouseenter="onMouseenter"
-      @mouseleave="onMouseleave"
-      @focus="onFocus"
-      @blur="onBlur"
-    >
-      <option value="" disabled>Select style</option>
-      <option v-for="item in props.list" :key="item.value" :value="item.value">{{ item.text }}</option>
+    </button>
+    <select>
+      <option value="" disabled>{{ '--Select style--' + (device.isFirefox ? '' : '&nbsp;&nbsp;') }}</option>
+      <option v-for="item in props.list" :key="item.value" :value="item.value">{{ item.text + (device.isFirefox ? '' : '&nbsp;&nbsp;') }}</option>
     </select>
   </div>
 </template>
@@ -75,22 +43,8 @@ defineExpose({
     position: relative;
     width: 40px;
     height: 40px;
-    flex-shrink: 0;
     background-color: transparent;
     color: $textColor;
-  }
-  label {
-    display: block;
-    width: 40px;
-    height: 40px;
-    color: $textColor;
-    perspective: 100px;
-    text-align: center;
-    flex-shrink: 0;
-    padding: 4px;
-    svg {
-      margin: 4px 0;
-    }
   }
   select {
     -webkit-appearance: none;
@@ -99,25 +53,46 @@ defineExpose({
     position: absolute;
     top: 0;
     left: 0;
-    width: 40px;
     height: 40px;
+    width: 40px;
     opacity: 0;
     padding: 8px;
-    width: 112px;
-    margin-right: -72px;
     border: none;
+    outline: none;
   }
   option {
-    position: relative;
-    top: 100px;
-    background: rgb(5, 6, 40);
+    background: $optionTagColor;
     color: $textColor;
+    font-size: 1rem;
     &:first-child {
       color: $textDisabled;
     }
   }
-  .rotate {
+  button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: none;
+    outline: none;
+    overflow: hidden;
+    display: block;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background-color: transparent;
+    color: $textColor;
+    perspective: 100px;
+    text-align: center;
     svg {
+      margin: 4px 0;
+      fill: currentColor;
+    }
+    &:has(+ select:hover), &:has(+ select:focus) {
+      color: aquamarine;
+    }
+  }
+  .rotate {
+    :deep(svg) {
       animation: rotateY 2s linear infinite;
     }
   }

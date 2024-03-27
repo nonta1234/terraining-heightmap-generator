@@ -199,7 +199,7 @@ const close = () => {
     }
   }
   option {
-    background: rgb(5, 6, 40);
+    background: $optionTagColor;
   }
   input {
     width: 6rem;
@@ -219,9 +219,6 @@ const close = () => {
   input:disabled {
     color: $textDisabled;
     background-color: transparent;
-  }
-  .access-token {
-
   }
   .close {
     height: 2.25rem;

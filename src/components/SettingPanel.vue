@@ -382,6 +382,7 @@ onMounted(() => {
     line-height: 1.71429;
     background-color: $inputBg;
     font-size: .875rem;
+    color-scheme: dark;
     cursor: pointer;
     &:active, &:focus {
       background-color: $inputBgF;
@@ -522,6 +523,7 @@ onMounted(() => {
     padding-top: .375rem;
   }
   option {
-    background: rgb(5, 6, 40);
+    background: $optionTagColor;
+    color: $textColor;
   }
 </style>

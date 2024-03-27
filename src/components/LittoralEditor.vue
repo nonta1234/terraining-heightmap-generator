@@ -120,6 +120,6 @@ const reset = (e: Event) => {
     }
   }
   option {
-    background: rgb(5, 6, 40);
+    background: $optionTagColor;
   }
 </style>
