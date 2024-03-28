@@ -98,12 +98,12 @@ const getTiles = (minX: number, minY: number, maxX: number, maxY: number) => {
   let tiles = []
 
   // Generate the tiles
-  for (let y = tilesPerSide; y > 0; y--) {
+  for (let y = 0; y < tilesPerSide; y++) {
     for (let x = 0; x < tilesPerSide; x++) {
       let tileMinX = minX + x * tileWidth
-      let tileMinY = minY + y * tileHeight
+      let tileMaxY = maxY - y * tileHeight
       let tileMaxX = tileMinX + tileWidth
-      let tileMaxY = tileMinY + tileHeight
+      let tileMinY = tileMaxY - tileHeight
 
       tiles.push({
         minX: tileMinX,
@@ -129,6 +129,7 @@ const getMapImage = async (e: Event) => {
       mapbox.value.settings.size,
       mapbox.value.settings.gridInfo === 'cs1' ? 0 : 0.375,
     )
+    console.log(minX, minY, maxX, maxY)
 
     for (const tile of getTiles(minX, minY, maxX, maxY)) {
       urls.push(
