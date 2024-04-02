@@ -9,7 +9,9 @@ import type { OutputOptions } from 'rollup'
 const token = process.env.NODE_ENV !== 'production' ? process.env.TOKEN : process.env.PUBLIC_TOKEN
 
 export default defineNuxtConfig({
-  devtools: { enabled: false },
+  devtools: {
+    enabled: false,
+  },
   ssr: false,
   typescript: {
     strict: true,
