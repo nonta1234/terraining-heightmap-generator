@@ -4,7 +4,7 @@ import init, { encode_16g } from '~~/png_lib/pkg'  // eslint-disable-line
 
 const mapbox = useMapbox()
 const config = useRuntimeConfig()
-const { isMobile } = useDevice()
+const device = useDevice()
 
 const rawButton = ref<HTMLElement>()
 const pngButton = ref<HTMLElement>()
@@ -27,6 +27,10 @@ const getRawHeightMap = async () => {
       const { citiesMap } = await getCitiesMap('cs1')
       download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, citiesMap)
     } else {
+      if (device.isWindows && device.isFirefox) {
+        alert('Currently, you cannot download with Firefox. Please use Chrome, Edge, or Safari.')
+        return
+      }
       const { citiesMap: worldMap, minH, maxH } = await getCitiesMap('cs2')
       download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, worldMap)
       const { citiesMap } = await getCitiesMap('cs2play', minH, maxH)
@@ -60,6 +64,10 @@ const getPngHeightMap = async () => {
       })
       download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png.data)
     } else {
+      if (device.isWindows && device.isFirefox) {
+        alert('Currently, you cannot download with Firefox. Please use Chrome, Edge, or Safari.')
+        return
+      }
       await init()
       const { citiesMap: worldMap, minH, maxH } = await getCitiesMap('cs2')
       const worldPng = await encode_16g({
@@ -192,7 +200,7 @@ const debug = () => {
 
 
 <template>
-  <div id="download-panel" :class="{'is-mobile': isMobile, 'is-desktop': !isMobile}">
+  <div id="download-panel" :class="{'is-mobile': device.isMobile, 'is-desktop': !device.isMobile}">
     <ul>
       <li v-if="debugMode"><button ref="debugButton" title="debug" class="debug" @click="debug"><DebugIcon /></button></li>
       <li><button ref="rawButton" title="Download RAW height map" class="dl-icon" @click="getRawHeightMap"><RawIcon /></button></li>
