@@ -17,7 +17,7 @@ const destroyChild = (container: PIXI.Container | null) => {
   if (container) {
     container.children.forEach((child) => {
       if (child instanceof PIXI.Container) {
-        child.destroy({ children: true })
+        child.destroy({ children: true, texture: true })
       } else {
         child.destroy()
       }
@@ -51,14 +51,13 @@ const createSlopeTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: number
   const size = Math.max(mapbox.value.settings.littoral / unit / scale * 2, 2)
   const pixels = Math.ceil(size)
 
-  const slopeCanvas = ref<HTMLCanvasElement>()
-  slopeCanvas.value = document.getElementById('litt-canvas') as HTMLCanvasElement
-  slopeCanvas.value.width = 1
-  slopeCanvas.value.height = pixels * 2
-  const ctx = slopeCanvas.value!.getContext('2d') as CanvasRenderingContext2D
-
+  // const slopeCanvas = ref<HTMLCanvasElement>()
+  const slopeCanvas = document.getElementById('litt-canvas') as HTMLCanvasElement
+  slopeCanvas.width = 1
+  slopeCanvas.height = pixels * 2
+  const ctx = slopeCanvas!.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D
   ctx.fillStyle = 'rgba(0, 0, 0, 1.0)'
-  ctx.fillRect(0, 0, slopeCanvas.value.width, slopeCanvas.value.height)
+  ctx.fillRect(0, 0, slopeCanvas.width, slopeCanvas.height)
 
   const stopPosition: number[] = []
   const offset = pixels - size
@@ -91,14 +90,13 @@ const createSlopeTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: number
       const t = (j - stopPosition[i]) / range
       const value = catmull(t, stopValue[i - 1], stopValue[i], stopValue[i + 1], stopValue[i + 2]) * 255
       const colorValue = Math.round(Math.max(Math.min(value, 255), 0))
-
       ctx.fillStyle = `rgba(${colorValue}, ${colorValue}, ${colorValue}, 1.0)`
       ctx.fillRect(0, Math.floor(j), 1, 1)
-      ctx.fillRect(0, slopeCanvas.value.height - Math.floor(j) - 1, 1, 1)
+      ctx.fillRect(0, slopeCanvas.height - Math.floor(j) - 1, 1, 1)
     }
   }
 
-  return PIXI.Texture.from(slopeCanvas.value)
+  return PIXI.Texture.from(slopeCanvas)
 }
 
 
@@ -112,14 +110,14 @@ const createRadialTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: numbe
   const size = Math.max(mapbox.value.settings.littoral / unit / scale * 2, 2)
   const pixels = Math.ceil(size)
 
-  const radialCanvas = ref<HTMLCanvasElement>()
-  radialCanvas.value = document.createElement('canvas') as HTMLCanvasElement
-  radialCanvas.value.width = pixels * 2
-  radialCanvas.value.height = pixels * 2
-  const ctx = radialCanvas.value!.getContext('2d') as CanvasRenderingContext2D
+  // const radialCanvas = ref<HTMLCanvasElement>()
+  const radialCanvas = document.createElement('canvas') as HTMLCanvasElement
+  radialCanvas.width = pixels * 2
+  radialCanvas.height = pixels * 2
+  const ctx = radialCanvas!.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D
 
   ctx.fillStyle = 'rgba(0, 0, 0, 1.0)'
-  ctx.fillRect(0, 0, radialCanvas.value.width, radialCanvas.value.height)
+  ctx.fillRect(0, 0, radialCanvas.width, radialCanvas.height)
 
   const stopPosition: number[] = []
   const offset = pixels - size
@@ -160,7 +158,7 @@ const createRadialTexture = (mapbox: Ref<Mapbox>, mapType: MapType, scale: numbe
     }
   }
 
-  return PIXI.Texture.from(radialCanvas.value)
+  return PIXI.Texture.from(radialCanvas)
 }
 
 
@@ -260,18 +258,16 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
 
   console.log('watermap:', zoom, tileX0, tileY0, tileCount, tmpMapPixels, scale, offsetX, offsetY)
 
-  // slope texture setup
-  const slopeTexture = createSlopeTexture(mapbox, mapType, scale)
-  slopeTexture.update()
-
-  const cornerTexture = createRadialTexture(mapbox, mapType, scale)
-  cornerTexture.update()
-
   // pixi setup
   const app = useState<PIXI.Application>('pixi-app')
   destroyChild(app.value.stage)
   app.value.stage.removeChildren()
+  PIXI.utils.clearTextureCache()
   app.value.renderer.resize(tmpMapPixels, tmpMapPixels)
+
+  // slope texture setup
+  PIXI.Texture.addToCache(createSlopeTexture(mapbox, mapType, scale), 'slope')
+  PIXI.Texture.addToCache(createRadialTexture(mapbox, mapType, scale), 'corner')
 
   // fetch tiles & draw ------------------------------------------------------------------------------
 
@@ -317,7 +313,7 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
   const waterRT = PIXI.RenderTexture.create({
     width: app.value.stage.width,
     height: app.value.stage.height,
-    resolution: app.value.renderer.resolution,
+    resolution: 1,
   })
   app.value.renderer.render(app.value.stage, { renderTexture: waterRT })
   const waterCanvas = app.value.renderer.extract.canvas(app.value.stage)
@@ -344,7 +340,7 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
   const waterWayRT = PIXI.RenderTexture.create({
     width: app.value.stage.width,
     height: app.value.stage.height,
-    resolution: app.value.renderer.resolution,
+    resolution: 1,
   })
   app.value.renderer.render(app.value.stage, { renderTexture: waterWayRT })
   const waterWayCanvas = app.value.renderer.extract.canvas(app.value.stage)
@@ -364,6 +360,7 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
     : waterWayImgData.data
 
   destroyChild(app.value.stage)
+  PIXI.utils.clearTextureCache()
 
   const waterMap = decodeData(waterImgData)
   const waterwayMap = decodeData(resultWwImgData)
@@ -441,14 +438,14 @@ export const getWaterMap = async (mapType: MapType = 'cs1') => {
                 const path = []
                 for (let k = 0; k < geo[i][m].length; k++) {
                   path.push(new PIXI.Point(geo[i][m][k].x, geo[i][m][k].y))
-                  const corner = new PIXI.Sprite(cornerTexture)
+                  const corner = new PIXI.Sprite(PIXI.utils.TextureCache.corner)
                   corner.blendMode = PIXI.BLEND_MODES.LIGHTEN
                   corner.scale.set(0.5)
                   corner.anchor.set(0.5)
                   corner.position.set(geo[i][m][k].x, geo[i][m][k].y)
                   littMaskWrapper.addChild(corner)
                 }
-                const littRope = new RingRope(slopeTexture, path)
+                const littRope = new RingRope(PIXI.utils.TextureCache.slope, path)
                 littRope.canvasPadding = 5
                 littRope.blendMode = PIXI.BLEND_MODES.LIGHTEN
                 littMaskWrapper.addChild(littRope)
