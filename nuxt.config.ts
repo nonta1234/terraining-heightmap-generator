@@ -78,6 +78,9 @@ export default defineNuxtConfig({
       splitVendorChunkPlugin(),
       wasmpack('./png_lib'),
     ],
+    resolve: {
+      alias: [{ find: '#/*', replacement: 'src/*' }],
+    },
     worker: {
       format: 'es',
     },

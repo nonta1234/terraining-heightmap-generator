@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getCitiesMapBak } from '~/utils/getCitiesMapBak'
 import init, { encode_16g } from '~~/png_lib/pkg'  // eslint-disable-line
 
 
@@ -56,7 +57,7 @@ const getPngHeightMap = async () => {
     }
     if (mapbox.value.settings.gridInfo === 'cs1') {
       await init()
-      const { citiesMap } = await getCitiesMap('cs1')
+      const { citiesMap } = await getCitiesMapBak('cs1')
       const png = await encode_16g({
         width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
         height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
@@ -69,7 +70,7 @@ const getPngHeightMap = async () => {
         return
       }
       await init()
-      const { citiesMap: worldMap, minH, maxH } = await getCitiesMap('cs2')
+      const { citiesMap: worldMap, minH, maxH } = await getCitiesMapBak('cs2')
       const worldPng = await encode_16g({
         width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
         height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
@@ -77,7 +78,7 @@ const getPngHeightMap = async () => {
       })
       download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, worldPng.data)
       await init()
-      const { citiesMap } = await getCitiesMap('cs2play', minH, maxH)
+      const { citiesMap } = await getCitiesMapBak('cs2play', minH, maxH)
       const citiesPng = await encode_16g({
         width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
         height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
@@ -193,7 +194,8 @@ function download(filename: string, data: any) {
 }
 
 
-const debug = () => {
+const debug = async () => {
+  const citiesMap = await getCitiesMap('cs2')
   useEvent('debug:operate')
 }
 </script>
@@ -319,3 +321,4 @@ const debug = () => {
     }
   }
 </style>
+~/utils/getCitiesMapBak

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import * as PIXI from 'pixi.js-legacy'
+// import * as PIXI from 'pixi.js-legacy'
 
 const littEditVisi = ref(false)
 const configPanelVisi = ref(false)
@@ -31,10 +31,11 @@ function parseBoolean(str: string): boolean {
 }
 
 onMounted(() => {
+  /**
   useState<PIXI.Application>('pixi-app', () => {
     const app = new PIXI.Application({
       antialias: true,
-      view: waterCanvasRef.value,
+      // view: waterCanvasRef.value?.transferControlToOffscreen(),
       preserveDrawingBuffer: true,
       backgroundColor: 0x000000,
       forceCanvas: true,
@@ -42,6 +43,7 @@ onMounted(() => {
     PIXI.settings.ROUND_PIXELS = false
     return app
   })
+  */
 })
 </script>
 

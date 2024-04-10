@@ -1,3 +1,4 @@
+/**
 type MessageData = {
   scaleFactor: number;
   tmpHeightMap: Float32Array;
@@ -19,7 +20,7 @@ type MessageData = {
   noise: number;
   noiseGrid: number;
 }
-
+*/
 
 const transposeArrayData = (arr: Float32Array, srcRows: number, srcCols: number) => {
   const transposed = []

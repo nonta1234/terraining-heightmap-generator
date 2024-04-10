@@ -281,7 +281,9 @@ const getHeightMapBicubic = async (mapType: MapType) => {
 
 export const getHeightMap = async (mapType: MapType = 'cs1') => {
   try {
+    // console.log(useRuntimeConfig())
     const mapbox = useMapbox()
+    console.log(mapbox.value)
     if (mapbox.value.settings.interpolation === 'bicubic') {
       return await getHeightMapBicubic(mapType)
     } else {

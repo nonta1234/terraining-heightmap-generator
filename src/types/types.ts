@@ -80,3 +80,15 @@ export interface Mapbox {
   settings:   Settings;
   isUpdating: boolean,
 }
+
+export type GenerateMapOption = {
+  mapType:     MapType;
+  settings:    Settings;
+  scaleFactor: number;
+  token: string;
+}
+
+export type MessageData = {
+  data: any;
+  canvases: OffscreenCanvas[];
+}
