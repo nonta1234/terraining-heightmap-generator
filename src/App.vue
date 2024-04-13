@@ -3,7 +3,11 @@
 
 const littEditVisi = ref(false)
 const configPanelVisi = ref(false)
+
+const tileCanvasRef = ref<HTMLCanvasElement>()
 const waterCanvasRef = ref<HTMLCanvasElement>()
+const littCanvasRef = ref<HTMLCanvasElement>()
+const cornerCanvasRef = ref<HTMLCanvasElement>()
 
 useListen('map:leModal', (value) => {
   if (value === undefined) {
@@ -31,19 +35,19 @@ function parseBoolean(str: string): boolean {
 }
 
 onMounted(() => {
-  /**
-  useState<PIXI.Application>('pixi-app', () => {
-    const app = new PIXI.Application({
-      antialias: true,
-      // view: waterCanvasRef.value?.transferControlToOffscreen(),
-      preserveDrawingBuffer: true,
-      backgroundColor: 0x000000,
-      forceCanvas: true,
-    })
-    PIXI.settings.ROUND_PIXELS = false
-    return app
+  const osTileCanvas = tileCanvasRef.value!.transferControlToOffscreen()
+  const osWaterCanvas = waterCanvasRef.value!.transferControlToOffscreen()
+  const osLittCanvas = littCanvasRef.value!.transferControlToOffscreen()
+  const osCornerCanvas = cornerCanvasRef.value!.transferControlToOffscreen()
+
+  useState('canvases', () => {
+    return [
+      osTileCanvas,
+      osWaterCanvas,
+      osLittCanvas,
+      osCornerCanvas,
+    ]
   })
-  */
 })
 </script>
 
@@ -56,9 +60,10 @@ onMounted(() => {
       <LittoralEditor v-show="littEditVisi" :modal="false" />
       <ConfigurationPanel v-show="configPanelVisi" :modal="true" />
     </MapBox>
-    <canvas v-show="debugMode" id="tile-canvas"></canvas>
-    <canvas v-show="debugMode" id="litt-canvas"></canvas>
-    <canvas v-show="debugMode" id="water-canvas" ref="waterCanvasRef"></canvas>
+    <canvas v-show="debugMode" id="tile-canvas" ref="tileCanvasRef" class="debug-canvas"></canvas>
+    <canvas v-show="debugMode" id="water-canvas" ref="waterCanvasRef" class="debug-canvas"></canvas>
+    <canvas v-show="debugMode" id="litt-canvas" ref="littCanvasRef" class="debug-canvas"></canvas>
+    <canvas v-show="debugMode" id="corner-canvas" ref="cornerCanvasRef" class="debug-canvas"></canvas>
   </div>
 </template>
 
@@ -70,31 +75,25 @@ onMounted(() => {
     overflow: hidden;
   }
   #tile-canvas {
-    position: absolute;
-    bottom: 596px;
-    right: 360px;
-    width: 250px;
-    height: 250px;
-    z-index: 5;
-    background-color: black;
-    @include shadow-panel;
-  }
-  #litt-canvas {
-    position: absolute;
-    bottom: 596px;
-    right: 80px;
-    width: 250px;
-    height: 250px;
-    z-index: 5;
-    background-color: black;
-    @include shadow-panel;
+    bottom: 352px;
+    right: 386px;
   }
   #water-canvas {
-    position: absolute;
+    bottom: 352px;
+    right: 70px;
+  }
+  #litt-canvas {
     bottom: 36px;
-    right: 80px;
-    width: 530px;
-    height: 530px;
+    right: 386px;
+  }
+  #corner-canvas {
+    bottom: 36px;
+    right: 70px;
+  }
+  .debug-canvas {
+    position: absolute;
+    width: 300px;
+    height: 300px;
     z-index: 5;
     background-color: black;
     @include shadow-panel;

@@ -13,12 +13,16 @@ ctx.onmessage = async (e) => {
   } = e.data.data as GenerateMapOption
 
   const tileCanvas: OffscreenCanvas = e.data.canvases[0]
-  const littCanvas: OffscreenCanvas = e.data.canvases[1]
-  const radialCanvas: OffscreenCanvas = e.data.canvases[2]
-  const waterCanvas: OffscreenCanvas = e.data.canvases[3]
+  const waterCanvas: OffscreenCanvas = e.data.canvases[1]
+  const littCanvas: OffscreenCanvas = e.data.canvases[2]
+  const cornerCanvas: OffscreenCanvas = e.data.canvases[3]
 
-  console.log(e.data.canvases)
+  waterCanvas.height = 100
+  waterCanvas.width = 100
 
+  console.log(waterCanvas)
+
+  /*
   const app = new PIXI.Application({
     antialias: true,
     view: waterCanvas,
@@ -27,6 +31,7 @@ ctx.onmessage = async (e) => {
     forceCanvas: true,
   })
   console.log(app)
+*/
   /**
   1. getHeightMap
 

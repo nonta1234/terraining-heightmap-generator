@@ -25,26 +25,12 @@ export const getCitiesMap = async (mapType: MapType) => {
       token: mapbox.value.settings.accessToken || config.public.token,
     }
     const generateMapOption = JSON.parse(JSON.stringify(data))
+
     const canvases = []
-
-    const tileCanvas = ref<HTMLCanvasElement>()
-    tileCanvas.value = document.getElementById('tile-canvas') as HTMLCanvasElement
-    const osTileCanvas = tileCanvas.value.transferControlToOffscreen()
-    canvases.push(osTileCanvas)
-
-    const littCanvas = ref<HTMLCanvasElement>()
-    littCanvas.value = document.getElementById('litt-canvas') as HTMLCanvasElement
-    const osLittCanvas = littCanvas.value.transferControlToOffscreen()
-    canvases.push(osLittCanvas)
-
-    const radialCanvas = document.createElement('canvas') as HTMLCanvasElement
-    const osRadialCanvas = radialCanvas.transferControlToOffscreen()
-    canvases.push(osRadialCanvas)
-
-    const waterCanvas = ref<HTMLCanvasElement>()
-    waterCanvas.value = document.getElementById('water-canvas') as HTMLCanvasElement
-    const osWaterCanvas = waterCanvas.value.transferControlToOffscreen()
-    canvases.push(osWaterCanvas)
+    const canvasesData = useState<OffscreenCanvas[]>('canvases').value
+    for (let i = 0; i < 4; i++) {
+      canvases.push(canvasesData[i])
+    }
 
     return await generateMap({ data: generateMapOption, canvases })
   } catch (error) {
