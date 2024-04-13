@@ -19,8 +19,6 @@
     "@nuxtjs/device": "^3.1.0",
     "@nuxtjs/eslint-config-typescript": "^12.0.0",
     "@nuxtjs/google-fonts": "^3.0.2",
-    "@pixi/math-extras": "^7.3.3",
-    "@pixi/webworker": "^7.4.2",
     "@turf/turf": "^6.5.0",
     "@types/mapbox-gl": "^2.7.17",
     "@types/node": "^18.17.3",
@@ -39,7 +37,6 @@
     "osm2geojson-lite": "^0.9.4",
     "overlayscrollbars": "^2.4.4",
     "overlayscrollbars-vue": "^0.5.6",
-    "pixi.js-legacy": "^7.4.2",
     "rollup-plugin-visualizer": "^5.9.2",
     "sass": "^1.62.1",
     "simplex-noise": "^4.0.1",
@@ -50,5 +47,8 @@
     "vue-eslint-parser": "^9.2.1",
     "vue-gtag-next": "^1.14.0",
     "vue-tsc": "^1.8.22"
+  },
+  "dependencies": {
+    "pixi.js": "^8.1.0"
   }
 }
