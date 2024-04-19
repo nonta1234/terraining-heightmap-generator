@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// import * as PIXI from 'pixi.js-legacy'
-
 const littEditVisi = ref(false)
 const configPanelVisi = ref(false)
 

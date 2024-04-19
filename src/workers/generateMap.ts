@@ -1,6 +1,5 @@
-import * as PIXI from '~/types/pixijs-canvas-webworker'
+import { Application, WebGLRenderer } from 'pixi.js'
 import type { GenerateMapOption } from '~/types/types'
-import { useFetchTerrainTiles } from '~/composables/useFetchTiles'
 
 const ctx: Worker = self as any
 
@@ -8,29 +7,23 @@ ctx.onmessage = async (e) => {
   const {
     mapType,
     settings,
-    scaleFactor,
     token,
+    scaleFactor,
   } = e.data.data as GenerateMapOption
 
   const tileCanvas: OffscreenCanvas = e.data.canvases[0]
   const waterCanvas: OffscreenCanvas = e.data.canvases[1]
   const littCanvas: OffscreenCanvas = e.data.canvases[2]
   const cornerCanvas: OffscreenCanvas = e.data.canvases[3]
-
-  waterCanvas.height = 100
-  waterCanvas.width = 100
-
-  console.log(waterCanvas)
-
   /*
-  const app = new PIXI.Application({
+  const app = new Application<WebGLRenderer<HTMLCanvasElement>>()
+  await app.init({
     antialias: true,
-    view: waterCanvas,
+    canvas: waterCanvas,
     preserveDrawingBuffer: true,
-    backgroundColor: 0x000000,
-    forceCanvas: true,
+    background: 0x000000,
+    preference: 'webgl',
   })
-  console.log(app)
 */
   /**
   1. getHeightMap
@@ -40,35 +33,9 @@ ctx.onmessage = async (e) => {
   3. convert
   */
 
+  console.log(app)
 
-
-
-
-
-
-
-
-
-
-
-
-
-  const { data, error } = await useFetchTerrainTiles(0, 10, 0, token)
-  if (error) {
-    console.log(error)
-  }
-
-  /**
-  const heightMapTime0 = window.performance.now()
-  const tmpHeightMap = await getHeightMap(mapType)
-  const heightMapTime = window.performance.now() - heightMapTime0
-  console.log('heightmap:', heightMapTime.toFixed(1) + 'ms')
-
-  const waterMapTime0 = window.performance.now()
-  const { waterMap, waterwayMap } = await getWaterMap(mapType)
-  const waterMapTime = window.performance.now() - waterMapTime0
-  console.log('watermap:', waterMapTime.toFixed(1) + 'ms')
-  */
+  const tmpHeightmap = await getHeightMap(settings, token, tileCanvas, mapType)
 }
 
 export default ctx

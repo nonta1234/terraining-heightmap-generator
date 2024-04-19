@@ -1,53 +1,45 @@
-import { Mesh, MeshMaterial } from '@pixi/mesh'
-import type { IPoint, Renderer, Texture } from '@pixi/core'
-import type { CanvasRenderer } from '@pixi/canvas-renderer'
+import { definedProps, Mesh, RopeGeometry, type PointData, type Texture, type MeshOptions } from 'pixi.js'
 import { RingRopeGeometry } from './ringRopeGeometry'
-import './fixPadding'
+
+
+export interface RingRopeOptions extends Omit<MeshOptions, 'geometry'> {
+  texture: Texture;
+  points: PointData[];
+  textureScale?: number;
+}
+
 
 export class RingRope extends Mesh {
+  public static defaultOptions: Partial<RingRopeOptions> = {
+    textureScale: 0.5,
+  }
+
   public autoUpdate: boolean
 
-  _scale: number
+  private _txScale: number
 
-  constructor(texture: Texture, points: IPoint[], scale = 0.5) {
-    const ropeGeometry = new RingRopeGeometry(texture.height, points, scale)
-    const meshMaterial = new MeshMaterial(texture)
+  constructor(options: RingRopeOptions) {
+    const { texture, points, textureScale, ...rest } = { ...RingRope.defaultOptions, ...options }
+    const ropeGeometry = new RingRopeGeometry(texture.height, points, textureScale!)
 
-    super(ropeGeometry, meshMaterial)
+    super(definedProps({
+      ...rest,
+      texture,
+      geometry: ropeGeometry,
+    }))
 
-    this._scale = scale
-
-    /**
-     * re-calculate vertices by rope points each frame
-     * @member {boolean}
-     */
     this.autoUpdate = true
+    this._txScale = textureScale ?? RingRope.defaultOptions.textureScale!
+
+    this.onRender = this._render
   }
 
-  _render(renderer: Renderer): void {
-    const geometry: RingRopeGeometry = this.geometry as any
+  private _render(): void {
+    const geometry: RopeGeometry = this.geometry as any
 
-    if (this.autoUpdate || geometry._width !== this.shader.texture.height * this._scale) {
-      geometry._width = this.shader.texture.height * this._scale
+    if (this.autoUpdate || geometry._width !== this.texture.height * this._txScale) {
+      geometry._width = this.texture.height * this._txScale
       geometry.update()
     }
-
-    super._render(renderer)
-  }
-
-  _renderCanvas(renderer: CanvasRenderer): void {
-    const geometry: RingRopeGeometry = this.geometry as any
-    if (this.autoUpdate || geometry._width !== this.shader.texture.height * this._scale) {
-      geometry._width = this.shader.texture.height * this._scale
-      geometry.update()
-    }
-
-    if (this.shader.update) {
-      this.shader.update()
-    }
-
-    this.calculateUvs()
-
-    this.material._renderCanvas(renderer, this)
   }
 }

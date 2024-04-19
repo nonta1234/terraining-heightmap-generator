@@ -133,7 +133,7 @@ const refresh = async () => {
       return
     }
     message.value = 'Downloading\nelevation data.'
-    const heightMap = await getHeightMap()
+    const heightMap = await getHeightMap1()
     const { min, max } = getMinMaxHeight(heightMap)
     minHeight.value = min.toFixed(1)
     maxHeight.value = max.toFixed(1)

@@ -1,15 +1,8 @@
-import { MeshGeometry } from '@pixi/mesh'
-import type { IPoint } from '@pixi/core'
-
-type Point = {
-  x: number,
-  y: number,
-}
-
+import { MeshGeometry, Point, type PointData } from 'pixi.js'
 
 export class RingRopeGeometry extends MeshGeometry {
   /** An array of points that determine the rope. */
-  public points: IPoint[]
+  public points: PointData[]
 
   /**
    * The width (i.e., thickness) of the rope.
@@ -24,14 +17,17 @@ export class RingRopeGeometry extends MeshGeometry {
    * @param points - An array of {@link PIXI.Point} objects to construct this rope.
    * @param scale - Texture scale
    */
-  constructor(width = 200, points: IPoint[], scale: number) {
-    if (points[0].equals(points[points.length - 1])) {
+  constructor(width = 200, points: PointData[], scale: number) {
+    const p0 = new Point(points[0].x, points[0].y)
+    if (p0.equals(points[points.length - 1])) {
       points.pop()
     }
 
-    super(new Float32Array(points.length * 4),
-      new Float32Array(points.length * 4),
-      new Uint16Array(points.length * 6))
+    super({
+      positions: new Float32Array(points.length * 4),
+      uvs: new Float32Array(points.length * 4),
+      indices: new Uint32Array((points.length) * 6),
+    })
 
     this.points = points
     this._width = width * scale
@@ -61,8 +57,8 @@ export class RingRopeGeometry extends MeshGeometry {
 
     if (!points) { return }
 
-    const vertexBuffer = this.getBuffer('aVertexPosition')
-    const uvBuffer = this.getBuffer('aTextureCoord')
+    const vertexBuffer = this.getBuffer('aPosition')
+    const uvBuffer = this.getBuffer('aUV')
     const indexBuffer = this.getIndex()
 
     // if too little points, or texture hasn't got UVs set yet just move on.
@@ -74,7 +70,7 @@ export class RingRopeGeometry extends MeshGeometry {
     if (vertexBuffer.data.length / 8 !== points.length) {
       vertexBuffer.data = new Float32Array(points.length * 8)
       uvBuffer.data = new Float32Array(points.length * 8)
-      indexBuffer.data = new Uint16Array(points.length * 6)
+      indexBuffer.data = new Uint32Array(points.length * 6)
     }
 
     const uvs = uvBuffer.data
@@ -129,7 +125,7 @@ export class RingRopeGeometry extends MeshGeometry {
   /** refreshes vertices of Rope mesh */
   public updateVertices(): void {
     //
-    function normalize(vector: Point): Point {
+    function normalize(vector: PointData): PointData {
       const perpLength = Math.sqrt((vector.x * vector.x) + (vector.y * vector.y))
       return {
         x: vector.x / perpLength,

@@ -37,11 +37,17 @@ export const tile2lat = (y: number, zoom: number) => {
   return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)))
 }
 
-// C = 40075016.686m ≈ 2π * 6378.137km
-// rad = lat * π / 180
-// pxLength(km) * mapPixel = C * cos(rad) / 2 ^ zoom / pixelPerTile * mapPixel = mapLength
-// zoom = ln((2π * 6378.137 * mapPixel * cos(rad)) / (mapLength * pixelPerTile)) / ln(2)
-
+/**
+ * C = 40075016.686m ≈ 2π * 6378.137km\
+ * rad = lat * π / 180\
+ * pxLength(km) * mapPixel = C * cos(rad) / 2 ^ zoom / pixelPerTile * mapPixel = mapLength\
+ * zoom = ln((2π * 6378.137 * mapPixel * cos(rad)) / (mapLength * pixelPerTile)) / ln(2)
+ * @param lat
+ * @param mapSize - Map size in km
+ * @param requiredPixels
+ * @param pixelsPerTile
+ * @returns zoom value
+ */
 export const calculateZoomLevel = (lat: number, mapSize: number, requiredPixels: number, pixelsPerTile = 256) => {
   return Math.log2((2 * Math.PI * 6378.137 * requiredPixels * Math.cos(lat * Math.PI / 180)) / (mapSize * pixelsPerTile))
 }

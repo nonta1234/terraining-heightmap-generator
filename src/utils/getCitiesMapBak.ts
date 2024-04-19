@@ -43,7 +43,7 @@ export const getCitiesMapBak = async (mapType: MapType, minHeight?: number, maxH
     const mapbox = useMapbox()
 
     const heightMapTime0 = window.performance.now()
-    const tmpHeightMap = await getHeightMap(mapType)
+    const tmpHeightMap = await getHeightMap1(mapType)
     const heightMapTime = window.performance.now() - heightMapTime0
     console.log('heightmap:', heightMapTime.toFixed(1) + 'ms')
 

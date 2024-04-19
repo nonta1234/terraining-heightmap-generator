@@ -10,7 +10,7 @@ import type {
 import { featureCollection, polygon } from '@turf/helpers'
 
 
-function extentGrid<P extends GeoJsonProperties = GeoJsonProperties>(
+export function extentGrid<P extends GeoJsonProperties = GeoJsonProperties>(
   bbox: BBox,
   cells: number,
   options: {
@@ -75,7 +75,3 @@ function rectangleGrid<P extends GeoJsonProperties = GeoJsonProperties>(
   }
   return featureCollection(results)
 }
-
-
-export { extentGrid }
-export default extentGrid

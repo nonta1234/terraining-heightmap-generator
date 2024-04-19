@@ -1,38 +1,29 @@
-import GenerateMapWorker from '~/workers/generateMap.ts?worker'
-import type { MapType, GenerateMapOption, MessageData } from '~/types/types'
+import type { MapType } from '~/types/types'
 
-const generateMap = (message: MessageData) => {
-  return new Promise<Uint8Array>((resolve) => {
-    const worker = new GenerateMapWorker()
-    worker.postMessage(message, message.canvases)
-    worker.addEventListener('message', (e) => {
-      if (e.data) {
-        resolve(e.data)
-        worker.terminate()
-      }
-    }, { once: true })
-  })
-}
-
+/**
+ * Start Worker, get heightmap and watermap, synthesize, and return heightmap of Uint8Array
+ * @param mapType
+ * @returns Promise\<Uint8Array\>
+ */
 export const getCitiesMap = async (mapType: MapType) => {
   try {
     const mapbox = useMapbox()
     const config = useRuntimeConfig()
-    const data: GenerateMapOption = {
-      mapType,
-      settings: mapbox.value.settings,
-      scaleFactor: mapbox.value.settings.gridInfo === 'cs2' ? (mapbox.value.settings.elevationScale / 65535) : 0.015625,
-      token: mapbox.value.settings.accessToken || config.public.token,
-    }
-    const generateMapOption = JSON.parse(JSON.stringify(data))
+    const token = mapType === 'cs1' ? config.public.token : (mapbox.value.settings.accessToken || config.public.token)
+    // const scaleFactor = mapbox.value.settings.gridInfo === 'cs2' ? (mapbox.value.settings.elevationScale / 65535) : 0.015625
 
-    const canvases = []
+    const waterCanvases = []
     const canvasesData = useState<OffscreenCanvas[]>('canvases').value
-    for (let i = 0; i < 4; i++) {
-      canvases.push(canvasesData[i])
+    for (let i = 1; i < 4; i++) {
+      waterCanvases.push(canvasesData[i])
     }
+    const tileCanvas = canvasesData[0]
 
-    return await generateMap({ data: generateMapOption, canvases })
+    
+    getHeightMap(mapbox.value.settings, token, mapType)
+
+
+    return null
   } catch (error) {
     console.error('An error occurred in getCitiesMap:', error)
     throw error

@@ -2,13 +2,9 @@ import { Map, type LngLatLike } from 'mapbox-gl'
 import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolygon, MultiLineString } from 'geojson'
 
 export type LngLat = Extract<LngLatLike, [number, number]>;
-
 export type HeightCalcType = 'manual' | 'limit' | 'maximize';
-
 export type Interpolation = 'bilinear' | 'bicubic';
-
 export type MapType = 'cs1' | 'cs2' | 'cs2play';
-
 export type StyleType = Record<'text' | 'value' | 'before' | 'grid' | 'alpha', string>;
 
 export type StyleList = {
@@ -17,6 +13,7 @@ export type StyleList = {
 
 export type GridInfoData = {
   mapPixels: number;
+  mapFaces:  number;
   size:      number;
   cell:      number;
   center:    number[];
@@ -82,10 +79,10 @@ export interface Mapbox {
 }
 
 export type GenerateMapOption = {
-  mapType:     MapType;
-  settings:    Settings;
-  scaleFactor: number;
-  token: string;
+  mapType:      MapType;
+  settings:     Settings;
+  token:        string;
+  scaleFactor?: number;
 }
 
 export type MessageData = {

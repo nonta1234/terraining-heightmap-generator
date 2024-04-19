@@ -81,7 +81,6 @@ onMounted(() => {
     })
     mapbox.value.map?.addSource('raster-dem', {
       type: 'raster',
-      // tiles: ['https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/{z}/{x}/{y}.pngraw'],
       tiles: ['https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw'],
       tileSize: 256,
       maxzoom: 15,
@@ -211,7 +210,6 @@ onMounted(() => {
     )
 
     if (!mapbox.value.settings.displayEffectArea) {
-      // mapbox.value.map?.setPaintProperty('hillshade', 'fill-color', defaultHillshade)
       mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
       mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'none')
       mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')

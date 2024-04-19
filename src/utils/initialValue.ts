@@ -21,6 +21,7 @@ export const styleList: StyleList = {
 export const mapSpec: GridInfo = {
   cs1: {
     mapPixels: 1081,
+    mapFaces: 1080,
     size: 17.280,
     cell: 9,
     center: [40, 40, 40, 40],
@@ -35,6 +36,7 @@ export const mapSpec: GridInfo = {
   },
   cs2: {
     mapPixels: 4096,
+    mapFaces: 4096,
     size: 57.344,
     cell: 24,
     center: [275, 276, 300, 299],
@@ -48,7 +50,8 @@ export const mapSpec: GridInfo = {
     side: [0, 23, 575, 552],
   },
   cs2play: {
-    mapPixels: 16384,
+    mapPixels: 4096,
+    mapFaces: 4096,
     size: 57.344,
     cell: 24,
     center: [275, 276, 300, 299],

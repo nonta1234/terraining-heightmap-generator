@@ -279,7 +279,7 @@ const getHeightMapBicubic = async (mapType: MapType) => {
 }
 
 
-export const getHeightMap = async (mapType: MapType = 'cs1') => {
+export const getHeightMap1 = async (mapType: MapType = 'cs1') => {
   try {
     // console.log(useRuntimeConfig())
     const mapbox = useMapbox()

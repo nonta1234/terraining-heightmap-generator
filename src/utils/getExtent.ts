@@ -1,5 +1,13 @@
 import * as turf from '@turf/turf'
 
+/**
+ * Returns the coordinates of each point in any km square.
+ * @param lng - Center longitude
+ * @param lat - Center latitude
+ * @param size - km
+ * @param offset - Inward offset (0 - 0.5)
+ * @returns Coordinate of each point
+ */
 export const getExtent = (lng: number, lat: number, size: number, offset = 0) => {
   const x = lng2pixel(lng, 0)
   const y = lat2pixel(lat, 0)
@@ -18,6 +26,8 @@ export const getExtent = (lng: number, lat: number, size: number, offset = 0) =>
 
   const width = lng2pixel(_east, 0) + (_east > _west ? 0 : 256) - lng2pixel(_west, 0)
   const height = lat2pixel(_south, 0) - lat2pixel(_north, 0)
+
+  // Calculate the length of the side of the square with the least error.
   const side = Math.sqrt(width * width + height * height) / Math.SQRT2
   const halfSide = side / 2
   const offsetPixels = side * _offset
@@ -39,10 +49,18 @@ export const getExtent = (lng: number, lat: number, size: number, offset = 0) =>
   }
 }
 
-
-export const getExtentInWorldPixel = (lng: number, lat: number, size: number, offset = 0) => {
-  const centerX = lng2pixel(lng, 0, 512)
-  const centerY = lat2pixel(lat, 0, 512)
+/**
+ * Returns the world pixel coordinates of each side in any km square.
+ * @param lng - Center longitude
+ * @param lat - Center latitude
+ * @param size - km
+ * @param offset Inward offset (0 - 0.5)
+ * @param pixelsPerTile - default 256, Mapbox Terrain-DEM v1 \@2x is 512
+ * @returns World pixel coordinates
+ */
+export const getExtentInWorldCood = (lng: number, lat: number, size: number, offset = 0, pixelsPerTile = 256) => {
+  const centerX = lng2pixel(lng, 0, pixelsPerTile)
+  const centerY = lat2pixel(lat, 0, pixelsPerTile)
   const _offset = Math.min(Math.max(offset, 0), 0.5)
 
   const buffer = turf.buffer(
@@ -56,8 +74,10 @@ export const getExtentInWorldPixel = (lng: number, lat: number, size: number, of
   const _east = buffer.geometry.coordinates[0][0][0]
   const _west = buffer.geometry.coordinates[0][16][0]
 
-  const width = lng2pixel(_east, 0, 512) + (_east > _west ? 0 : 512) - lng2pixel(_west, 0, 512)
-  const height = lat2pixel(_south, 0, 512) - lat2pixel(_north, 0, 512)
+  const width = lng2pixel(_east, 0, pixelsPerTile) + (_east > _west ? 0 : pixelsPerTile) - lng2pixel(_west, 0, pixelsPerTile)
+  const height = lat2pixel(_south, 0, pixelsPerTile) - lat2pixel(_north, 0, pixelsPerTile)
+
+  // Calculate the length of the side of the square with the least error.
   const side = Math.sqrt(width * width + height * height) / Math.SQRT2
   const halfSide = side / 2
   const offsetPixels = side * _offset
@@ -67,5 +87,5 @@ export const getExtentInWorldPixel = (lng: number, lat: number, size: number, of
   const y0 = centerY - halfSide + offsetPixels
   const y1 = centerY + halfSide - offsetPixels
 
-  return { x0, y0, x1, y1 }
+  return { x0, y0, x1, y1, centerX, centerY }
 }
