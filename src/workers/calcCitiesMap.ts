@@ -107,8 +107,9 @@ const getSharpenMap = (map: Float32Array, smoothedMap: Float32Array, k: number) 
   return sharpenMap
 }
 
+const ctx: Worker = self as any
 
-self.onmessage = async (e) => {
+ctx.onmessage = async (e) => {
   const {
     scaleFactor,
     tmpHeightMap,
@@ -210,6 +211,7 @@ self.onmessage = async (e) => {
 
   const resultMap = new Uint8Array(citiesMap)
 
-  // @ts-ignore
-  self.postMessage(resultMap, [resultMap.buffer])
+  ctx.postMessage(resultMap, [resultMap.buffer])
 }
+
+export default ctx
