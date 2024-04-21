@@ -1,16 +1,17 @@
+import type { Expression } from 'mapbox-gl'
+
 export function getSharpenLayerColor() {
   const mapbox = useMapbox()
-  let rasterColorParams = []
   if (mapbox.value.settings.shrpFade === 0) {
-    rasterColorParams = [
+    return [
       'step',
       ['raster-value'],
       'rgba(54,22,0,0)',
       mapbox.value.settings.shrpThres,
       'rgba(54,22,0,1)',
-    ]
+    ] as Expression
   } else {
-    rasterColorParams = [
+    return [
       'step',
       ['raster-value'],
       'rgba(54,22,0,0)',
@@ -26,24 +27,22 @@ export function getSharpenLayerColor() {
       ],
       mapbox.value.settings.shrpThres + mapbox.value.settings.shrpFade,
       'rgba(54,22,0,1)',
-    ]
+    ] as Expression
   }
-  return rasterColorParams as any   // RasterPaint type settings are in beta
 }
 
 export function getSmoothLayerColor() {
   const mapbox = useMapbox()
-  let rasterColorParams = []
   if (mapbox.value.settings.smthFade === 0) {
-    rasterColorParams = [
+    return [
       'step',
       ['raster-value'],
       'rgba(10,142,65,1)',
       mapbox.value.settings.smthThres,
       'rgba(10,142,65,0.0)',
-    ]
+    ] as Expression
   } else {
-    rasterColorParams = [
+    return  [
       'step',
       ['raster-value'],
       'rgba(10,142,65,1)',
@@ -59,9 +58,8 @@ export function getSmoothLayerColor() {
       ],
       mapbox.value.settings.smthThres,
       'rgba(10,142,65,0)',
-    ]
+    ] as Expression
   }
-  return rasterColorParams as any   // RasterPaint type settings are in beta
 }
 
 export const getRasterOpacity = (value: number) => {
