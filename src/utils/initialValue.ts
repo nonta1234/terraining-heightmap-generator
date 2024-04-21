@@ -73,9 +73,9 @@ export const littoralArray: LittoralArray = {
   quint:  [0.001, 0.005, 0.039, 0.164, 0.500, 0.836, 0.961, 0.995, 0.999],
 }
 
-export const effectRasterColorRange = [-500, 9740]
+export const effectRasterColorRange: [number, number] = [-500, 9740]
 
-export const effectRasterColorMix = [
+export const effectRasterColorMix: [number, number, number, number]  = [
   256 * 256 * 256 * 0.1,
   256 * 256 * 0.1,
   256 * 0.1,
