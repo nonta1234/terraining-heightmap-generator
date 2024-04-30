@@ -196,24 +196,12 @@ function download(filename: string, data: any) {
 
 
 const debug = async () => {
-  const mapType: MapType = 'cs2play'
-  const mapbox = useMapbox()
-  const config = useRuntimeConfig()
-  const token = mapType === 'cs1' ? config.public.token : (mapbox.value.settings.accessToken || config.public.token)
-  // const scaleFactor = mapbox.value.settings.gridInfo === 'cs2' ? (mapbox.value.settings.elevationScale / 65535) : 0.015625
+  // const mapType: MapType = 'cs2play'
+  const { settings } = useMapbox().value
+  const res = await getWaterMap(settings.gridInfo)
+  console.log(res)
 
-  const waterCanvases = []
-  const canvasesData = useState<OffscreenCanvas[]>('canvases').value
-  for (let i = 1; i < 4; i++) {
-    waterCanvases.push(canvasesData[i])
-  }
-  // const tileCanvas = canvasesData[0]
-
-  if (process.client) {
-    await getHeightMap(mapbox.value.settings, token, mapType)
-  }
-
-
+  // await test()
 
   // const citiesMap = await getCitiesMap('cs2play')
   useEvent('debug:operate')

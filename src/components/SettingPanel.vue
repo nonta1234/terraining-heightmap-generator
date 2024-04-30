@@ -26,6 +26,8 @@ const changeVisibillity = () => {
 
 const controlDisabled = ref(false)
 
+let refreshing = false
+
 const rotate = ref(false)
 const message = ref('')
 const minHeight = ref('-')
@@ -124,30 +126,35 @@ useListen('debug:operate', () => {
 })
 
 const refresh = async () => {
-  rotate.value = true
-  try {
-    const mapbox = useMapbox()
-    const config = useRuntimeConfig()
-    if (mapbox.value.settings.gridInfo === 'cs2' && (mapbox.value.settings.accessToken === '' || mapbox.value.settings.accessToken === config.public.token)) {
-      alert('You will need your own Mapbox access token\nto access the elevation data for CS2.')
-      return
+  if (!refreshing) {
+    rotate.value = true
+    refreshing = true
+    try {
+      const mapbox = useMapbox()
+      const config = useRuntimeConfig()
+      if (mapbox.value.settings.gridInfo === 'cs2' && (mapbox.value.settings.accessToken === '' || mapbox.value.settings.accessToken === config.public.token)) {
+        alert('You will need your own Mapbox access token\nto access the elevation data for CS2.')
+        return
+      }
+      const token = mapbox.value.settings.gridInfo === 'cs1' ? config.public.token : (mapbox.value.settings.accessToken || config.public.token)
+      message.value = 'Downloading\nelevation data.'
+      const heightMap = await getHeightMap(mapbox.value.settings, token, mapbox.value.settings.gridInfo)
+      const { min, max } = getMinMaxHeight(heightMap)
+      minHeight.value = min.toFixed(1)
+      maxHeight.value = max.toFixed(1)
+      if (mapbox.value.settings.adjLevel) {
+        mapbox.value.settings.seaLevel = min
+      }
+      adjustElevation(max)
+      saveSettings(mapbox.value.settings)
+    } catch (error) {
+      console.error('An error occurred in getHeightMap:', error)
+      throw error
+    } finally {
+      message.value = ''
+      rotate.value = false
+      refreshing = false
     }
-    message.value = 'Downloading\nelevation data.'
-    const heightMap = await getHeightMap1()
-    const { min, max } = getMinMaxHeight(heightMap)
-    minHeight.value = min.toFixed(1)
-    maxHeight.value = max.toFixed(1)
-    if (mapbox.value.settings.adjLevel) {
-      mapbox.value.settings.seaLevel = min
-    }
-    adjustElevation(max)
-    saveSettings(mapbox.value.settings)
-  } catch (error) {
-    console.error('An error occurred in getHeightMap:', error)
-    throw error
-  } finally {
-    message.value = ''
-    rotate.value = false
   }
 }
 

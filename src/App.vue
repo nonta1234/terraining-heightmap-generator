@@ -37,15 +37,8 @@ onMounted(() => {
   const osWaterCanvas = waterCanvasRef.value!.transferControlToOffscreen()
   const osLittCanvas = littCanvasRef.value!.transferControlToOffscreen()
   const osCornerCanvas = cornerCanvasRef.value!.transferControlToOffscreen()
-
-  useState('canvases', () => {
-    return [
-      osTileCanvas,
-      osWaterCanvas,
-      osLittCanvas,
-      osCornerCanvas,
-    ]
-  })
+  initGetHeightMapWorker(osTileCanvas)
+  initGetWaterMapWorker(osWaterCanvas, osLittCanvas, osCornerCanvas)
 })
 </script>
 

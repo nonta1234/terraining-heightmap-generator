@@ -19,8 +19,8 @@ export const getCitiesMap = async (mapType: MapType) => {
     }
     const tileCanvas = canvasesData[0]
 
-    
-    getHeightMap(mapbox.value.settings, token, mapType)
+
+    await getHeightMap(mapbox.value.settings, token, mapType)
 
 
     return null

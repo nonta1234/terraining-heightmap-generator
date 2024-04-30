@@ -85,7 +85,9 @@ export type GenerateMapOption = {
   scaleFactor?: number;
 }
 
-export type MessageData = {
-  data: any;
-  canvases: OffscreenCanvas[];
+export type Canvases = {
+  tileCanvas:   OffscreenCanvas;
+  waterCanvas:  OffscreenCanvas;
+  littCanvas:   OffscreenCanvas;
+  cornerCanvas: OffscreenCanvas;
 }

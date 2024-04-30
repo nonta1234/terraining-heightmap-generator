@@ -18,13 +18,13 @@ function getEndPos(stop: number) {
 /**
  * Create a texture for the littoral slope.
  * The texture will be created at twice the size.
- * @param mapType - The reference mapType is different from the mapType in settings.
- * @param settings - Mapbox Settings
- * @param scale - Map scale
- * @param canvas - OffscreenCanvas for internal use
+ * @param mapType The reference mapType is different from the mapType in settings.
+ * @param settings Mapbox Settings
+ * @param scale Map scale
+ * @param canvas OffscreenCanvas for internal use
  * @returns PIXI.Texture
  */
-export const createSlopeTexture = (mapType: MapType, settings: Settings, scale: number, canvas: OffscreenCanvas) => {
+export const createSlopeTexture = (mapType: MapType, settings: Settings, scale: number, ctx: OffscreenCanvasRenderingContext2D) => {
   let unit = 16
   if (mapType === 'cs2') {
     unit = 14
@@ -34,11 +34,10 @@ export const createSlopeTexture = (mapType: MapType, settings: Settings, scale: 
   const size = Math.max(settings.littoral / unit / scale * 2, 2)
   const pixels = Math.ceil(size)
 
-  canvas.width = 1
-  canvas.height = pixels * 2
-  const ctx = canvas.getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+  ctx.canvas.width = 1
+  ctx.canvas.height = pixels * 2
   ctx.fillStyle = 'rgba(0, 0, 0, 1.0)'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
   const stopPosition: number[] = []
   const offset = pixels - size
@@ -73,23 +72,23 @@ export const createSlopeTexture = (mapType: MapType, settings: Settings, scale: 
       const colorValue = Math.round(Math.max(Math.min(value, 255), 0))
       ctx.fillStyle = `rgba(${colorValue}, ${colorValue}, ${colorValue}, 1.0)`
       ctx.fillRect(0, Math.floor(j), 1, 1)
-      ctx.fillRect(0, canvas.height - Math.floor(j) - 1, 1, 1)
+      ctx.fillRect(0, ctx.canvas.height - Math.floor(j) - 1, 1, 1)
     }
   }
 
-  return PIXI.Texture.from(canvas)
+  return PIXI.Texture.from(ctx.canvas)
 }
 
 /**
  * Create a texture for the littoral slope in the corner.
  * The texture will be created at twice the size.
- * @param mapType - The reference mapType is different from the mapType in settings.
- * @param settings - Mapbox Settings
- * @param scale - Map scale
- * @param canvas - OffscreenCanvas for internal use
+ * @param mapType The reference mapType is different from the mapType in settings.
+ * @param settings Mapbox Settings
+ * @param scale Map scale
+ * @param canvas OffscreenCanvas for internal use
  * @returns PIXI.Texture
  */
-export const createRadialTexture = (mapType: MapType, settings: Settings, scale: number, canvas: OffscreenCanvas) => {
+export const createRadialTexture = (mapType: MapType, settings: Settings, scale: number, ctx: OffscreenCanvasRenderingContext2D) => {
   let unit = 16
   if (mapType === 'cs2') {
     unit = 14
@@ -99,12 +98,11 @@ export const createRadialTexture = (mapType: MapType, settings: Settings, scale:
   const size = Math.max(settings.littoral / unit / scale * 2, 2)
   const pixels = Math.ceil(size)
 
-  canvas.width = pixels * 2
-  canvas.height = pixels * 2
-  const ctx = canvas.getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+  ctx.canvas.width = pixels * 2
+  ctx.canvas.height = pixels * 2
 
   ctx.fillStyle = 'rgba(0, 0, 0, 1.0)'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
   const stopPosition: number[] = []
   const offset = pixels - size
@@ -145,5 +143,5 @@ export const createRadialTexture = (mapType: MapType, settings: Settings, scale:
     }
   }
 
-  return PIXI.Texture.from(canvas)
+  return PIXI.Texture.from(ctx.canvas)
 }
