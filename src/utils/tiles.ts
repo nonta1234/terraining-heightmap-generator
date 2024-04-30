@@ -12,7 +12,7 @@ export const lng2pixel = (lng: number, zoom: number, pixelsPerTile = 256) => {
 
 export const lat2pixel = (lat: number, zoom: number, pixelsPerTile = 256) => {
   return ((2 ** (zoom + Math.log2(pixelsPerTile / 2))) / Math.PI) *
-    (Math.atanh(Math.sin(Math.PI * 85.05112878 / 180)) - Math.atanh(Math.sin(Math.PI * lat / 180)))
+    (Math.PI - Math.atanh(Math.sin(Math.PI * lat / 180)))
 }
 
 export const pixel2tile = (pixels: number, pixelsPerTile = 256) => {
@@ -25,7 +25,7 @@ export const pixel2lng = (x: number, zoom: number, pixelsPerTile = 256) => {
 
 export const pixel2lat = (y: number, zoom: number, pixelsPerTile = 256) => {
   return (180 / Math.PI) *
-    Math.asin(Math.tanh(Math.atanh(Math.sin(Math.PI / 180 * 85.05112878)) - (Math.PI * y / (2 ** (zoom + Math.log2(pixelsPerTile / 2))))))
+    Math.asin(Math.tanh(Math.PI - (Math.PI * y / (2 ** (zoom + Math.log2(pixelsPerTile / 2))))))
 }
 
 export const tile2lng = (x: number, zoom: number) => {
@@ -43,7 +43,7 @@ export const tile2lat = (y: number, zoom: number) => {
  * pxLength(km) * mapPixel = C * cos(rad) / 2 ^ zoom / pixelPerTile * mapPixel = mapLength\
  * zoom = ln((2π * 6378.137 * mapPixel * cos(rad)) / (mapLength * pixelPerTile)) / ln(2)
  * @param lat
- * @param mapSize - Map size in km
+ * @param mapSize Map size in km
  * @param requiredPixels
  * @param pixelsPerTile
  * @returns zoom value
