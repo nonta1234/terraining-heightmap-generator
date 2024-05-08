@@ -1,4 +1,3 @@
-import * as PIXI from 'pixi.js'
 import type { Settings, MapType } from '~/types/types'
 
 function catmull(t: number, p0: number, p1: number, p2: number, p3: number) {
@@ -17,7 +16,6 @@ function getEndPos(stop: number) {
 
 /**
  * Create a texture for the littoral slope.
- * The texture will be created at twice the size.
  * @param mapType The reference mapType is different from the mapType in settings.
  * @param settings Mapbox Settings
  * @param scale Map scale
@@ -31,12 +29,12 @@ export const createSlopeTexture = (mapType: MapType, settings: Settings, scale: 
   } else if (mapType === 'cs2play') {
     unit = 3.5
   }
-  const size = Math.max(settings.littoral / unit / scale * 2, 2)
+  const size = Math.max(settings.littoral / unit / scale, 1)
   const pixels = Math.ceil(size)
 
   ctx.canvas.width = 1
   ctx.canvas.height = pixels * 2
-  ctx.fillStyle = 'rgba(0, 0, 0, 1.0)'
+  ctx.fillStyle = '#000000'
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
   const stopPosition: number[] = []
@@ -70,18 +68,15 @@ export const createSlopeTexture = (mapType: MapType, settings: Settings, scale: 
       const t = (j - stopPosition[i]) / range
       const value = catmull(t, stopValue[i - 1], stopValue[i], stopValue[i + 1], stopValue[i + 2]) * 255
       const colorValue = Math.round(Math.max(Math.min(value, 255), 0))
-      ctx.fillStyle = `rgba(${colorValue}, ${colorValue}, ${colorValue}, 1.0)`
+      ctx.fillStyle = `rgb(${colorValue}, ${colorValue}, ${colorValue})`
       ctx.fillRect(0, Math.floor(j), 1, 1)
       ctx.fillRect(0, ctx.canvas.height - Math.floor(j) - 1, 1, 1)
     }
   }
-
-  return PIXI.Texture.from(ctx.canvas)
 }
 
 /**
  * Create a texture for the littoral slope in the corner.
- * The texture will be created at twice the size.
  * @param mapType The reference mapType is different from the mapType in settings.
  * @param settings Mapbox Settings
  * @param scale Map scale
@@ -95,13 +90,13 @@ export const createRadialTexture = (mapType: MapType, settings: Settings, scale:
   } else if (mapType === 'cs2play') {
     unit = 3.5
   }
-  const size = Math.max(settings.littoral / unit / scale * 2, 2)
+  const size = Math.max(settings.littoral / unit / scale, 1)
   const pixels = Math.ceil(size)
 
   ctx.canvas.width = pixels * 2
   ctx.canvas.height = pixels * 2
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 1.0)'
+  ctx.fillStyle = '#000000'
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
   const stopPosition: number[] = []
@@ -136,12 +131,10 @@ export const createRadialTexture = (mapType: MapType, settings: Settings, scale:
       const value = catmull(t, stopValue[i - 1], stopValue[i], stopValue[i + 1], stopValue[i + 2]) * 255
       const colorValue = Math.round(Math.max(Math.min(value, 255), 0))
 
-      ctx.fillStyle = `rgba(${colorValue}, ${colorValue}, ${colorValue}, 1.0)`
+      ctx.fillStyle = `rgb(${colorValue}, ${colorValue}, ${colorValue})`
       ctx.beginPath()
       ctx.arc(pixels, pixels, pixels - Math.floor(j), 0, 2 * Math.PI)
       ctx.fill()
     }
   }
-
-  return PIXI.Texture.from(ctx.canvas)
 }
