@@ -130,22 +130,39 @@ const refresh = async () => {
     rotate.value = true
     refreshing = true
     try {
-      const mapbox = useMapbox()
       const config = useRuntimeConfig()
       if (mapbox.value.settings.gridInfo === 'cs2' && (mapbox.value.settings.accessToken === '' || mapbox.value.settings.accessToken === config.public.token)) {
-        alert('You will need your own Mapbox access token\nto access the elevation data for CS2.')
+        alert(NEED_TOKEN)
         return
       }
-      const token = mapbox.value.settings.gridInfo === 'cs1' ? config.public.token : (mapbox.value.settings.accessToken || config.public.token)
       message.value = 'Downloading\nelevation data.'
-      const heightMap = await getHeightMap(mapbox.value.settings, token, mapbox.value.settings.gridInfo)
-      const { min, max } = getMinMaxHeight(heightMap)
-      minHeight.value = min.toFixed(1)
-      maxHeight.value = max.toFixed(1)
-      if (mapbox.value.settings.adjLevel) {
-        mapbox.value.settings.seaLevel = min
+      let minmax: { min: number, max: number }
+      if (mapbox.value.settings.gridInfo === 'cs1') {
+        const { heightmap } = await getHeightMap('cs1')
+        minmax = getMinMaxHeight(heightmap)
+      } else {
+        const worldmapMinmax = async () => {
+          const { heightmap } = await getHeightMap('cs2')
+          return getMinMaxHeight(heightmap)
+        }
+        const heightmapMinmax = async () => {
+          const { heightmap } = await getHeightMap('cs2play')
+          return getMinMaxHeight(heightmap)
+        }
+        const results = await Promise.all([
+          worldmapMinmax(),
+          heightmapMinmax(),
+        ])
+        const min = Math.min(results[0].min, results[1].min)
+        const max = Math.max(results[0].max, results[1].max)
+        minmax = { min, max }
       }
-      adjustElevation(max)
+      minHeight.value = minmax.min.toFixed(1)
+      maxHeight.value = minmax.max.toFixed(1)
+      if (mapbox.value.settings.adjLevel) {
+        mapbox.value.settings.seaLevel = minmax.min
+      }
+      adjustElevation(minmax.max)
       saveSettings(mapbox.value.settings)
     } catch (error) {
       console.error('An error occurred in getHeightMap:', error)
