@@ -8,10 +8,9 @@ export const getCSV = (mapData: Array<number>, size: number) => {
   const csvString = csvRow.join('\r\n')
 
   const a = document.createElement('a')
-
-  a.href        = 'data:attachment/csv,' +  encodeURIComponent(csvString)
-  a.target      = '_blank'
-  a.download    = 'mapdata.csv'
+  a.href = 'data:attachment/csv,' +  encodeURIComponent(csvString)
+  a.target = '_blank'
+  a.download = 'mapdata.csv'
 
   document.body.appendChild(a)
   a.click()
