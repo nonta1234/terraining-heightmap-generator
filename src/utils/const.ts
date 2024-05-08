@@ -1,5 +1,7 @@
 import type { GridInfo, LittoralArray, StyleList } from '~/types/types'
 
+export const NEED_TOKEN = 'You will need your own Mapbox access token\nto download the heightmap data for CS2.'
+
 export const mapStyle = {
   streets:    'mapbox://styles/mapbox/streets-v12?optimize=true',
   outdoors:   'mapbox://styles/mapbox/outdoors-v12?optimize=true',
@@ -94,7 +96,8 @@ export const initialValue = {
   fixedRatio:        true,
   type:              'manual',
   depth:             40,
-  streamDepth:       10,
+  waterside:         '1',
+  streamDepth:       0,
   littoral:          160,
   littArray:         littoralArray.sine,
   smoothing:         0,
