@@ -7,7 +7,6 @@ const { isMobile } = useDevice()
 const contents = ref()
 const defaultHeight = ref('auto')
 const panelHeight = ref('auto')
-// const scroll = ref(isWindows ? 'undefined' : 'scroll')
 
 const visDesktop = ref(false)
 const visMobile = ref(false)
