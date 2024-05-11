@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import type { Canvases } from '~/types/types'
+
 const littEditVisi = ref(false)
 const configPanelVisi = ref(false)
 
 const tileCanvasRef = ref<HTMLCanvasElement>()
 const waterCanvasRef = ref<HTMLCanvasElement>()
+const waterWayCanvasRef = ref<HTMLCanvasElement>()
 const littCanvasRef = ref<HTMLCanvasElement>()
 const cornerCanvasRef = ref<HTMLCanvasElement>()
 
@@ -35,10 +38,18 @@ function parseBoolean(str: string): boolean {
 onMounted(() => {
   const osTileCanvas = tileCanvasRef.value!.transferControlToOffscreen()
   const osWaterCanvas = waterCanvasRef.value!.transferControlToOffscreen()
+  const osWaterWayCanvas = waterWayCanvasRef.value!.transferControlToOffscreen()
   const osLittCanvas = littCanvasRef.value!.transferControlToOffscreen()
   const osCornerCanvas = cornerCanvasRef.value!.transferControlToOffscreen()
-  initGetHeightMapWorker(osTileCanvas)
-  initGetWaterMapWorker(osWaterCanvas, osLittCanvas, osCornerCanvas)
+  useState('canvases', () => {
+    return {
+      osTileCanvas,
+      osWaterCanvas,
+      osWaterWayCanvas,
+      osLittCanvas,
+      osCornerCanvas,
+    } as Canvases
+  })
 })
 </script>
 
@@ -52,7 +63,10 @@ onMounted(() => {
       <ConfigurationPanel v-show="configPanelVisi" :modal="true" />
     </MapBox>
     <canvas v-show="debugMode" id="tile-canvas" ref="tileCanvasRef" class="debug-canvas"></canvas>
-    <canvas v-show="debugMode" id="water-canvas" ref="waterCanvasRef" class="debug-canvas"></canvas>
+    <div v-show="debugMode" class="water-canvas-container">
+      <canvas v-show="debugMode" id="water-canvas" ref="waterCanvasRef"></canvas>
+      <canvas v-show="debugMode" id="waterway-canvas" ref="waterWayCanvasRef"></canvas>
+    </div>
     <canvas v-show="debugMode" id="litt-canvas" ref="littCanvasRef" class="debug-canvas"></canvas>
     <canvas v-show="debugMode" id="corner-canvas" ref="cornerCanvasRef" class="debug-canvas"></canvas>
   </div>
@@ -70,8 +84,23 @@ onMounted(() => {
     right: 386px;
   }
   #water-canvas {
-    bottom: 352px;
-    right: 70px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 300px;
+    background-color: black;
+    z-index: 10;
+  }
+  #waterway-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 300px;
+    background-color: black;
+    z-index: 15;
+    mix-blend-mode: darken;
   }
   #litt-canvas {
     bottom: 36px;
@@ -80,6 +109,15 @@ onMounted(() => {
   #corner-canvas {
     bottom: 36px;
     right: 70px;
+  }
+  .water-canvas-container {
+    position: absolute;
+    bottom: 352px;
+    right: 70px;
+    width: 300px;
+    height: 300px;
+    z-index: 5;
+    @include shadow-panel;
   }
   .debug-canvas {
     position: absolute;
