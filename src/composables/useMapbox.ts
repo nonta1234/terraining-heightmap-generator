@@ -91,6 +91,12 @@ const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'to
 }
 
 
+const fixLng = (position: Position) => {
+  const _lng = ((position[0] + 540) % 360) - 180
+  return [_lng, position[1]] as Position
+}
+
+
 export const getPoint = (grid: Grid) => {
   const mapbox = useMapbox()
   const bottomleft = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]].geometry.coordinates[0][0]
@@ -100,10 +106,10 @@ export const getPoint = (grid: Grid) => {
   const sides = {
     north: Math.max(bottomleft[1], topleft[1], topright[1], bottomright[1]),
     south: Math.min(bottomleft[1], topleft[1], topright[1], bottomright[1]),
-    east: Math.max(bottomleft[0], topleft[0], topright[0], bottomright[0]),
-    west: Math.min(bottomleft[0], topleft[0], topright[0], bottomright[0]),
+    east: ((Math.max(bottomleft[0], topleft[0], topright[0], bottomright[0]) + 540) % 360) - 180,
+    west: ((Math.min(bottomleft[0], topleft[0], topright[0], bottomright[0]) + 540) % 360) - 180,
   }
-  const gridCorner = { topleft, topright, bottomleft, bottomright, _sides: sides }
+  const gridCorner = { topleft: fixLng(topleft), topright: fixLng(topright), bottomleft: fixLng(bottomleft), bottomright: fixLng(bottomright), _sides: sides }
   const pBottomleft = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].play[0]].geometry.coordinates[0][0]
   const pTopleft = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].play[1]].geometry.coordinates[0][1]
   const pTopright = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].play[2]].geometry.coordinates[0][2]
@@ -111,10 +117,10 @@ export const getPoint = (grid: Grid) => {
   const pSides = {
     north: Math.max(pBottomleft[1], pTopleft[1], pTopright[1], pBottomright[1]),
     south: Math.min(pBottomleft[1], pTopleft[1], pTopright[1], pBottomright[1]),
-    east: Math.max(pBottomleft[0], pTopleft[0], pTopright[0], pBottomright[0]),
-    west: Math.min(pBottomleft[0], pTopleft[0], pTopright[0], pBottomright[0]),
+    east: ((Math.max(pBottomleft[0], pTopleft[0], pTopright[0], pBottomright[0]) + 540) % 360) - 180,
+    west: ((Math.min(pBottomleft[0], pTopleft[0], pTopright[0], pBottomright[0]) + 540) % 360) - 180,
   }
-  const playAreaCorner = { topleft: pTopleft, topright: pTopright, bottomleft: pBottomleft, bottomright: pBottomright, _sides: pSides }
+  const playAreaCorner = { topleft: fixLng(pTopleft), topright: fixLng(pTopright), bottomleft: fixLng(pBottomleft), bottomright: fixLng(pBottomright), _sides: pSides }
   return { gridCorner, playAreaCorner }
 }
 
