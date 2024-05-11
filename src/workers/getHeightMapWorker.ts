@@ -146,89 +146,95 @@ const getHeightMapBicubic = (
 }
 
 
-class GetHeightMapWorker {
+class GetHeightmapWorker {
   private worker: Worker
-  private ctx: OffscreenCanvasRenderingContext2D | undefined
 
   constructor() {
     this.worker = self as any
     self.onmessage = this.handleMessage.bind(this)
   }
 
-  async handleMessage(e: MessageEvent<any>) {
+  private clearCanvas(ctx: OffscreenCanvasRenderingContext2D) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    ctx.canvas.width = 0
+    ctx.canvas.height = 0
+  }
+
+  private async handleMessage(e: MessageEvent<any>) {
     const message = e.data
-    if (message.type === 'initialize') {
-      this.ctx = message.canvas.getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
-    } else if (message.type === 'get') {
-      const {
-        mapType,
-        settings,
-        token,
-      } = message.body as GenerateMapOption
-      const pixelsPerTile = 512
-      const extentOffset = mapType === 'cs2play' ? 0.375 : 0
-      const { x0, y0, x1, y1, centerX, centerY } = getExtentInWorldCood(settings.lng, settings.lat, settings.size * 1.5, extentOffset, pixelsPerTile)
-      const side = x1 - x0
-      const zoom = Math.min(Math.ceil(Math.log2(mapSpec[mapType].mapFaces * 1.5 / side)), 14)
-      const scale =  (side * (2 ** zoom)) / (mapSpec[mapType].mapFaces * 1.5)
-      const tileX0 = Math.floor(x0 * (2 ** zoom) / pixelsPerTile)
-      const tileY0 = Math.floor(y0 * (2 ** zoom) / pixelsPerTile)
-      const tileX1 = Math.floor(x1 * (2 ** zoom) / pixelsPerTile)
-      const tileY1 = Math.floor(y1 * (2 ** zoom) / pixelsPerTile)
-      const resultCenterX = centerX * (2 ** zoom)
-      const resultCenterY = centerY * (2 ** zoom)
-      const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
-      const offsetX = resultCenterX - tileX0 * pixelsPerTile
-      const offsetY = resultCenterY - tileY0 * pixelsPerTile
-      const tilePixels = tileCount * pixelsPerTile
-      const resultPixels = mapSpec[mapType].mapPixels + 4
+    const canvas = new OffscreenCanvas(0, 0)
+    const ctx = canvas.getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+    const {
+      mapType,
+      settings,
+      token,
+      isDebug,
+    } = message as GenerateMapOption
+    const pixelsPerTile = 512
+    const extentOffset = mapType === 'cs2play' ? 0.375 : 0
+    const { x0, y0, x1, y1, centerX, centerY } = getExtentInWorldCood(settings.lng, settings.lat, settings.size * 1.5, extentOffset, pixelsPerTile)
+    const side = x1 - x0
+    const tmpMapPixels = mapSpec[mapType].mapFaces * 1.5
+    const zoom = Math.min(Math.ceil(Math.log2(tmpMapPixels / side)), 14)
+    const scale =  (side * (2 ** zoom)) / tmpMapPixels
+    const tileX0 = Math.floor(x0 * (2 ** zoom) / pixelsPerTile)
+    const tileY0 = Math.floor(y0 * (2 ** zoom) / pixelsPerTile)
+    const tileX1 = Math.floor(x1 * (2 ** zoom) / pixelsPerTile)
+    const tileY1 = Math.floor(y1 * (2 ** zoom) / pixelsPerTile)
+    const resultCenterX = centerX * (2 ** zoom)
+    const resultCenterY = centerY * (2 ** zoom)
+    const offsetX = resultCenterX - tileX0 * pixelsPerTile
+    const offsetY = resultCenterY - tileY0 * pixelsPerTile
+    const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
+    const tilePixels = tileCount * pixelsPerTile
+    const resultPixels = mapSpec[mapType].mapPixels + 4
 
-      this.ctx!.canvas.width = tilePixels
-      this.ctx!.canvas.height = tilePixels
-      this.ctx!.clearRect(0, 0, tilePixels, tilePixels)
-      this.ctx!.fillStyle = 'rgb(1, 134, 160)'    // = 0m
-      this.ctx!.fillRect(0, 0, tilePixels, tilePixels)
+    canvas.width = tilePixels
+    canvas.height = tilePixels
+    ctx.clearRect(0, 0, tilePixels, tilePixels)
+    ctx.fillStyle = 'rgb(1, 134, 160)'    // = 0m
+    ctx.fillRect(0, 0, tilePixels, tilePixels)
 
-      const tiles = new Array<Promise<T>>(tileCount * tileCount)
+    const tiles = new Array<Promise<T>>(tileCount * tileCount)
 
-      // fetch tiles
-      for (let i = 0; i < tileCount; i++) {
-        for (let j = 0; j < tileCount; j++) {
-          tiles[j + i * tileCount] = useFetchTerrainTiles(zoom, tileX0 + j, tileY0 + i, token)
-        }
+    // fetch tiles
+    for (let i = 0; i < tileCount; i++) {
+      for (let j = 0; j < tileCount; j++) {
+        tiles[j + i * tileCount] = useFetchTerrainTiles(zoom, tileX0 + j, tileY0 + i, token)
       }
+    }
+    const tileList = await Promise.allSettled(tiles)
 
-      const tileList = await Promise.allSettled(tiles)
-      const pixelData = (await processTiles(tileList, this.ctx!)).data
-      const elevations = decodeElevation(pixelData)
-
-      async function processTiles(list: PromiseSettledResult<T>[], ctx: OffscreenCanvasRenderingContext2D) {
-        const tilePromises = list.map(async (tile, index) => {
-          if (tile.status === 'fulfilled') {
-            const blob = tile.value.data
-            if (blob) {
-              const image = await createImageBitmap(blob)
-              const dx = Math.floor(index % tileCount) * pixelsPerTile
-              const dy = Math.floor(index / tileCount) * pixelsPerTile
-              ctx.drawImage(image, dx, dy)
-            }
+    const processTiles = async (list: PromiseSettledResult<T>[]) => {
+      const tilePromises = list.map(async (tile, index) => {
+        if (tile.status === 'fulfilled') {
+          const blob = tile.value.data
+          if (blob) {
+            const image = await createImageBitmap(blob)
+            const dx = Math.floor(index % tileCount) * pixelsPerTile
+            const dy = Math.floor(index / tileCount) * pixelsPerTile
+            ctx.drawImage(image, dx, dy)
           }
-        })
-        await Promise.all(tilePromises)
-        return ctx.getImageData(0, 0, tilePixels, tilePixels)
-      }
+        }
+      })
+      await Promise.all(tilePromises)
+      return ctx.getImageData(0, 0, tilePixels, tilePixels)
+    }
+    const pixelData = (await processTiles(tileList)).data
+    const elevations = decodeElevation(pixelData)
 
-      if (settings.interpolation === 'bicubic') {
-        const result = getHeightMapBicubic(mapType, elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY)
-        this.worker.postMessage(result, [result.buffer])
-      } else {
-        const result = getHeightMapBilinear(mapType, elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY)
-        this.worker.postMessage(result, [result.buffer])
-      }
+    const result = settings.interpolation === 'bicubic'
+      ? getHeightMapBicubic(mapType, elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY)
+      : getHeightMapBilinear(mapType, elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY)
+
+    if (isDebug) {
+      const imageBitmap = canvas.transferToImageBitmap()
+      this.worker.postMessage({ heightmap: result, heightmapImage: imageBitmap }, [result.buffer, imageBitmap])
     } else {
-      throw new Error('Message must have a property of type.')
+      this.clearCanvas(ctx)
+      this.worker.postMessage({ heightmap: result, heightmapImage: null }, [result.buffer])
     }
   }
 }
 
-export default new GetHeightMapWorker()
+export default new GetHeightmapWorker()
