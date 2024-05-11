@@ -51,6 +51,7 @@ export interface Settings {
   fixedRatio:        boolean;
   type:              HeightCalcType;
   depth:             number;
+  waterside:         string;
   streamDepth:       number;
   littoral:          number;
   littArray:         number[];
@@ -82,12 +83,14 @@ export type GenerateMapOption = {
   mapType:      MapType;
   settings:     Settings;
   token:        string;
+  isDebug?:     boolean;
   scaleFactor?: number;
 }
 
 export type Canvases = {
-  tileCanvas:   OffscreenCanvas;
-  waterCanvas:  OffscreenCanvas;
-  littCanvas:   OffscreenCanvas;
-  cornerCanvas: OffscreenCanvas;
+  osTileCanvas:     OffscreenCanvas;
+  osWaterCanvas:    OffscreenCanvas;
+  osWaterWayCanvas: OffscreenCanvas;
+  osLittCanvas:     OffscreenCanvas;
+  osCornerCanvas:   OffscreenCanvas;
 }
