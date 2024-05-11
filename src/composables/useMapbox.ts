@@ -91,7 +91,7 @@ const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'to
 }
 
 
-const getGrid = (lng: number, lat: number, size: number, angle: number) => {
+export const getGrid = (lng: number, lat: number, size: number, angle: number) => {
   const mapbox = useMapbox()
   const { minX, minY, maxX, maxY } = getExtent(lng, lat, size)
 
