@@ -137,15 +137,15 @@ const refresh = async () => {
       message.value = 'Downloading\nelevation data.'
       let minmax: { min: number, max: number }
       if (mapbox.value.settings.gridInfo === 'cs1') {
-        const { heightmap } = await getHeightMap('cs1')
+        const { heightmap } = await getHeightmap('cs1')
         minmax = getMinMaxHeight(heightmap)
       } else {
         const worldmapMinmax = async () => {
-          const { heightmap } = await getHeightMap('cs2')
+          const { heightmap } = await getHeightmap('cs2')
           return getMinMaxHeight(heightmap)
         }
         const heightmapMinmax = async () => {
-          const { heightmap } = await getHeightMap('cs2play')
+          const { heightmap } = await getHeightmap('cs2play')
           return getMinMaxHeight(heightmap)
         }
         const results = await Promise.all([
