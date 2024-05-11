@@ -135,6 +135,8 @@ const refresh = async () => {
         return
       }
       message.value = 'Downloading\nelevation data.'
+
+      // get min max
       let minmax: { min: number, max: number }
       if (mapbox.value.settings.gridInfo === 'cs1') {
         const { heightmap } = await getHeightmap('cs1')
@@ -162,6 +164,12 @@ const refresh = async () => {
         mapbox.value.settings.seaLevel = minmax.min
       }
       adjustElevation(minmax.max)
+
+      // get position
+      const grid = getGrid(mapbox.value.settings.lng, mapbox.value.settings.lat, mapbox.value.settings.size, mapbox.value.settings.angle)
+      const corners = getPoint(grid)
+      console.log('min:', minmax.min, 'max:', minmax.max)
+      console.log(corners)
       saveSettings(mapbox.value.settings)
     } catch (error) {
       console.error('An error occurred in getHeightMap:', error)
