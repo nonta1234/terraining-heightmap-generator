@@ -200,7 +200,7 @@ class GetHeightmapWorker {
     // fetch tiles
     for (let i = 0; i < tileCount; i++) {
       for (let j = 0; j < tileCount; j++) {
-        tiles[j + i * tileCount] = useFetchTerrainTiles(zoom, tileX0 + j, tileY0 + i, token)
+        tiles[j + i * tileCount] = useFetchTerrainTiles(zoom, tileX0 + j, tileY0 + i, token!)
       }
     }
     const tileList = await Promise.allSettled(tiles)
