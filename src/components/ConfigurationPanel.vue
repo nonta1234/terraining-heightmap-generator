@@ -3,10 +3,12 @@ const mapbox = useMapbox()
 
 const heightmapTypeRef = ref<HTMLSelectElement>()
 const interpolationRef = ref<HTMLSelectElement>()
+const watersideRef = ref<HTMLSelectElement>()
 
 onMounted(() => {
   heightmapTypeRef.value!.value = mapbox.value.settings.gridInfo
   interpolationRef.value!.value = mapbox.value.settings.interpolation
+  watersideRef.value!.value = mapbox.value.settings.waterside.toString()
 })
 
 const onHeightmapTypeChange = () => {
@@ -64,6 +66,16 @@ const close = () => {
             <label>
               <span>Elevation Scale&#8202;:</span>
               <NumberInput v-model="mapbox.settings.elevationScale" :max="100000" :min="0" :step="0.001" /><span>m</span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <span>Waterside Detail&#8202;:</span>
+              <span><select ref="watersideRef" v-model="mapbox.settings.waterside" name="waterside">
+                <option value="2">High</option>
+                <option value="1">Mid</option>
+                <option value="0">Low</option>
+              </select></span>
             </label>
           </li>
           <li>
