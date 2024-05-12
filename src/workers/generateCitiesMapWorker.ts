@@ -81,7 +81,7 @@ const getSharpenMap = (map: Float32Array, smoothedMap: Float32Array, k: number) 
 }
 
 
-class GetCitiesMapWorker {
+class GenerateCitiesMapWorker {
   private worker: Worker
 
   constructor() {
@@ -176,4 +176,4 @@ class GetCitiesMapWorker {
   }
 }
 
-export default new GetCitiesMapWorker()
+export default new GenerateCitiesMapWorker()
