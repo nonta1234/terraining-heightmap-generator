@@ -82,9 +82,8 @@ export interface Mapbox {
 export type GenerateMapOption = {
   mapType:      MapType;
   settings:     Settings;
-  token:        string;
+  token?:       string;
   isDebug?:     boolean;
-  scaleFactor?: number;
 }
 
 export type Canvases = {

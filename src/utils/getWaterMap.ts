@@ -1,5 +1,5 @@
 import GetWaterMapWorker from '~/workers/getWaterMapWorker.ts?worker'
-import type { MapType, GenerateMapOption } from '~/types/types'
+import type { MapType, GenerateMapOption, Settings } from '~/types/types'
 
 type T = {
   waterMap: Float32Array;
@@ -10,7 +10,14 @@ type T = {
   cornerImage?: ImageBitmap;
 }
 
-const getWaterMapData = (message: any) => {
+const getWaterMapData = (mapType: MapType, settings: Settings, token: string, isDebug: boolean) => {
+  const data: GenerateMapOption = {
+    mapType,
+    settings,
+    token,
+    isDebug,
+  }
+  const generateMapOption = JSON.parse(JSON.stringify(data))
   const worker = new GetWaterMapWorker()
   const result = new Promise<T>((resolve) => {
     worker.addEventListener('message', (e) => {
@@ -20,7 +27,7 @@ const getWaterMapData = (message: any) => {
       }
     }, { once: true })
   })
-  worker.postMessage(message)
+  worker.postMessage(generateMapOption)
   return result
 }
 
@@ -39,14 +46,7 @@ export const getWaterMap = async (mapType: MapType = 'cs1', isDebug = false) => 
       throw new Error('Invaid access token')
     }
     const token = settings.gridInfo === 'cs1' ? config.public.token : (settings.accessToken || config.public.token)
-    const data: GenerateMapOption = {
-      mapType,
-      settings,
-      token,
-      isDebug,
-    }
-    const generateMapOption = JSON.parse(JSON.stringify(data))
-    const result = await getWaterMapData(generateMapOption)
+    const result = await getWaterMapData(mapType, settings, token, isDebug)
     return result
   } catch (error) {
     console.error('An error occurred in getWaterMap:', error)

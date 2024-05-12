@@ -1,5 +1,5 @@
 import GetHeightMapWorker from '~/workers/getHeightmapWorker.ts?worker'
-import type { MapType, GenerateMapOption } from '~/types/types'
+import type { MapType, GenerateMapOption, Settings } from '~/types/types'
 import { NEED_TOKEN } from '~/utils/const'
 
 type T = {
@@ -7,7 +7,14 @@ type T = {
   heightmapImage?: ImageBitmap;
 }
 
-const getHeightmapData = (message: any) => {
+const getHeightmapData = (mapType: MapType, settings: Settings, token: string, isDebug: boolean) => {
+  const data: GenerateMapOption = {
+    mapType,
+    settings,
+    token,
+    isDebug,
+  }
+  const generateMapOption = JSON.parse(JSON.stringify(data))
   const worker = new GetHeightMapWorker()
   const result = new Promise<T>((resolve) => {
     worker.addEventListener('message', (e) => {
@@ -17,7 +24,7 @@ const getHeightmapData = (message: any) => {
       }
     }, { once: true })
   })
-  worker.postMessage(message)
+  worker.postMessage(generateMapOption)
   return result
 }
 
@@ -36,14 +43,7 @@ export const getHeightmap = async (mapType: MapType = 'cs1', isDebug = false) =>
       throw new Error('Invaid access token')
     }
     const token = settings.gridInfo === 'cs1' ? config.public.token : (settings.accessToken || config.public.token)
-    const data: GenerateMapOption = {
-      mapType,
-      settings,
-      token,
-      isDebug,
-    }
-    const generateMapOption = JSON.parse(JSON.stringify(data))
-    const result = await getHeightmapData(generateMapOption)
+    const result = await getHeightmapData(mapType, settings, token, isDebug)
     return result
   } catch (error) {
     console.error('An error occurred in getHeightMap:', error)
