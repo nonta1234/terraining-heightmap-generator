@@ -12,6 +12,16 @@ const isEqual = (a: Point, b: Point) => {
   return (a.x === b.x && a.y === b.y)
 }
 
+function isInside(point: Point): boolean {
+  const min = 0
+  const max = 4096
+  return !(point.x < min || point.x > max || point.y < min || point.y > max)
+}
+
+function isEitherInside(a: Point, b: Point): boolean {
+  return isInside(a) || isInside(b)
+}
+
 function decodeData(arr: Uint8ClampedArray) {
   const arrLength = arr.length / 4
   const elevs = new Float32Array(arrLength)
@@ -26,6 +36,7 @@ function decodeData(arr: Uint8ClampedArray) {
 class GetWaterMapWorker {
   private worker: Worker
   private waterCtx: OffscreenCanvasRenderingContext2D
+  private waterSideCtx: OffscreenCanvasRenderingContext2D
   private waterWayCtx: OffscreenCanvasRenderingContext2D
   private littCtx: OffscreenCanvasRenderingContext2D
   private cornerCtx: OffscreenCanvasRenderingContext2D
@@ -36,6 +47,7 @@ class GetWaterMapWorker {
   constructor() {
     this.worker = self as any
     this.waterCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+    this.waterSideCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
     this.waterWayCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
     this.littCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
     this.cornerCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
@@ -49,13 +61,15 @@ class GetWaterMapWorker {
   }
 
   private drawPoint = (point: Point) => {
-    this.waterCtx.drawImage(
-      this.cornerCtx.canvas,
-      point.x - this.cornerCtxHalfWidth,
-      point.y - this.cornerCtxHalfHeight,
-      this.cornerCtx.canvas.width,
-      this.cornerCtx.canvas.height,
-    )
+    if (isInside(point)) {
+      this.waterSideCtx.drawImage(
+        this.cornerCtx.canvas,
+        point.x - this.cornerCtxHalfWidth,
+        point.y - this.cornerCtxHalfHeight,
+        this.cornerCtx.canvas.width,
+        this.cornerCtx.canvas.height,
+      )
+    }
   }
 
   private drawPath = (path: Point[]) => {
@@ -76,23 +90,25 @@ class GetWaterMapWorker {
       points.push(points[0])
     }
     for (let i = 0; i < points.length - 1; i++) {
-      const vecX = points[i + 1].x - points[i].x
-      const vecY = points[i + 1].y - points[i].y
-      const length = Math.sqrt(vecX * vecX + vecY * vecY)
-      const theta = Math.atan2(vecY, vecX)
-      const dx = points[i].x + vecX / 2
-      const dy = points[i].y + vecY / 2
-      this.waterCtx.save()
-      this.waterCtx.translate(dx, dy)
-      this.waterCtx.rotate(theta)
-      this.waterCtx.drawImage(
-        this.littCtx.canvas,
-        -length / 2,
-        -this.littCtxHalfHeight,
-        length,
-        this.littCtx.canvas.height,
-      )
-      this.waterCtx!.restore()
+      if (isEitherInside(points[i], points[i + 1])) {
+        const vecX = points[i + 1].x - points[i].x
+        const vecY = points[i + 1].y - points[i].y
+        const length = Math.sqrt(vecX * vecX + vecY * vecY)
+        const theta = Math.atan2(vecY, vecX)
+        const dx = points[i].x + vecX / 2
+        const dy = points[i].y + vecY / 2
+        this.waterSideCtx.save()
+        this.waterSideCtx.translate(dx, dy)
+        this.waterSideCtx.rotate(theta)
+        this.waterSideCtx.drawImage(
+          this.littCtx.canvas,
+          -length / 2,
+          -this.littCtxHalfHeight,
+          length,
+          this.littCtx.canvas.height,
+        )
+        this.waterSideCtx.restore()
+      }
     }
   }
 
@@ -135,6 +151,18 @@ class GetWaterMapWorker {
     this.waterCtx.rotate(theta)
     this.waterCtx.scale(scale, scale)
     this.waterCtx.translate(-offsetX, -offsetY)
+    this.waterCtx.globalCompositeOperation = 'source-over'
+
+    // setup waterSideCtx
+    this.waterSideCtx.canvas.width = resultPixels
+    this.waterSideCtx.canvas.height = resultPixels
+    this.waterSideCtx.fillStyle = '#000000'
+    this.waterSideCtx.fillRect(0, 0, resultPixels, resultPixels)
+    this.waterSideCtx.translate(halfMapSize, halfMapSize)
+    this.waterSideCtx.rotate(theta)
+    this.waterSideCtx.scale(scale, scale)
+    this.waterSideCtx.translate(-offsetX, -offsetY)
+    this.waterSideCtx.globalCompositeOperation = 'lighten'
 
     // setup waterWayCtx
     this.waterWayCtx.canvas.width = resultPixels
@@ -179,6 +207,9 @@ class GetWaterMapWorker {
             this.waterCtx.rect(-2, -2, pixelsPerTile + 4, pixelsPerTile + 4)
             this.waterCtx.clip()
 
+            this.waterSideCtx.save()
+            this.waterSideCtx.translate(transX, transY)
+
             this.waterWayCtx.save()
             this.waterWayCtx.translate(transX, transY)
             this.waterWayCtx.beginPath()
@@ -190,7 +221,6 @@ class GetWaterMapWorker {
               const geo = tile.layers.water.feature(0).asPolygons() as Point[][][]
 
               // draw water area & inner lands
-              this.waterCtx.globalCompositeOperation = 'source-over'
               for (let i = 0; i < geo.length; i++) {
                 const outerPath = geo[i][0]
                 this.waterCtx.fillStyle = '#000000'
@@ -204,7 +234,6 @@ class GetWaterMapWorker {
               }
 
               // draw littoral
-              this.waterCtx.globalCompositeOperation = 'lighten'
               for (let i = 0; i < geo.length; i++) {
                 for (let m = 0; m < geo[i].length; m++) {
                   const path = []
@@ -236,26 +265,35 @@ class GetWaterMapWorker {
               }
             }
             this.waterCtx.restore()
+            this.waterSideCtx.restore()
             this.waterWayCtx.restore()
           }
         }
       })
       await Promise.all(tilePromises)
-      const waterImageData = this.waterCtx.getImageData(0, 0, resultPixels, resultPixels)
-      const waterWayImageData = this.waterWayCtx.getImageData(0, 0, resultPixels, resultPixels)
-      return { waterImageData, waterWayImageData }
     }
-    const { waterImageData, waterWayImageData } = await processTiles(tileList)
+    await processTiles(tileList)
+
+    const resultWaterCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+    resultWaterCtx.canvas.width = resultPixels
+    resultWaterCtx.canvas.height = resultPixels
+    resultWaterCtx.drawImage(this.waterCtx.canvas, 0, 0)
+    resultWaterCtx.globalCompositeOperation = 'lighten'
+    resultWaterCtx.drawImage(this.waterSideCtx.canvas, 0, 0)
+
+    const resultWaterImageData = resultWaterCtx.getImageData(0, 0, resultPixels, resultPixels)
+    const waterWayImageData = this.waterWayCtx.getImageData(0, 0, resultPixels, resultPixels)
 
     const resultWaterWayImageData = mapType === 'cs2play'
-      ? StackBlur.imageDataRGBA(waterWayImageData, 0, 0, resultPixels, resultPixels, 1)
+      ? StackBlur.imageDataRGBA(waterWayImageData, 0, 0, resultPixels, resultPixels, 2)
       : waterWayImageData
 
-    const waterMap = decodeData(waterImageData.data)
+    const waterMap = decodeData(resultWaterImageData.data)
     const waterWayMap = decodeData(resultWaterWayImageData.data)
 
     if (isDebug) {
-      const waterMapImage = this.waterCtx.canvas.transferToImageBitmap()
+      this.clearCanvas(this.waterCtx)
+      const waterMapImage = resultWaterCtx.canvas.transferToImageBitmap()
       const waterWayMapImage = this.waterWayCtx.canvas.transferToImageBitmap()
       const littImage = this.littCtx.canvas.transferToImageBitmap()
       const cornerImage = this.cornerCtx.canvas.transferToImageBitmap()
@@ -275,7 +313,9 @@ class GetWaterMapWorker {
         cornerImage,
       ])
     } else {
+      this.clearCanvas(resultWaterCtx)
       this.clearCanvas(this.waterCtx)
+      this.clearCanvas(this.waterSideCtx)
       this.clearCanvas(this.waterWayCtx)
       this.clearCanvas(this.littCtx)
       this.clearCanvas(this.cornerCtx)
