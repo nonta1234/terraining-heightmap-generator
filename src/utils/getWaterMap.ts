@@ -42,7 +42,6 @@ export const getWaterMap = async (mapType: MapType = 'cs1', isDebug = false) => 
     const { settings } = useMapbox().value
     const config = useRuntimeConfig()
     if ((mapType !== 'cs1') && (settings.accessToken === '' || settings.accessToken === config.public.token)) {
-      alert(NEED_TOKEN)
       throw new Error('Invaid access token')
     }
     const token = settings.gridInfo === 'cs1' ? config.public.token : (settings.accessToken || config.public.token)
