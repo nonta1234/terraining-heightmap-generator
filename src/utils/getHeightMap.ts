@@ -1,6 +1,5 @@
 import GetHeightMapWorker from '~/workers/getHeightmapWorker.ts?worker'
 import type { MapType, GenerateMapOption, Settings } from '~/types/types'
-import { NEED_TOKEN } from '~/utils/const'
 
 type T = {
   heightmap: Float32Array;
@@ -39,7 +38,6 @@ export const getHeightmap = async (mapType: MapType = 'cs1', isDebug = false) =>
     const { settings } = useMapbox().value
     const config = useRuntimeConfig()
     if ((mapType !== 'cs1') && (settings.accessToken === '' || settings.accessToken === config.public.token)) {
-      alert(NEED_TOKEN)
       throw new Error('Invaid access token')
     }
     const token = settings.gridInfo === 'cs1' ? config.public.token : (settings.accessToken || config.public.token)
