@@ -101,6 +101,7 @@ onMounted(() => {
     background-color: black;
     z-index: 15;
     mix-blend-mode: darken;
+    pointer-events: none;
   }
   #litt-canvas {
     bottom: 36px;
