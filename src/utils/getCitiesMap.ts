@@ -127,7 +127,6 @@ export const getCitiesMap = async (mapType: MapType) => {
       if (debugMode.value) {
         const { viewMode } = useViewMode()
         const n = viewMode.value === 'world' ? 3 : 1
-        console.log(viewMode.value)
         setImageBitmap(osTileCanvas, results[2].heightmapImage!)
         setImageBitmap(osWaterCanvas, results[n].waterMapImage!)
         setImageBitmap(osWaterWayCanvas, results[n].waterWayMapImage!)

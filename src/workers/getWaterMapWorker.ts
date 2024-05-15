@@ -194,7 +194,7 @@ class GetWaterMapWorker {
     const processTiles = async (list: PromiseSettledResult<T>[]) => {
       const tilePromises = list.map(async (tileResult, index) => {
         if (tileResult.status === 'fulfilled') {
-          const arrayBuffer = await tileResult.value.data!.arrayBuffer()
+          const arrayBuffer = await tileResult.value.data?.arrayBuffer()
           if (arrayBuffer) {
             // set position of tiles
             const tile = new VectorTile(new Uint8Array(arrayBuffer))
