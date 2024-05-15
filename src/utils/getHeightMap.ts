@@ -1,4 +1,4 @@
-import GetHeightMapWorker from '~/workers/getHeightmapWorker.ts?worker'
+import GetHeightMapWorker from '~/assets/workers/getHeightmapWorker.ts?worker'
 import type { MapType, GenerateMapOption, Settings } from '~/types/types'
 
 type T = {

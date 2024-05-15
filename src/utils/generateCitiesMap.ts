@@ -1,4 +1,4 @@
-import GenerateCitiesMapWorker from '~/workers/generateCitiesMapWorker.ts?worker'
+import GenerateCitiesMapWorker from '~/assets/workers/generateCitiesMapWorker.ts?worker'
 import type { MapType, Settings, GenerateMapOption } from '~/types/types'
 
 const generateCitiesMapData = (mapType: MapType, settings: Settings, heightmap: Float32Array, waterMap: Float32Array, waterWayMap: Float32Array) => {

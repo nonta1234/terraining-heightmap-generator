@@ -1,4 +1,4 @@
-import GetWaterMapWorker from '~/workers/getWaterMapWorker.ts?worker'
+import GetWaterMapWorker from '~/assets/workers/getWaterMapWorker.ts?worker'
 import type { MapType, GenerateMapOption, Settings } from '~/types/types'
 
 type T = {
