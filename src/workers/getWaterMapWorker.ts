@@ -274,9 +274,7 @@ class GetWaterMapWorker {
     }
     await processTiles(tileList)
 
-    const resultWaterCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
-    resultWaterCtx.canvas.width = resultPixels
-    resultWaterCtx.canvas.height = resultPixels
+    const resultWaterCtx = new OffscreenCanvas(resultPixels, resultPixels).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
     resultWaterCtx.drawImage(this.waterCtx.canvas, 0, 0)
     resultWaterCtx.globalCompositeOperation = 'lighten'
     resultWaterCtx.drawImage(this.waterSideCtx.canvas, 0, 0)
