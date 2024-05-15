@@ -26,14 +26,14 @@ useListen('map:cpModal', (value) => {
   }
 })
 
+// debug
 const { debugMode, updateDebugMode } = useDebug()
 const mode = String(useRoute().query.debug || 'false')
-updateDebugMode(parseBoolean(mode))
+updateDebugMode(mode)
 
-function parseBoolean(str: string): boolean {
-  const lowercaseStr = str.toLowerCase()
-  return lowercaseStr === 'true'
-}
+const { updateViewMode } = useViewMode()
+const vMode = String(useRoute().query.view || 'world')
+updateViewMode(vMode)
 
 onMounted(() => {
   const osTileCanvas = tileCanvasRef.value!.transferControlToOffscreen()

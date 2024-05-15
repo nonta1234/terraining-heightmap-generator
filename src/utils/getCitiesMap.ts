@@ -92,12 +92,16 @@ export const getCitiesMap = async (mapType: MapType) => {
         const {
           waterMap,
           waterWayMap,
+          waterMapImage,
+          waterWayMapImage,
           littImage,
           cornerImage,
         } = await getWaterMap('cs2', debugMode.value)
         return {
           waterMap,
           waterWayMap,
+          waterMapImage,
+          waterWayMapImage,
           littImage,
           cornerImage,
         }
@@ -121,9 +125,12 @@ export const getCitiesMap = async (mapType: MapType) => {
       const resultWorldMap = await generateCitiesMap('cs2', results[2].heightmap, results[3].waterMap, results[3].waterWayMap)
 
       if (debugMode.value) {
+        const { viewMode } = useViewMode()
+        const n = viewMode.value === 'world' ? 3 : 1
+        console.log(viewMode.value)
         setImageBitmap(osTileCanvas, results[2].heightmapImage!)
-        setImageBitmap(osWaterCanvas, results[1].waterMapImage!)
-        setImageBitmap(osWaterWayCanvas, results[1].waterWayMapImage!)
+        setImageBitmap(osWaterCanvas, results[n].waterMapImage!)
+        setImageBitmap(osWaterWayCanvas, results[n].waterWayMapImage!)
         setImageBitmap(osLittCanvas, results[3].littImage!)
         setImageBitmap(osCornerCanvas, results[3].cornerImage!)
       }

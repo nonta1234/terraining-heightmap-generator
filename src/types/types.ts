@@ -7,6 +7,9 @@ export type Interpolation = 'bilinear' | 'bicubic';
 export type MapType = 'cs1' | 'cs2' | 'cs2play';
 export type StyleType = Record<'text' | 'value' | 'before' | 'grid' | 'alpha', string>;
 
+export const viewModes = ['height', 'world'] as const
+export type ViewMode = typeof viewModes[number]
+
 export type StyleList = {
   [index: string]: StyleType;
 }
