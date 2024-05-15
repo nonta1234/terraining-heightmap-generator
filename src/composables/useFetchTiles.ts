@@ -5,9 +5,7 @@ export const useFetchTerrainTiles = async (zoom: number, x: number, y: number, t
   let data: Blob | undefined
   let error: FetchError | undefined
   try {
-    data = await $fetch<Blob>(url, {
-      method: 'GET',
-    })
+    data = await $fetch<Blob>(url)
   } catch (err) {
     error = err as FetchError
   }
@@ -19,9 +17,7 @@ export const useFetchVectorTiles = async (zoom: number, x: number, y: number, to
   let data: Blob | undefined
   let error: FetchError | undefined
   try {
-    data = await $fetch<Blob>(url, {
-      method: 'GET',
-    })
+    data = await $fetch<Blob>(url)
   } catch (err) {
     error = err as FetchError
   }
