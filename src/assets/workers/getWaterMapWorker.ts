@@ -1,6 +1,5 @@
 import { FetchError } from 'ofetch'
 import { VectorTile, Point } from 'mapbox-vector-tile'
-import * as StackBlur from 'stackblur-canvas'
 import type { GenerateMapOption } from '~/types/types'
 
 type T = {
@@ -173,6 +172,8 @@ class GetWaterMapWorker {
     this.waterWayCtx.rotate(theta)
     this.waterWayCtx.scale(scale, scale)
     this.waterWayCtx.translate(-offsetX, -offsetY)
+    this.waterWayCtx.globalCompositeOperation = 'darken'
+    this.waterWayCtx.lineJoin = 'round'
 
     // create texture
     createSlopeTexture(mapType, settings, scale, this.littCtx)
@@ -250,9 +251,23 @@ class GetWaterMapWorker {
             // draw water way
             if (tile.layers.waterway) {
               const geo = tile.layers.waterway.feature(0).loadGeometry()
-              this.waterWayCtx.lineWidth = mapType === 'cs2play' ? 2 / scale : 1 / scale
+
+              if (mapType === 'cs2play') {
+                this.waterWayCtx.strokeStyle = '#AAAAAA'
+                this.waterWayCtx.lineWidth = 3 / scale
+
+                for (let m = 0; m < geo.length; m++) {
+                  this.waterWayCtx.beginPath()
+                  this.waterWayCtx.moveTo(geo[m][0].x, geo[m][0].y)
+
+                  for (let n = 1; n < geo[m].length; n++) {
+                    this.waterWayCtx.lineTo(geo[m][n].x, geo[m][n].y)
+                  }
+                  this.waterWayCtx.stroke()
+                }
+              }
               this.waterWayCtx.strokeStyle = '#000000'
-              this.waterWayCtx.lineJoin = 'round'
+              this.waterWayCtx.lineWidth = 1 / scale
 
               for (let m = 0; m < geo.length; m++) {
                 this.waterWayCtx.beginPath()
@@ -283,7 +298,7 @@ class GetWaterMapWorker {
     const waterWayImageData = this.waterWayCtx.getImageData(0, 0, resultPixels, resultPixels)
 
     const resultWaterWayImageData = mapType === 'cs2play'
-      ? StackBlur.imageDataRGBA(waterWayImageData, 0, 0, resultPixels, resultPixels, 2)
+      ? waterWayImageData // StackBlur.imageDataRGBA(waterWayImageData, 0, 0, resultPixels, resultPixels, 3)
       : waterWayImageData
 
     const waterMap = decodeData(resultWaterImageData.data)
