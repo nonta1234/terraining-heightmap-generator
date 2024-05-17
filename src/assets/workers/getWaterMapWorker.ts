@@ -297,12 +297,8 @@ class GetWaterMapWorker {
     const resultWaterImageData = resultWaterCtx.getImageData(0, 0, resultPixels, resultPixels)
     const waterWayImageData = this.waterWayCtx.getImageData(0, 0, resultPixels, resultPixels)
 
-    const resultWaterWayImageData = mapType === 'cs2play'
-      ? waterWayImageData // StackBlur.imageDataRGBA(waterWayImageData, 0, 0, resultPixels, resultPixels, 3)
-      : waterWayImageData
-
     const waterMap = decodeData(resultWaterImageData.data)
-    const waterWayMap = decodeData(resultWaterWayImageData.data)
+    const waterWayMap = decodeData(waterWayImageData.data)
 
     if (isDebug) {
       this.clearCanvas(this.waterCtx)
