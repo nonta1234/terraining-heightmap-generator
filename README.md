@@ -78,11 +78,13 @@
 - **Heightmap Type**&#8202;: Choose either CS1 or CS2.
 - **Interpolation**&#8202;: Choose from Bilinear or Bicubic.
 - **Elevation Scale**&#8202;: The maximum elevation for CS2.
+- **Waterside Detail**&#8202;: Adjust the level of detail for waterside drawings.
 - **Stream Depth**&#8202;: Aiding in the depiction of streams.
 - **Smooth Count**&#8202;: Determine the number of times the smooth effect is repeated.
 - **Noise Value**&#8202;: Add or subtract height.
 - **Noise Detail**&#8202;: Adjust the level of detail for noise. The higher the value, the finer the noise.
 - **Reflecting the amount of effect**&#8202;: Reflect the sharpen and smooth intensity on the map.
+- **User Style URL**&#8202;: Downloads a map image using the specified map style.
 - **Access Token**&#8202;: You will need your own Mapbox access token to download the heightmap for CS2.
 
 ---
@@ -90,6 +92,6 @@
 ## ToDo
 
 - [x] Improve the littoral slope shape.
-- [ ] Make the entire download process a web worker.
+- [x] Make the entire download process a web worker.
 - [ ] Support for Larger map mod.
-- [ ] Download map information.
+- [x] Download map information.
