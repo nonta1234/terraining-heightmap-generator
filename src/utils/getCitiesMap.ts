@@ -64,6 +64,13 @@ export const getCitiesMap = async (mapType: MapType) => {
       }
       return { heightmap: citiesMap }
     } else {
+      let heightmapView = false
+      let worldMapView = false
+      if (debugMode.value) {
+        const { viewMode } = useViewMode()
+        heightmapView = viewMode.value === 'height'
+        worldMapView = viewMode.value === 'world'
+      }
       const playHeightmapData = async () => {
         const { heightmap } = await getHeightmap('cs2play')
         const minmax = getMinMaxHeight(heightmap)
@@ -75,12 +82,16 @@ export const getCitiesMap = async (mapType: MapType) => {
           waterWayMap,
           waterMapImage,
           waterWayMapImage,
-        } = await getWaterMap('cs2play', debugMode.value)
+          littImage,
+          cornerImage,
+        } = await getWaterMap('cs2play', heightmapView)
         return {
           waterMap,
           waterWayMap,
           waterMapImage,
           waterWayMapImage,
+          littImage,
+          cornerImage,
         }
       }
       const heightmapData = async () => {
@@ -96,7 +107,7 @@ export const getCitiesMap = async (mapType: MapType) => {
           waterWayMapImage,
           littImage,
           cornerImage,
-        } = await getWaterMap('cs2', debugMode.value)
+        } = await getWaterMap('cs2', worldMapView)
         return {
           waterMap,
           waterWayMap,
@@ -130,8 +141,8 @@ export const getCitiesMap = async (mapType: MapType) => {
         setImageBitmap(osTileCanvas, results[2].heightmapImage!)
         setImageBitmap(osWaterCanvas, results[n].waterMapImage!)
         setImageBitmap(osWaterWayCanvas, results[n].waterWayMapImage!)
-        setImageBitmap(osLittCanvas, results[3].littImage!)
-        setImageBitmap(osCornerCanvas, results[3].cornerImage!)
+        setImageBitmap(osLittCanvas, results[n].littImage!)
+        setImageBitmap(osCornerCanvas, results[n].cornerImage!)
       }
       return { heightmap: resultHeightmap, worldMap: resultWorldMap }
     }
