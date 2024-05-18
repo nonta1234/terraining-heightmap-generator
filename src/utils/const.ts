@@ -1,4 +1,4 @@
-import type { GridInfo, LittoralArray, StyleList } from '~/types/types'
+import type { GridInfo, LittoralArray, Settings, StyleList } from '~/types/types'
 
 export const NEED_TOKEN = 'You will need your own Mapbox access token\nto download the heightmap data for CS2.'
 
@@ -84,7 +84,7 @@ export const effectRasterColorMix: [number, number, number, number]  = [
   -10030,
 ]
 
-export const initialValue = {
+export const initialValue: Settings = {
   lng:               -73.96530,
   lat:               40.78280,
   zoom:              10,
@@ -108,6 +108,7 @@ export const initialValue = {
   shrpThres:         0,
   shrpFade:          0,
   style:             mapStyle.outdoors,
+  userStyleURL:      '',
   gridInfo:          'cs1',
   elevationScale:    4096.000,
   interpolation:     'bicubic',

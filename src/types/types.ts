@@ -65,6 +65,8 @@ export interface Settings {
   sharpen:           number;
   shrpThres:         number;
   shrpFade:          number;
+  style:             string;
+  userStyleURL:      string;
   gridInfo:          MapType;
   elevationScale:    number;
   interpolation:     Interpolation;
