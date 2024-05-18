@@ -8,8 +8,16 @@ const props = withDefaults(defineProps<Props>(), {
   list: () => styleList,
 })
 const device = useDevice()
+const mapbox = useMapbox()
 const buttonEl = ref<HTMLInputElement>()
 const selectEl = ref<HTMLSelectElement>()
+const hasUserStyle = ref(false)
+
+const userStyle = computed(() => mapbox.value.settings.userStyleURL)
+
+watch(userStyle, () => {
+  hasUserStyle.value = (userStyle.value !== '')
+})
 
 const resetSelect = () => {
   selectEl.value!.selectedIndex = -1
@@ -22,6 +30,10 @@ const startIconRotation = () => {
 const stopIconRotation = () => {
   buttonEl.value?.classList.remove('rotate')
 }
+
+onMounted(() => {
+  hasUserStyle.value = (mapbox.value.settings.userStyleURL !== '')
+})
 
 defineExpose({
   startIconRotation,
@@ -42,6 +54,7 @@ defineExpose({
     >
       <option value="" disabled>{{ '--Select style--' + (device.isFirefox ? '' : '&nbsp;&nbsp;') }}</option>
       <option v-for="item in props.list" :key="item.value" :value="item.value">{{ item.text + (device.isFirefox ? '' : '&nbsp;&nbsp;') }}</option>
+      <option v-if="hasUserStyle" value="user">{{ 'User Style' + (device.isFirefox ? '' : '&nbsp;&nbsp;') }}</option>
     </select>
   </div>
 </template>

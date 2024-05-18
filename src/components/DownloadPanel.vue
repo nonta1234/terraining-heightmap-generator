@@ -72,9 +72,14 @@ const getPngHeightMap = async () => {
 
 const getMapImage = async (e: Event) => {
   imgButton.value?.startIconRotation()
-  const value = (e.target as HTMLSelectElement).value
   let url = ''
-
+  let valueStr = ''
+  const value = (e.target as HTMLSelectElement).value
+  if (value === 'user') {
+    valueStr = mapbox.value.settings.userStyleURL.replace('mapbox://styles/', '')
+  } else {
+    valueStr = `mapbox/${value}`
+  }
   if (mapbox.value.settings.angle === 0) {
     const pixels = mapbox.value.settings.gridInfo === 'cs1' ? '1080' : '1280'
     const { minX, minY, maxX, maxY } = getExtent(
@@ -83,8 +88,8 @@ const getMapImage = async (e: Event) => {
       mapbox.value.settings.size,
       mapbox.value.settings.gridInfo === 'cs1' ? 0 : 0.375,
     )
-    url = 'https://api.mapbox.com/styles/v1/mapbox/' +
-          `${value}/static/[${minX},${minY},${maxX},${maxY}` +
+    url = 'https://api.mapbox.com/styles/v1/' +
+          `${valueStr}/static/[${minX},${minY},${maxX},${maxY}` +
           `]/${pixels}x${pixels}@2x?access_token=${config.public.token}`
   } else {
     let decimals = 1
@@ -108,8 +113,8 @@ const getMapImage = async (e: Event) => {
     const roundedZoom = Math.round(zoom * 100) / 100
     const bearing = (mapbox.value.settings.angle > 0) ? mapbox.value.settings.angle : mapbox.value.settings.angle + 360
 
-    url = 'https://api.mapbox.com/styles/v1/mapbox/' +
-          `${value}/static/` +
+    url = 'https://api.mapbox.com/styles/v1/' +
+          `${valueStr}/static/` +
           `${mapbox.value.settings.lng},${mapbox.value.settings.lat},${roundedZoom},${bearing}` +
           `/${pixel}x${pixel}@2x?access_token=${config.public.token}`
   }

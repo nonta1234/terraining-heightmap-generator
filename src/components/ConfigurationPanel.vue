@@ -112,9 +112,15 @@ const close = () => {
             </label>
           </li>
           <li>
-            <label>
+            <label class="input-text">
+              <span>User Style URL&#8202;:</span>
+              <input v-model="mapbox.settings.userStyleURL" />
+            </label>
+          </li>
+          <li>
+            <label class="input-text">
               <span>Access Token&#8202;:</span>
-              <input v-model="mapbox.settings.accessToken" class="access-token" />
+              <input v-model="mapbox.settings.accessToken" />
             </label>
           </li>
         </ul>
@@ -147,6 +153,10 @@ const close = () => {
     flex-wrap: nowrap;
     height: 2rem;
     line-height: 2;
+    &.input-text {
+      flex-wrap: wrap;
+      height: 3.5rem;
+    }
     &:has(input) {
       height: 1.5rem;
       line-height: 1.5;
@@ -188,7 +198,7 @@ const close = () => {
       }
     }
   }
-  button, select, .access-token {
+  button, select, .input-text input {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -227,6 +237,9 @@ const close = () => {
     &:active, &:focus {
       background-color: $inputBgF;
     }
+  }
+  .input-text input {
+    width: 16.25rem;
   }
   input[input] {
     color: #FFA500;
