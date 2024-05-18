@@ -3,10 +3,12 @@ const mapbox = useMapbox()
 
 const heightmapTypeRef = ref<HTMLSelectElement>()
 const interpolationRef = ref<HTMLSelectElement>()
+const watersideRef = ref<HTMLSelectElement>()
 
 onMounted(() => {
   heightmapTypeRef.value!.value = mapbox.value.settings.gridInfo
   interpolationRef.value!.value = mapbox.value.settings.interpolation
+  watersideRef.value!.value = mapbox.value.settings.waterside.toString()
 })
 
 const onHeightmapTypeChange = () => {
@@ -29,6 +31,9 @@ const toggleDisplayEffect = () => {
 }
 
 const close = () => {
+  if (mapbox.value.settings.gridInfo === 'cs2' && mapbox.value.settings.accessToken === '') {
+    alert(NEED_TOKEN)
+  }
   useEvent('map:cpModal', false)
   setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
   saveSettings(mapbox.value.settings)
@@ -68,6 +73,16 @@ const close = () => {
           </li>
           <li>
             <label>
+              <span>Waterside Detail&#8202;:</span>
+              <span><select ref="watersideRef" v-model="mapbox.settings.waterside" name="waterside">
+                <option value="2">High</option>
+                <option value="1">Mid</option>
+                <option value="0">Low</option>
+              </select></span>
+            </label>
+          </li>
+          <li>
+            <label>
               <span>Stream Depth&#8202;:</span>
               <NumberInput v-model="mapbox.settings.streamDepth" :max="100" :min="0" :step="1" /><span>m</span>
             </label>
@@ -97,9 +112,15 @@ const close = () => {
             </label>
           </li>
           <li>
-            <label>
+            <label class="input-text">
+              <span>User Style URL&#8202;:</span>
+              <input v-model="mapbox.settings.userStyleURL" />
+            </label>
+          </li>
+          <li>
+            <label class="input-text">
               <span>Access Token&#8202;:</span>
-              <input v-model="mapbox.settings.accessToken" class="access-token" />
+              <input v-model="mapbox.settings.accessToken" />
             </label>
           </li>
         </ul>
@@ -132,6 +153,10 @@ const close = () => {
     flex-wrap: nowrap;
     height: 2rem;
     line-height: 2;
+    &.input-text {
+      flex-wrap: wrap;
+      height: 3.5rem;
+    }
     &:has(input) {
       height: 1.5rem;
       line-height: 1.5;
@@ -173,7 +198,7 @@ const close = () => {
       }
     }
   }
-  button, select, .access-token {
+  button, select, .input-text input {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -212,6 +237,9 @@ const close = () => {
     &:active, &:focus {
       background-color: $inputBgF;
     }
+  }
+  .input-text input {
+    width: 16.25rem;
   }
   input[input] {
     color: #FFA500;

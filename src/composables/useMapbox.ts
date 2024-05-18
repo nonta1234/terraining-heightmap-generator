@@ -3,47 +3,6 @@ import * as turf from '@turf/turf'
 import type { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
 import { extentGrid } from '~/utils/extentGrid'
 import type { Mapbox, Grid, LngLat } from '~/types/types'
-import { pixel2lat, pixel2lng } from '~/utils/tiles'
-
-
-export const getExtent = (lng: number, lat: number, size: number, offset = 0) => {
-  const x = lng2pixel(lng, 0)
-  const y = lat2pixel(lat, 0)
-  const _offset = Math.min(Math.max(offset, 0), 0.5)
-
-  const buffer = turf.buffer(
-    turf.point([lng, lat]),
-    size / 2,
-    { units: 'kilometers' },
-  )
-
-  const _north = buffer.geometry.coordinates[0][8][1]
-  const _south = buffer.geometry.coordinates[0][24][1]
-  const _east = buffer.geometry.coordinates[0][0][0]
-  const _west = buffer.geometry.coordinates[0][16][0]
-
-  const width = lng2pixel(_east, 0) + (_east > _west ? 0 : 256) - lng2pixel(_west, 0)
-  const height = lat2pixel(_south, 0) - lat2pixel(_north, 0)
-  const side = Math.sqrt(width * width + height * height) / Math.SQRT2
-  const halfSide = side / 2
-  const offsetPixels = side * _offset
-
-  const north = pixel2lat(y - halfSide + offsetPixels, 0)
-  const south = pixel2lat(y + halfSide - offsetPixels, 0)
-  const east = pixel2lng(x + halfSide - offsetPixels, 0)
-  const west = pixel2lng(x - halfSide + offsetPixels, 0)
-
-  return {
-    topleft: [west, north] as turf.helpers.Position,
-    topright: [east, north] as turf.helpers.Position,
-    bottomleft: [west, south] as turf.helpers.Position,
-    bottomright: [east, south] as turf.helpers.Position,
-    minX: west,
-    minY: south,
-    maxX: east,
-    maxY: north,
-  }
-}
 
 
 export const getGridAngle = () => {
@@ -132,7 +91,41 @@ const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'to
 }
 
 
-const getGrid = (lng: number, lat: number, size: number, angle: number) => {
+const fixLng = (position: Position) => {
+  const _lng = ((position[0] + 540) % 360) - 180
+  return [_lng, position[1]] as Position
+}
+
+
+export const getPoint = (grid: Grid) => {
+  const mapbox = useMapbox()
+  const bottomleft = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[0]].geometry.coordinates[0][0]
+  const topleft = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[1]].geometry.coordinates[0][1]
+  const topright = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[2]].geometry.coordinates[0][2]
+  const bottomright = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].side[3]].geometry.coordinates[0][3]
+  const sides = {
+    north: Math.max(bottomleft[1], topleft[1], topright[1], bottomright[1]),
+    south: Math.min(bottomleft[1], topleft[1], topright[1], bottomright[1]),
+    east: ((Math.max(bottomleft[0], topleft[0], topright[0], bottomright[0]) + 540) % 360) - 180,
+    west: ((Math.min(bottomleft[0], topleft[0], topright[0], bottomright[0]) + 540) % 360) - 180,
+  }
+  const gridCorner = { topleft: fixLng(topleft), topright: fixLng(topright), bottomleft: fixLng(bottomleft), bottomright: fixLng(bottomright), _sides: sides }
+  const pBottomleft = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].play[0]].geometry.coordinates[0][0]
+  const pTopleft = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].play[1]].geometry.coordinates[0][1]
+  const pTopright = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].play[2]].geometry.coordinates[0][2]
+  const pBottomright = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].play[3]].geometry.coordinates[0][3]
+  const pSides = {
+    north: Math.max(pBottomleft[1], pTopleft[1], pTopright[1], pBottomright[1]),
+    south: Math.min(pBottomleft[1], pTopleft[1], pTopright[1], pBottomright[1]),
+    east: ((Math.max(pBottomleft[0], pTopleft[0], pTopright[0], pBottomright[0]) + 540) % 360) - 180,
+    west: ((Math.min(pBottomleft[0], pTopleft[0], pTopright[0], pBottomright[0]) + 540) % 360) - 180,
+  }
+  const playAreaCorner = { topleft: fixLng(pTopleft), topright: fixLng(pTopright), bottomleft: fixLng(pBottomleft), bottomright: fixLng(pBottomright), _sides: pSides }
+  return { gridCorner, playAreaCorner }
+}
+
+
+export const getGrid = (lng: number, lat: number, size: number, angle: number) => {
   const mapbox = useMapbox()
   const { minX, minY, maxX, maxY } = getExtent(lng, lat, size)
 
@@ -272,5 +265,5 @@ export const useMapbox = () => {
  *
  *    1---2
  *    |   |
- *    0---3/4
+ *    0/4-3
  */

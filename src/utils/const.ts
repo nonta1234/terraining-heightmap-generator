@@ -1,4 +1,6 @@
-import type { GridInfo, LittoralArray, StyleList } from '~/types/types'
+import type { GridInfo, LittoralArray, Settings, StyleList } from '~/types/types'
+
+export const NEED_TOKEN = 'You will need your own Mapbox access token\nto download the heightmap data for CS2.'
 
 export const mapStyle = {
   streets:    'mapbox://styles/mapbox/streets-v12?optimize=true',
@@ -21,6 +23,7 @@ export const styleList: StyleList = {
 export const mapSpec: GridInfo = {
   cs1: {
     mapPixels: 1081,
+    mapFaces: 1080,
     size: 17.280,
     cell: 9,
     center: [40, 40, 40, 40],
@@ -35,6 +38,7 @@ export const mapSpec: GridInfo = {
   },
   cs2: {
     mapPixels: 4096,
+    mapFaces: 4096,
     size: 57.344,
     cell: 24,
     center: [275, 276, 300, 299],
@@ -48,7 +52,8 @@ export const mapSpec: GridInfo = {
     side: [0, 23, 575, 552],
   },
   cs2play: {
-    mapPixels: 16384,
+    mapPixels: 4096,
+    mapFaces: 4096,
     size: 57.344,
     cell: 24,
     center: [275, 276, 300, 299],
@@ -70,16 +75,16 @@ export const littoralArray: LittoralArray = {
   quint:  [0.001, 0.005, 0.039, 0.164, 0.500, 0.836, 0.961, 0.995, 0.999],
 }
 
-export const effectRasterColorRange = [-500, 9740]
+export const effectRasterColorRange: [number, number] = [-500, 9740]
 
-export const effectRasterColorMix = [
+export const effectRasterColorMix: [number, number, number, number]  = [
   256 * 256 * 256 * 0.1,
   256 * 256 * 0.1,
   256 * 0.1,
   -10030,
 ]
 
-export const initialValue = {
+export const initialValue: Settings = {
   lng:               -73.96530,
   lat:               40.78280,
   zoom:              10,
@@ -91,7 +96,8 @@ export const initialValue = {
   fixedRatio:        true,
   type:              'manual',
   depth:             40,
-  streamDepth:       10,
+  waterside:         '1',
+  streamDepth:       0,
   littoral:          160,
   littArray:         littoralArray.sine,
   smoothing:         0,
@@ -102,6 +108,7 @@ export const initialValue = {
   shrpThres:         0,
   shrpFade:          0,
   style:             mapStyle.outdoors,
+  userStyleURL:      '',
   gridInfo:          'cs1',
   elevationScale:    4096.000,
   interpolation:     'bicubic',

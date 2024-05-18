@@ -6,6 +6,8 @@ const mapbox = useMapbox()
 const { debugMode } = useDebug()
 const { isMobile } = useDevice()
 
+const mapCanvas = ref<HTMLElement>()
+
 type GridState = 'none' | 'isMove' | 'isRotate' | 'isResize'
 let gridState: GridState = 'none'
 let prevAngle = 0
@@ -18,10 +20,8 @@ const { $throttle } = useNuxtApp()
 onMounted(() => {
   createMapInstance()
 
-  let mapCanvas: HTMLElement
-
   mapbox.value.map?.on('load', () => {
-    mapCanvas = mapbox.value.map!.getCanvasContainer()
+    mapCanvas.value = mapbox.value.map!.getCanvasContainer()
     addController()
     setMouse()
   })
@@ -81,7 +81,6 @@ onMounted(() => {
     })
     mapbox.value.map?.addSource('raster-dem', {
       type: 'raster',
-      // tiles: ['https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/{z}/{x}/{y}.pngraw'],
       tiles: ['https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw'],
       tileSize: 256,
       maxzoom: 15,
@@ -180,7 +179,7 @@ onMounted(() => {
           'raster-color': getSmoothLayerColor(),
           'raster-opacity': getRasterOpacity(mapbox.value.settings.smoothing),
           'raster-resampling': 'nearest',
-        } as any,   // RasterPaint type settings are in beta
+        },
       },
       layerPosition,
     )
@@ -196,7 +195,7 @@ onMounted(() => {
           'raster-color': getSharpenLayerColor(),
           'raster-opacity': getRasterOpacity(mapbox.value.settings.sharpen),
           'raster-resampling': 'nearest',
-        } as any,   // RasterPaint type settings are in beta
+        },
       },
       layerPosition,
     )
@@ -211,7 +210,6 @@ onMounted(() => {
     )
 
     if (!mapbox.value.settings.displayEffectArea) {
-      // mapbox.value.map?.setPaintProperty('hillshade', 'fill-color', defaultHillshade)
       mapbox.value.map?.setLayoutProperty('hillshading', 'visibility', 'none')
       mapbox.value.map?.setLayoutProperty('smoothLayer', 'visibility', 'none')
       mapbox.value.map?.setLayoutProperty('sharpenLayer', 'visibility', 'none')
@@ -303,7 +301,7 @@ onMounted(() => {
   function onRotateEnd() {
     setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
     mapbox.value.settings.angle = getGridAngle()
-    mapCanvas.style.cursor = ''
+    mapCanvas.value!.style.cursor = ''
     mapbox.value.map?.off('mousemove', onRotate)
     mapbox.value.map?.off('touchmove', onRotate)
     mapbox.value.map?.scrollZoom.enable()
@@ -359,7 +357,7 @@ onMounted(() => {
 
   function onResizeEnd() {
     setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
-    mapCanvas.style.cursor = ''
+    mapCanvas.value!.style.cursor = ''
     mapbox.value.map?.off('mousemove', onResize)
     mapbox.value.map?.off('touchmove', onResize)
     useEvent('map:changeMapSize', mapbox.value.settings.size)
@@ -371,18 +369,18 @@ onMounted(() => {
     // centerArea - move
     mapbox.value.map?.on('mouseenter', 'centerArea', () => {
       mapbox.value.map!.setPaintProperty('centerArea', 'fill-opacity', 0.3)
-      mapCanvas.style.cursor = 'move'
+      mapCanvas.value!.style.cursor = 'move'
     })
 
     mapbox.value.map?.on('mouseleave', 'centerArea', () => {
       mapbox.value.map!.setPaintProperty('centerArea', 'fill-opacity', 0.2)
-      mapCanvas.style.cursor = ''
+      mapCanvas.value!.style.cursor = ''
     })
 
     mapbox.value.map?.on('mousedown', 'centerArea', (e) => {
       if (gridState === 'none') {
         e.preventDefault()
-        mapCanvas.style.cursor = 'grab'
+        mapCanvas.value!.style.cursor = 'grab'
         mapbox.value.map!.on('mousemove', onMove)
         mapbox.value.map!.once('mouseup', onUp)
         gridState = 'isMove'
@@ -401,12 +399,12 @@ onMounted(() => {
     // rotateArea - rotate
     mapbox.value.map?.on('mouseenter', 'rotateArea', () => {
       mapbox.value.map!.setPaintProperty('rotateArea', 'fill-color', 'rgba(0, 0, 0, 0)')
-      mapCanvas.style.cursor = 'move'
+      mapCanvas.value!.style.cursor = 'move'
     })
 
     mapbox.value.map?.on('mouseleave', 'rotateArea', () => {
       mapbox.value.map!.setPaintProperty('rotateArea', 'fill-color', 'rgba(0, 0, 0, 0)')
-      mapCanvas.style.cursor = ''
+      mapCanvas.value!.style.cursor = ''
     })
 
     mapbox.value.map?.on('mousedown', 'rotateArea', (e) => {
@@ -432,13 +430,13 @@ onMounted(() => {
     mapbox.value.map?.on('mouseenter', 'sideLines', () => {
       mapbox.value.map!.setPaintProperty('sideLines', 'line-width', 5)
       mapbox.value.map!.setPaintProperty('sideLines', 'line-opacity', 0.3)
-      mapCanvas.style.cursor = 'move'
+      mapCanvas.value!.style.cursor = 'move'
     })
 
     mapbox.value.map?.on('mouseleave', 'sideLines', () => {
       mapbox.value.map!.setPaintProperty('sideLines', 'line-opacity', 0)
       mapbox.value.map!.setPaintProperty('sideLines', 'line-width', 10)
-      mapCanvas.style.cursor = ''
+      mapCanvas.value!.style.cursor = ''
     })
 
     mapbox.value.map?.on('mousedown', 'sideLines', (e) => {

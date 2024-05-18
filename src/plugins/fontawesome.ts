@@ -1,5 +1,5 @@
 import { config, library } from '@fortawesome/fontawesome-svg-core'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'  // eslint-disable-line
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
   faBars,
   faXmark,
@@ -11,6 +11,7 @@ import {
 import {
   faCircleQuestion,
 } from '@fortawesome/free-regular-svg-icons'
+
 
 export default defineNuxtPlugin((nuxtApp) => {
   config.autoAddCss = false

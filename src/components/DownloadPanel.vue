@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import init, { encode_16g } from '~~/png_lib/pkg'  // eslint-disable-line
 
-
 const mapbox = useMapbox()
 const config = useRuntimeConfig()
 const device = useDevice()
@@ -13,28 +12,16 @@ const osmButton = ref<HTMLElement>()
 
 const { debugMode } = useDebug()
 
-
 const getRawHeightMap = async () => {
   rawButton.value?.classList.add('downloading')
   try {
-    const mapbox = useMapbox()
-    const config = useRuntimeConfig()
-    if (mapbox.value.settings.gridInfo === 'cs2' && (mapbox.value.settings.accessToken === '' || mapbox.value.settings.accessToken === config.public.token)) {
-      alert('You will need your own Mapbox access token\nto download the heightmap data for CS2.')
-      return
-    }
     if (mapbox.value.settings.gridInfo === 'cs1') {
-      const { citiesMap } = await getCitiesMap('cs1')
-      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, citiesMap)
+      const { heightmap } = await getCitiesMap('cs1')
+      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, heightmap)
     } else {
-      if (device.isWindows && device.isFirefox) {
-        alert('Currently, you cannot download with Firefox. Please use Chrome, Edge, or Safari.')
-        return
-      }
-      const { citiesMap: worldMap, minH, maxH } = await getCitiesMap('cs2')
+      const { heightmap, worldMap } = await getCitiesMap('cs2')
+      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, heightmap)
       download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, worldMap)
-      const { citiesMap } = await getCitiesMap('cs2play', minH, maxH)
-      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, citiesMap)
     }
     saveSettings(mapbox.value.settings)
   } catch (e: any) {
@@ -48,42 +35,31 @@ const getRawHeightMap = async () => {
 const getPngHeightMap = async () => {
   pngButton.value?.classList.add('downloading')
   try {
-    const mapbox = useMapbox()
-    const config = useRuntimeConfig()
-    if (mapbox.value.settings.gridInfo === 'cs2' && (mapbox.value.settings.accessToken === '' || mapbox.value.settings.accessToken === config.public.token)) {
-      alert('You will need your own Mapbox access token\nto download the heightmap data for CS2.')
-      return
-    }
     if (mapbox.value.settings.gridInfo === 'cs1') {
+      const { heightmap } = await getCitiesMap('cs1')
       await init()
-      const { citiesMap } = await getCitiesMap('cs1')
       const png = await encode_16g({
         width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
         height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        data: citiesMap,
+        data: heightmap,
       })
       download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png.data)
     } else {
-      if (device.isWindows && device.isFirefox) {
-        alert('Currently, you cannot download with Firefox. Please use Chrome, Edge, or Safari.')
-        return
-      }
+      const { heightmap, worldMap } = await getCitiesMap('cs2')
       await init()
-      const { citiesMap: worldMap, minH, maxH } = await getCitiesMap('cs2')
-      const worldPng = await encode_16g({
+      const heightmapPng = await encode_16g({
         width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
         height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        data: worldMap,
+        data: heightmap,
       })
-      download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, worldPng.data)
       await init()
-      const { citiesMap } = await getCitiesMap('cs2play', minH, maxH)
-      const citiesPng = await encode_16g({
+      const worldMapPng = await encode_16g({
         width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
         height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        data: citiesMap,
+        data: worldMap!,
       })
-      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, citiesPng.data)
+      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, heightmapPng.data)
+      download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, worldMapPng.data)
     }
     saveSettings(mapbox.value.settings)
   } catch (e: any) {
@@ -96,9 +72,14 @@ const getPngHeightMap = async () => {
 
 const getMapImage = async (e: Event) => {
   imgButton.value?.startIconRotation()
-  const value = (e.target as HTMLSelectElement).value
   let url = ''
-
+  let valueStr = ''
+  const value = (e.target as HTMLSelectElement).value
+  if (value === 'user') {
+    valueStr = mapbox.value.settings.userStyleURL.replace('mapbox://styles/', '')
+  } else {
+    valueStr = `mapbox/${value}`
+  }
   if (mapbox.value.settings.angle === 0) {
     const pixels = mapbox.value.settings.gridInfo === 'cs1' ? '1080' : '1280'
     const { minX, minY, maxX, maxY } = getExtent(
@@ -107,8 +88,8 @@ const getMapImage = async (e: Event) => {
       mapbox.value.settings.size,
       mapbox.value.settings.gridInfo === 'cs1' ? 0 : 0.375,
     )
-    url = 'https://api.mapbox.com/styles/v1/mapbox/' +
-          `${value}/static/[${minX},${minY},${maxX},${maxY}` +
+    url = 'https://api.mapbox.com/styles/v1/' +
+          `${valueStr}/static/[${minX},${minY},${maxX},${maxY}` +
           `]/${pixels}x${pixels}@2x?access_token=${config.public.token}`
   } else {
     let decimals = 1
@@ -129,12 +110,11 @@ const getMapImage = async (e: Event) => {
         pixel = i
       }
     }
-
     const roundedZoom = Math.round(zoom * 100) / 100
     const bearing = (mapbox.value.settings.angle > 0) ? mapbox.value.settings.angle : mapbox.value.settings.angle + 360
 
-    url = 'https://api.mapbox.com/styles/v1/mapbox/' +
-          `${value}/static/` +
+    url = 'https://api.mapbox.com/styles/v1/' +
+          `${valueStr}/static/` +
           `${mapbox.value.settings.lng},${mapbox.value.settings.lat},${roundedZoom},${bearing}` +
           `/${pixel}x${pixel}@2x?access_token=${config.public.token}`
   }
@@ -319,3 +299,4 @@ const debug = () => {
     }
   }
 </style>
+~/utils/getCitiesMapBak

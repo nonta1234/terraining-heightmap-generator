@@ -1,100 +1,145 @@
-import CalcMapWorker from '~/workers/calcCitiesMap.ts?worker'
-import type { MapType } from '~/types/types'
+import type { MapType, Canvases } from '~/types/types'
 
-type MessageData = {
-  scaleFactor: number;
-  tmpHeightMap: Float32Array;
-  waterMap: Float32Array;
-  waterwayMap: Float32Array;
-  seaLevel: number;
-  vertScale: number;
-  smoothing: number;
-  smthThres: number;
-  smthFade: number;
-  smoothCount: number;
-  sharpen: number;
-  shrpThres: number;
-  shrpFade: number;
-  depth: number;
-  streamDepth: number;
-  mapSizePixels: number;
-  mapSizePixelsWithBuffer: number;
-  noise: number;
-  noiseGrid: number;
+const setImageBitmap = (canvas: OffscreenCanvas, image: ImageBitmap) => {
+  canvas.width = image.width
+  canvas.height = image.height
+  const ctx = canvas.getContext('bitmaprenderer')
+  ctx!.transferFromImageBitmap(image)
 }
 
 
-const calcMap = (data: MessageData) => {
-  return new Promise<Uint8Array>((resolve) => {
-    const worker = new CalcMapWorker()
-    worker.postMessage(data, [data.tmpHeightMap.buffer, data.waterMap.buffer, data.waterwayMap.buffer])
-    worker.addEventListener('message', (e) => {
-      if (e.data) {
-        resolve(e.data)
-        worker.terminate()
-      }
-    }, false)
-  })
-}
-
-
-export const getCitiesMap = async (mapType: MapType, minHeight?: number, maxHeight?: number) => {
+export const getCitiesMap = async (mapType: MapType) => {
   try {
     const mapbox = useMapbox()
+    const { debugMode } = useDebug()
+    const {
+      osTileCanvas,
+      osWaterCanvas,
+      osWaterWayCanvas,
+      osLittCanvas,
+      osCornerCanvas,
+    } = useState<Canvases>('canvases').value
 
-    const heightMapTime0 = window.performance.now()
-    const tmpHeightMap = await getHeightMap(mapType)
-    const heightMapTime = window.performance.now() - heightMapTime0
-    console.log('heightmap:', heightMapTime.toFixed(1) + 'ms')
+    if (mapType === 'cs1') {
+      const heightmapData = async () => {
+        const { heightmap, heightmapImage } = await getHeightmap('cs1', debugMode.value)
+        const minmax = getMinMaxHeight(heightmap)
+        return { heightmap, heightmapImage, minmax }
+      }
+      const waterMapData = async () => {
+        const {
+          waterMap,
+          waterWayMap,
+          waterMapImage,
+          waterWayMapImage,
+          littImage,
+          cornerImage,
+        } = await getWaterMap('cs1', debugMode.value)
+        return {
+          waterMap,
+          waterWayMap,
+          waterMapImage,
+          waterWayMapImage,
+          littImage,
+          cornerImage,
+        }
+      }
+      const results = await Promise.all([
+        heightmapData(),
+        waterMapData(),
+      ])
 
-    const waterMapTime0 = window.performance.now()
-    const { waterMap, waterwayMap } = await getWaterMap(mapType)
-    const waterMapTime = window.performance.now() - waterMapTime0
-    console.log('watermap:', waterMapTime.toFixed(1) + 'ms')
+      if (mapbox.value.settings.adjLevel) {
+        mapbox.value.settings.seaLevel = results[0].minmax.min
+      }
+      adjustElevation(results[0].minmax.max)
+      const citiesMap = await generateCitiesMap('cs1', results[0].heightmap, results[1].waterMap, results[1].waterWayMap)
 
-    let minH: number | undefined
-    let maxH: number | undefined
-    if (!minHeight || !maxHeight) {
-      const { min, max } = getMinMaxHeight(tmpHeightMap)
-      minH = min
-      maxH = max
+      if (debugMode.value) {
+        setImageBitmap(osTileCanvas, results[0].heightmapImage!)
+        setImageBitmap(osWaterCanvas, results[1].waterMapImage!)
+        setImageBitmap(osWaterWayCanvas, results[1].waterWayMapImage!)
+        setImageBitmap(osLittCanvas, results[1].littImage!)
+        setImageBitmap(osCornerCanvas, results[1].cornerImage!)
+      }
+      return { heightmap: citiesMap }
     } else {
-      minH = minHeight
-      maxH = maxHeight
+      const playHeightmapData = async () => {
+        const { heightmap } = await getHeightmap('cs2play')
+        const minmax = getMinMaxHeight(heightmap)
+        return { heightmap, minmax }
+      }
+      const playWaterMapData = async () => {
+        const {
+          waterMap,
+          waterWayMap,
+          waterMapImage,
+          waterWayMapImage,
+        } = await getWaterMap('cs2play', debugMode.value)
+        return {
+          waterMap,
+          waterWayMap,
+          waterMapImage,
+          waterWayMapImage,
+        }
+      }
+      const heightmapData = async () => {
+        const { heightmap, heightmapImage } = await getHeightmap('cs2', debugMode.value)
+        const minmax = getMinMaxHeight(heightmap)
+        return { heightmap, heightmapImage, minmax }
+      }
+      const waterMapData = async () => {
+        const {
+          waterMap,
+          waterWayMap,
+          waterMapImage,
+          waterWayMapImage,
+          littImage,
+          cornerImage,
+        } = await getWaterMap('cs2', debugMode.value)
+        return {
+          waterMap,
+          waterWayMap,
+          waterMapImage,
+          waterWayMapImage,
+          littImage,
+          cornerImage,
+        }
+      }
+      const results = await Promise.all([
+        playHeightmapData(),
+        playWaterMapData(),
+        heightmapData(),
+        waterMapData(),
+      ])
+
+      const min = Math.min(results[0].minmax.min, results[2].minmax.min)
+      const max = Math.max(results[0].minmax.max, results[2].minmax.max)
+
+      if (mapbox.value.settings.adjLevel) {
+        mapbox.value.settings.seaLevel = min
+      }
+      adjustElevation(max)
+
+      const resultHeightmap = await generateCitiesMap('cs2play', results[0].heightmap, results[1].waterMap, results[1].waterWayMap)
+      const resultWorldMap = await generateCitiesMap('cs2', results[2].heightmap, results[3].waterMap, results[3].waterWayMap)
+
+      if (debugMode.value) {
+        const { viewMode } = useViewMode()
+        const n = viewMode.value === 'world' ? 3 : 1
+        setImageBitmap(osTileCanvas, results[2].heightmapImage!)
+        setImageBitmap(osWaterCanvas, results[n].waterMapImage!)
+        setImageBitmap(osWaterWayCanvas, results[n].waterWayMapImage!)
+        setImageBitmap(osLittCanvas, results[3].littImage!)
+        setImageBitmap(osCornerCanvas, results[3].cornerImage!)
+      }
+      return { heightmap: resultHeightmap, worldMap: resultWorldMap }
     }
-
-    if (mapbox.value.settings.adjLevel) {
-      mapbox.value.settings.seaLevel = minH
-    }
-    adjustElevation(maxH)
-
-    const messageData: MessageData = {
-      scaleFactor: mapbox.value.settings.gridInfo === 'cs2' ? mapbox.value.settings.elevationScale / 65535 : 0.015625,
-      tmpHeightMap,
-      waterMap,
-      waterwayMap,
-      seaLevel: mapbox.value.settings.seaLevel,
-      vertScale: mapbox.value.settings.vertScale,
-      smoothing: mapbox.value.settings.smoothing,
-      smthThres: mapbox.value.settings.smthThres,
-      smthFade: mapbox.value.settings.smthFade,
-      sharpen: mapbox.value.settings.sharpen,
-      shrpThres: mapbox.value.settings.shrpThres,
-      shrpFade: mapbox.value.settings.shrpFade,
-      depth: mapbox.value.settings.depth,
-      streamDepth: mapbox.value.settings.streamDepth,
-      mapSizePixels: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-      mapSizePixelsWithBuffer: mapSpec[mapbox.value.settings.gridInfo].mapPixels + 4,
-      noise: mapbox.value.settings.noise,
-      noiseGrid: mapbox.value.settings.noiseGrid,
-      smoothCount: mapbox.value.settings.smoothCount,
-    }
-
-    const citiesMap = await calcMap(messageData)
-
-    return { citiesMap, minH, maxH }
   } catch (error) {
     console.error('An error occurred in getCitiesMap:', error)
+    if ((error as Error).message === 'Invaid access token') {
+      alert(NEED_TOKEN)
+    }
     throw error
   }
 }

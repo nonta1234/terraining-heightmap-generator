@@ -1,4 +1,3 @@
-
 export const transposeArray = (arr: Array<number>, srcRows: number, srcCols: number) => {
   const transposed = []
   for (let i = 0; i < srcCols; i++) {
@@ -9,12 +8,10 @@ export const transposeArray = (arr: Array<number>, srcRows: number, srcCols: num
   return transposed
 }
 
-
 export const remToPx = (rem: number) => {
   const fontSize = getComputedStyle(document.documentElement).fontSize
   return rem * parseFloat(fontSize)
 }
-
 
 export const adjustElevation = (maxHeight: number) => {
   const mapbox = useMapbox()
@@ -27,7 +24,6 @@ export const adjustElevation = (maxHeight: number) => {
   }
 }
 
-
 export const getMinMaxHeight = (map: Float32Array) => {
   const heights = { min: 100000, max: -100000 }
   for (let i = 0; i < map.length; i++) {
@@ -38,11 +34,9 @@ export const getMinMaxHeight = (map: Float32Array) => {
   return heights
 }
 
-
 export const terrainRGB2Height = (r: number, g: number, b: number) => {
   return -10000 + (r * 6553.6 + g * 25.6 + b * 0.1)
 }
-
 
 export const height2TerrainRGB = (height: number) => {
   const h = height * 10 + 100000
@@ -51,7 +45,6 @@ export const height2TerrainRGB = (height: number) => {
   const b = h & 0xFF
   return { r, g, b }
 }
-
 
 export const decodeElevation = (arr: Uint8ClampedArray) => {
   const arrLength = arr.length / 4

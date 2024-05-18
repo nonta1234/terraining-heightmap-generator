@@ -2,14 +2,13 @@ import { Map, type LngLatLike } from 'mapbox-gl'
 import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolygon, MultiLineString } from 'geojson'
 
 export type LngLat = Extract<LngLatLike, [number, number]>;
-
 export type HeightCalcType = 'manual' | 'limit' | 'maximize';
-
 export type Interpolation = 'bilinear' | 'bicubic';
-
 export type MapType = 'cs1' | 'cs2' | 'cs2play';
-
 export type StyleType = Record<'text' | 'value' | 'before' | 'grid' | 'alpha', string>;
+
+export const viewModes = ['height', 'world'] as const
+export type ViewMode = typeof viewModes[number]
 
 export type StyleList = {
   [index: string]: StyleType;
@@ -17,6 +16,7 @@ export type StyleList = {
 
 export type GridInfoData = {
   mapPixels: number;
+  mapFaces:  number;
   size:      number;
   cell:      number;
   center:    number[];
@@ -54,6 +54,7 @@ export interface Settings {
   fixedRatio:        boolean;
   type:              HeightCalcType;
   depth:             number;
+  waterside:         string;
   streamDepth:       number;
   littoral:          number;
   littArray:         number[];
@@ -64,6 +65,8 @@ export interface Settings {
   sharpen:           number;
   shrpThres:         number;
   shrpFade:          number;
+  style:             string;
+  userStyleURL:      string;
   gridInfo:          MapType;
   elevationScale:    number;
   interpolation:     Interpolation;
@@ -79,4 +82,19 @@ export interface Mapbox {
   grid:       Grid | undefined;
   settings:   Settings;
   isUpdating: boolean,
+}
+
+export type GenerateMapOption = {
+  mapType:      MapType;
+  settings:     Settings;
+  token?:       string;
+  isDebug?:     boolean;
+}
+
+export type Canvases = {
+  osTileCanvas:     OffscreenCanvas;
+  osWaterCanvas:    OffscreenCanvas;
+  osWaterWayCanvas: OffscreenCanvas;
+  osLittCanvas:     OffscreenCanvas;
+  osCornerCanvas:   OffscreenCanvas;
 }

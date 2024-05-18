@@ -7,7 +7,6 @@ const { isMobile } = useDevice()
 const contents = ref()
 const defaultHeight = ref('auto')
 const panelHeight = ref('auto')
-// const scroll = ref(isWindows ? 'undefined' : 'scroll')
 
 const visDesktop = ref(false)
 const visMobile = ref(false)
@@ -25,6 +24,8 @@ const changeVisibillity = () => {
 }
 
 const controlDisabled = ref(false)
+
+let refreshing = false
 
 const rotate = ref(false)
 const message = ref('')
@@ -124,30 +125,60 @@ useListen('debug:operate', () => {
 })
 
 const refresh = async () => {
-  rotate.value = true
-  try {
-    const mapbox = useMapbox()
-    const config = useRuntimeConfig()
-    if (mapbox.value.settings.gridInfo === 'cs2' && (mapbox.value.settings.accessToken === '' || mapbox.value.settings.accessToken === config.public.token)) {
-      alert('You will need your own Mapbox access token\nto access the elevation data for CS2.')
-      return
+  if (!refreshing) {
+    rotate.value = true
+    refreshing = true
+    try {
+      const config = useRuntimeConfig()
+      if (mapbox.value.settings.gridInfo === 'cs2' && (mapbox.value.settings.accessToken === '' || mapbox.value.settings.accessToken === config.public.token)) {
+        alert(NEED_TOKEN)
+        return
+      }
+      message.value = 'Downloading\nelevation data.'
+
+      // get min max
+      let minmax: { min: number, max: number }
+      if (mapbox.value.settings.gridInfo === 'cs1') {
+        const { heightmap } = await getHeightmap('cs1')
+        minmax = getMinMaxHeight(heightmap)
+      } else {
+        const worldmapMinmax = async () => {
+          const { heightmap } = await getHeightmap('cs2')
+          return getMinMaxHeight(heightmap)
+        }
+        const heightmapMinmax = async () => {
+          const { heightmap } = await getHeightmap('cs2play')
+          return getMinMaxHeight(heightmap)
+        }
+        const results = await Promise.all([
+          worldmapMinmax(),
+          heightmapMinmax(),
+        ])
+        const min = Math.min(results[0].min, results[1].min)
+        const max = Math.max(results[0].max, results[1].max)
+        minmax = { min, max }
+      }
+      minHeight.value = minmax.min.toFixed(1)
+      maxHeight.value = minmax.max.toFixed(1)
+      if (mapbox.value.settings.adjLevel) {
+        mapbox.value.settings.seaLevel = minmax.min
+      }
+      adjustElevation(minmax.max)
+
+      // get position
+      const grid = getGrid(mapbox.value.settings.lng, mapbox.value.settings.lat, mapbox.value.settings.size, mapbox.value.settings.angle)
+      const corners = getPoint(grid)
+      console.log('min:', minmax.min, 'max:', minmax.max)
+      console.log(corners)
+      saveSettings(mapbox.value.settings)
+    } catch (error) {
+      console.error('An error occurred in getHeightMap:', error)
+      throw error
+    } finally {
+      message.value = ''
+      rotate.value = false
+      refreshing = false
     }
-    message.value = 'Downloading\nelevation data.'
-    const heightMap = await getHeightMap()
-    const { min, max } = getMinMaxHeight(heightMap)
-    minHeight.value = min.toFixed(1)
-    maxHeight.value = max.toFixed(1)
-    if (mapbox.value.settings.adjLevel) {
-      mapbox.value.settings.seaLevel = min
-    }
-    adjustElevation(max)
-    saveSettings(mapbox.value.settings)
-  } catch (error) {
-    console.error('An error occurred in getHeightMap:', error)
-    throw error
-  } finally {
-    message.value = ''
-    rotate.value = false
   }
 }
 
@@ -178,11 +209,7 @@ const onSizeChange = (value: number) => {
 const onTypeChange = (e: Event) => {
   const value = (e.target as HTMLInputElement).value
   mapbox.value.settings.type = value as HeightCalcType
-  if (mapbox.value.settings.type === 'maximize') {
-    controlDisabled.value = true
-  } else {
-    controlDisabled.value = false
-  }
+  controlDisabled.value = (mapbox.value.settings.type === 'maximize')
 }
 
 const modalButtonText = ref('OPEN')
