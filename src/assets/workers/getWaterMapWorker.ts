@@ -11,13 +11,13 @@ const isEqual = (a: Point, b: Point) => {
   return (a.x === b.x && a.y === b.y)
 }
 
-function isInside(point: Point): boolean {
+function isInside(point: Point) {
   const min = 0
   const max = 4096
   return !(point.x < min || point.x > max || point.y < min || point.y > max)
 }
 
-function isEitherInside(a: Point, b: Point): boolean {
+function isEitherInside(a: Point, b: Point) {
   return isInside(a) || isInside(b)
 }
 
