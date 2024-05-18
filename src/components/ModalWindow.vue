@@ -10,7 +10,7 @@ const props = withDefaults(defineProps<Props>(), {
 const { isMobile } = useDevice()
 
 const bottomPosition = ref('50%')
-const transformState = ref('translate(-50%, 40%)')
+const transformState = ref('translate(-50%, 45%)')
 
 if (isMobile) {
   bottomPosition.value = '7.5rem'
