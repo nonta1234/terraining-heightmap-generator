@@ -209,11 +209,7 @@ const onSizeChange = (value: number) => {
 const onTypeChange = (e: Event) => {
   const value = (e.target as HTMLInputElement).value
   mapbox.value.settings.type = value as HeightCalcType
-  if (mapbox.value.settings.type === 'maximize') {
-    controlDisabled.value = true
-  } else {
-    controlDisabled.value = false
-  }
+  controlDisabled.value = (mapbox.value.settings.type === 'maximize')
 }
 
 const modalButtonText = ref('OPEN')
