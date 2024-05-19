@@ -501,6 +501,7 @@ onMounted(() => {
       &:hover {
         color: aquamarine;
         border: solid 1px aquamarine;
+        @include shadow-4
       }
     }
     .style-button + select {
@@ -516,6 +517,7 @@ onMounted(() => {
       padding: 8px;
       border: none;
       outline: none;
+      cursor: pointer;
       option {
         background: $optionTagColor;
         color: $textColor;
@@ -523,6 +525,13 @@ onMounted(() => {
         &:first-child {
           color: $textDisabled;
         }
+      }
+    }
+    .style-button {
+      &:has(+ select:hover) {
+        color: aquamarine;
+        border: solid 1px aquamarine;
+        @include shadow-4
       }
     }
   }

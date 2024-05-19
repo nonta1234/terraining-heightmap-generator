@@ -202,6 +202,7 @@ export class StyleButton implements IControl {
 
     const select = document.createElement('select')
     select.id = 'select-style'
+    select.title = 'Change map style'
     select.innerHTML = `<option value="" disabled>--Select style--${device.isFirefox ? '' : '&nbsp;&nbsp;'}</option>
       ${chunk}`
     select.addEventListener('contextmenu', e => e.preventDefault())

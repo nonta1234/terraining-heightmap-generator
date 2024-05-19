@@ -5,7 +5,7 @@ $inputBgF: rgba(5, 6, 40, .4);
 $textColor: #F1F3F4;
 $textAlt: #9BA0A5;
 $textDisabled: #86888A;
-$borderColor: rgba(255, 255, 255, .3);
+$borderColor: rgba(255, 255, 255, .2);
 $optionTagColor: rgb(43, 42, 51);
 
 
@@ -18,18 +18,14 @@ $optionTagColor: rgb(43, 42, 51);
   border-left: solid 1px rgba(0, 0, 0, .1);
   border-right: solid 1px rgba(0, 0, 0, .2);
   border-bottom: solid 1px rgba(0, 0, 0, .2);
-  box-shadow:
-    1px 3px 6px 0 rgba(0, 0, 0, .22),
-    5px 10px 20px 0 rgba(0, 0, 0, .24);
+  @include shadow-3
 }
 
 @mixin grass-button {
   background: linear-gradient(to bottom right, rgba(5, 6, 40, .1), rgba(5, 6, 40, .2));
   -webkit-backdrop-filter: blur(5px) saturate(50%) brightness(50%);
   backdrop-filter: blur(5px) saturate(50%) brightness(50%);
-  box-shadow:
-    1px 3px 6px 0 rgba(0, 0, 0, .22),
-    5px 10px 20px 0 rgba(0, 0, 0, .24);
+  @include shadow-3
 }
 
 @mixin opaque {
@@ -38,46 +34,43 @@ $optionTagColor: rgb(43, 42, 51);
   border-left: solid 1px rgba(0, 0, 0, .1);
   border-right: solid 1px rgba(0, 0, 0, .2);
   border-bottom: solid 1px rgba(0, 0, 0, .2);
-  box-shadow:
-    1px 3px 6px 0 rgba(0, 0, 0, .22),
-    5px 10px 20px 0 rgba(0, 0, 0, .24);
+  @include shadow-3
 }
 
 // shadow
-@mixin shadow-panel {
-  box-shadow:
-    1px 3px 6px 0 rgba(0, 0, 0, .22),
-    5px 10px 20px 0 rgba(0, 0, 0, .24);
-}
-
 @mixin shadow-1 {
   box-shadow:
-    0 1px 1px 0 rgba(0, 0, 0, .24),
-    0 1px 1.5px 0 rgba(0, 0, 0, .12);
+  rgba(0, 0, 0, .2) 0px 2px 1px -1px,
+  rgba(0, 0, 0, .14) 0px 1px 1px 0px,
+  rgba(0, 0, 0, .12) 0px 1px 3px 0px;  
 }
 
 @mixin shadow-2 {
   box-shadow:
-    0 3px 3px 0 rgba(0, 0, 0, .23),
-    0 3px 3px 0 rgba(0, 0, 0, .16); 
+  rgba(0, 0, 0, .2) 0px 3px 3px -2px,
+  rgba(0, 0, 0, .14) 0px 3px 4px 0px,
+  rgba(0, 0, 0, .12) 0px 1px 8px 0px;
 }
 
 @mixin shadow-3 {
   box-shadow:
-    0 6px 3px 0 rgba(0, 0, 0, .23),
-    0 10px 10px 0 rgba(0, 0, 0, .19);
+  rgba(0, 0, 0, .2) 0px 3px 5px -1px,
+  rgba(0, 0, 0, .14) 0px 6px 10px 0px,
+  rgba(0, 0, 0, .12) 0px 1px 18px 0px;
 }
 
 @mixin shadow-4 {
   box-shadow:
-    0 10px 5px 0 rgba(0, 0, 0, .22),
-    0 14px 14px 0 rgba(0, 0, 0, .25);
+  rgba(0, 0, 0, .2) 0px 5px 5px -3px,
+  rgba(0, 0, 0, .14) 0px 8px 10px 1px,
+  rgba(0, 0, 0, .12) 0px 3px 14px 2px;
 }
 
 @mixin shadow-5 {
   box-shadow:
-    0 15px 6px 0 rgba(0, 0, 0, .22),
-    0 19px 19px 0 rgba(0, 0, 0, .30);
+  rgba(0, 0, 0, .2) 0px 7px 8px -4px,
+  rgba(0, 0, 0, .14) 0px 12px 17px 2px,
+  rgba(0, 0, 0, .12) 0px 5px 22px 4px;
 }
 
 // @media

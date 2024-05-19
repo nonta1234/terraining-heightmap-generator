@@ -118,7 +118,7 @@ onMounted(() => {
     width: 300px;
     height: 300px;
     z-index: 5;
-    @include shadow-panel;
+    @include shadow-2;
   }
   .debug-canvas {
     position: absolute;
@@ -126,6 +126,6 @@ onMounted(() => {
     height: 300px;
     z-index: 5;
     background-color: black;
-    @include shadow-panel;
+    @include shadow-2;
   }
 </style>
