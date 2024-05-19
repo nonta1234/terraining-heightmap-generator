@@ -1,4 +1,5 @@
 import * as turf from '@turf/turf'
+import { lng2pixel, lat2pixel, pixel2lat, pixel2lng } from '~/utils/tiles'
 
 /**
  * Returns the coordinates of each point in any km square.
