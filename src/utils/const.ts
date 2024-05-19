@@ -1,4 +1,4 @@
-import type { GridInfo, LittoralArray, Settings, StyleList } from '~/types/types'
+import type { LittoralArray, Settings, StyleList } from '~/types/types'
 
 export const NEED_TOKEN = 'You will need your own Mapbox access token\nto download the heightmap data for CS2.'
 
@@ -20,7 +20,7 @@ export const styleList: StyleList = {
   'Mapbox Satellite Streets': { text: 'Sat. Streets', value: 'satellite-streets-v12', before: '', grid: 'white', alpha: '0.4' },
 }
 
-export const mapSpec: GridInfo = {
+export const mapSpec = {
   cs1: {
     mapPixels: 1081,
     mapFaces: 1080,

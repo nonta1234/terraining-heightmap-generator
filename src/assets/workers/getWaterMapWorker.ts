@@ -3,59 +3,12 @@ import { VectorTile, Point } from 'mapbox-vector-tile'
 import { getExtentInWorldCood } from '~/utils/getExtent'
 import { createSlopeTexture, createRadialTexture } from '~/utils/createTexture'
 import { useFetchVectorTiles } from '~/composables/useFetchTiles'
-import type { GenerateMapOption, GridInfo } from '~/types/types'
+import { mapSpec } from '~/utils/const'
+import type { GenerateMapOption } from '~/types/types'
 
 type T = {
   data: Blob | undefined;
   error: FetchError<any> | undefined;
-}
-
-const mapSpec: GridInfo = {
-  cs1: {
-    mapPixels: 1081,
-    mapFaces: 1080,
-    size: 17.280,
-    cell: 9,
-    center: [40, 40, 40, 40],
-    play: [20, 24, 60, 56],
-    rotate: [
-      [0, 0, 0, 0],
-      [8, 8, 8, 8],
-      [80, 80, 80, 80],
-      [72, 72, 72, 72],
-    ],
-    side: [0, 8, 80, 72],
-  },
-  cs2: {
-    mapPixels: 4096,
-    mapFaces: 4096,
-    size: 57.344,
-    cell: 24,
-    center: [275, 276, 300, 299],
-    play: [225, 230, 350, 345],
-    rotate: [
-      [0, 1, 25, 24],
-      [22, 23, 47, 46],
-      [550, 551, 575, 574],
-      [528, 529, 553, 552],
-    ],
-    side: [0, 23, 575, 552],
-  },
-  cs2play: {
-    mapPixels: 4096,
-    mapFaces: 4096,
-    size: 57.344,
-    cell: 24,
-    center: [275, 276, 300, 299],
-    play: [225, 230, 350, 345],
-    rotate: [
-      [0, 1, 25, 24],
-      [22, 23, 47, 46],
-      [550, 551, 575, 574],
-      [528, 529, 553, 552],
-    ],
-    side: [0, 23, 575, 552],
-  },
 }
 
 const isEqual = (a: Point, b: Point) => {
