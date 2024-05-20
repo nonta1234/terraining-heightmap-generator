@@ -21,7 +21,10 @@ const getRawHeightMap = async () => {
     } else {
       const { heightmap, worldMap } = await getCitiesMap('cs2')
       download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, heightmap)
-      download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, worldMap)
+      setTimeout(
+        () => download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, worldMap),
+        200,
+      )
     }
     saveSettings(mapbox.value.settings)
   } catch (e: any) {
@@ -59,7 +62,10 @@ const getPngHeightMap = async () => {
         data: worldMap!,
       })
       download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, heightmapPng.data)
-      download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, worldMapPng.data)
+      setTimeout(
+        () => download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, worldMapPng.data),
+        200,
+      )
     }
     saveSettings(mapbox.value.settings)
   } catch (e: any) {
