@@ -68,13 +68,14 @@ export const getCitiesMap = async (mapType: MapType) => {
       let worldMapView = false
       if (debugMode.value) {
         const { viewMode } = useViewMode()
+        console.log(viewMode.value)
         heightmapView = viewMode.value === 'height'
         worldMapView = viewMode.value === 'world'
       }
       const playHeightmapData = async () => {
-        const { heightmap } = await getHeightmap('cs2play')
+        const { heightmap, heightmapImage } = await getHeightmap('cs2play', heightmapView)
         const minmax = getMinMaxHeight(heightmap)
-        return { heightmap, minmax }
+        return { heightmap, heightmapImage, minmax }
       }
       const playWaterMapData = async () => {
         const {
@@ -95,7 +96,7 @@ export const getCitiesMap = async (mapType: MapType) => {
         }
       }
       const heightmapData = async () => {
-        const { heightmap, heightmapImage } = await getHeightmap('cs2', debugMode.value)
+        const { heightmap, heightmapImage } = await getHeightmap('cs2', worldMapView)
         const minmax = getMinMaxHeight(heightmap)
         return { heightmap, heightmapImage, minmax }
       }
@@ -137,12 +138,13 @@ export const getCitiesMap = async (mapType: MapType) => {
 
       if (debugMode.value) {
         const { viewMode } = useViewMode()
-        const n = viewMode.value === 'world' ? 3 : 1
-        setImageBitmap(osTileCanvas, results[2].heightmapImage!)
-        setImageBitmap(osWaterCanvas, results[n].waterMapImage!)
-        setImageBitmap(osWaterWayCanvas, results[n].waterWayMapImage!)
-        setImageBitmap(osLittCanvas, results[n].littImage!)
-        setImageBitmap(osCornerCanvas, results[n].cornerImage!)
+        const i = viewMode.value === 'world' ? 2 : 0
+        const j = viewMode.value === 'world' ? 3 : 1
+        setImageBitmap(osTileCanvas, results[i].heightmapImage!)
+        setImageBitmap(osWaterCanvas, results[j].waterMapImage!)
+        setImageBitmap(osWaterWayCanvas, results[j].waterWayMapImage!)
+        setImageBitmap(osLittCanvas, results[j].littImage!)
+        setImageBitmap(osCornerCanvas, results[j].cornerImage!)
       }
       return { heightmap: resultHeightmap, worldMap: resultWorldMap }
     }
