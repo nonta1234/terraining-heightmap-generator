@@ -83,7 +83,7 @@ class GetOsmMapWorker {
           return osm
         } else {
           const geojsonData = osm2geojson(osm, { completeFeature: true, allFeatures: true, renderTagged: true }) as turf.AllGeoJSON
-          turf.transformRotate(geojsonData, settings.angle, { pivot: [settings.lng, settings.lat], mutate: true })
+          turf.transformRotate(geojsonData, -settings.angle, { pivot: [settings.lng, settings.lat], mutate: true })
           const clipedGeojson = clip(area, geojsonData)
           return geojson2osm(clipedGeojson)
         }
