@@ -54,27 +54,30 @@ class GetOsmMapWorker {
   }
 
   private async handleMessage(e: MessageEvent<any>) {
-    const message = e.data
-    const {
-      settings,
-    } = message as GenerateMapOption
+    try {
+      const message = e.data
+      const {
+        settings,
+      } = message as GenerateMapOption
 
-    let url = ''
-    let area = turf.bboxPolygon([0, 0, 0, 0])
-    const offset = settings.gridInfo === 'cs1' ? 0 : 0.375
+      let url = ''
+      let area = turf.bboxPolygon([0, 0, 0, 0])
+      const offset = settings.gridInfo === 'cs1' ? 0 : 0.375
 
-    if (settings.angle === 0) {
-      const { minX, minY, maxX, maxY } = getExtent(settings.lng, settings.lat, settings.size, offset)
-      url = `https://overpass-api.de/api/map?bbox=${minX},${minY},${maxX},${maxY}`
-    } else {
-      const { minX: minX1, minY: minY1, maxX: maxX1, maxY: maxY1 } = getExtent(settings.lng, settings.lat, settings.size * Math.SQRT2, offset)
-      url = `https://overpass-api.de/api/map?bbox=${minX1},${minY1},${maxX1},${maxY1}`
-      const { minX, minY, maxX, maxY } = getExtent(settings.lng, settings.lat, settings.size, offset)
-      area = turf.bboxPolygon([minX, minY, maxX, maxY])
-    }
+      if (settings.angle === 0) {
+        const { minX, minY, maxX, maxY } = getExtent(settings.lng, settings.lat, settings.size, offset)
+        url = `https://overpass-api.de/api/map?bbox=${minX},${minY},${maxX},${maxY}`
+      } else {
+        const { minX: minX1, minY: minY1, maxX: maxX1, maxY: maxY1 } = getExtent(settings.lng, settings.lat, settings.size * Math.SQRT2, offset)
+        url = `https://overpass-api.de/api/map?bbox=${minX1},${minY1},${maxX1},${maxY1}`
+        const { minX, minY, maxX, maxY } = getExtent(settings.lng, settings.lat, settings.size, offset)
+        area = turf.bboxPolygon([minX, minY, maxX, maxY])
+      }
 
-    const res = await fetch(url)
-    if (res.ok) {
+      const res = await fetch(url)
+      if (!res.ok) {
+        throw new Error(`An error occurred in download osm data: ${res.status}`)
+      }
       const osmData = async () => {
         const osm = await res.text()
         if (settings.angle === 0) {
@@ -92,8 +95,9 @@ class GetOsmMapWorker {
       const encoder = new TextEncoder()
       const buffer = encoder.encode(result)
       this.worker.postMessage(buffer, [buffer.buffer])
-    } else {
-      throw new Error(`An error occurred in download osm data: ${res.status}`)
+    } catch (error) {
+      console.error('An error occurred in getOsmDataWorker:', error)
+      this.worker.postMessage({ error: error instanceof Error ? error.message : 'An unknown error occurred' })
     }
   }
 }

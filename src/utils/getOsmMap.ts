@@ -8,9 +8,11 @@ const getOsmMapData = (mapType: MapType, settings: Settings) => {
   }
   const generateMapOption = JSON.parse(JSON.stringify(data))
   const worker = new GetOsmMapWorker()
-  const result = new Promise<string>((resolve) => {
+  const result = new Promise<string>((resolve, reject) => {
     worker.addEventListener('message', (e) => {
-      if (e.data) {
+      if (e.data && e.data.error) {
+        reject(new Error(e.data.error))
+      } else {
         const decoder = new TextDecoder()
         const decodedOsm = decoder.decode(new Uint8Array(e.data))
         resolve(decodedOsm)
