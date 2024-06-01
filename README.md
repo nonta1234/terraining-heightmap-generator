@@ -17,15 +17,11 @@
 - Easily rotate the selected square area.
 - Download the heightmap, map images, and OSM data. For CS2, you can get both the heightmap and the world map.
 
----
-
 ## How to
 
 1. Choose the area you want to download.
 1. Customize the settings within the settings panel to match your preferences.
 1. Download either the heightmap or map image, etc.
-
----
 
 ## Setting panel
 
@@ -46,8 +42,6 @@
 - **Littoral Editor**&#8202;: Configure the shape of the littoral slope.
 - **Smoothing & Sharpen**&#8202;: Set ranges for terrain smoothing and sharpening.
 
----
-
 ## Download panel
 
 - Download the following data&#8202;:
@@ -57,8 +51,6 @@
   * OSM data
 - Configuration Panel
 - GitHub link
-
----
 
 ## Control buttons
 
@@ -70,8 +62,6 @@
   * Left click&#8202;: Reset the grid direction to north.
   * Right click&#8202;: Rotate the map so that the grid is facing up.
 - Displays the shape and smooth effect area on the map.
-
----
 
 ## Configuration panel
 
@@ -87,11 +77,11 @@
 - **User Style URL**&#8202;: Downloads a map image using the specified map style.
 - **Access Token**&#8202;: You will need your own Mapbox access token to download the heightmap for CS2.
 
----
-
 ## ToDo
 
 - [x] Improve the littoral slope shape.
 - [x] Make the entire download process a web worker.
 - [ ] Support for Larger map mod.
 - [x] Download map information.
+- [ ] Download more customized map images.
+- [ ] Improved shapeen and smooth behavior in CS2 map.
