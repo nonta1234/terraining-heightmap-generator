@@ -68,7 +68,6 @@ export const getCitiesMap = async (mapType: MapType) => {
       let worldMapView = false
       if (debugMode.value) {
         const { viewMode } = useViewMode()
-        console.log(viewMode.value)
         heightmapView = viewMode.value === 'height'
         worldMapView = viewMode.value === 'world'
       }
