@@ -2,7 +2,7 @@ import * as turf from '@turf/turf'
 import { geojson2osm } from 'geojson2osm'
 import osm2geojson from 'osm2geojson-lite'
 import { getGeom } from '@turf/invariant'
-import { getExtent } from '#imports'
+import { getExtent } from '~/utils/getExtent'
 import booleanContains from '~/utils/contains'
 import type { GenerateMapOption } from '~/types/types'
 
