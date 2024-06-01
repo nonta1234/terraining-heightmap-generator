@@ -45,7 +45,8 @@ export default function booleanContains(
         case 'Point':
           return compareCoords(coords1, coords2)
         default:
-          throw new Error('feature2 ' + type2 + ' geometry not supported (feature1 ' + type1 + ')')
+          // throw new Error('feature2 ' + type2 + ' geometry not supported (feature1 ' + type1 + ')')
+          return false
       }
     case 'MultiPoint':
       switch (type2) {
@@ -54,7 +55,8 @@ export default function booleanContains(
         case 'MultiPoint':
           return isMultiPointInMultiPoint(geom1, geom2)
         default:
-          throw new Error('feature2 ' + type2 + ' geometry not supported (feature1 ' + type1 + ')')
+          // throw new Error('feature2 ' + type2 + ' geometry not supported (feature1 ' + type1 + ')')
+          return false
       }
     case 'LineString':
       switch (type2) {
@@ -65,7 +67,8 @@ export default function booleanContains(
         case 'MultiPoint':
           return isMultiPointOnLine(geom1, geom2)
         default:
-          throw new Error('feature2 ' + type2 + ' geometry not supported (feature1 ' + type1 + ')')
+          // throw new Error('feature2 ' + type2 + ' geometry not supported (feature1 ' + type1 + ')')
+          return false
       }
     case 'Polygon':
       switch (type2) {
@@ -80,17 +83,20 @@ export default function booleanContains(
         case 'MultiPolygon':
           return isMultiPolyInPoly(geom1, geom2)
         default:
-          throw new Error('feature2 ' + type2 + ' geometry not supported (feature1 ' + type1 + ')')
+          // throw new Error('feature2 ' + type2 + ' geometry not supported (feature1 ' + type1 + ')')
+          return false
       }
     case 'MultiPolygon':
       switch (type2) {
         case 'Polygon':
           return isPolygonInMultiPolygon(geom1, geom2)
         default:
-          throw new Error('feature2 ' + type2 + ' geometry not supported (feature1 ' + type1 + ')')
+          // throw new Error('feature2 ' + type2 + ' geometry not supported (feature1 ' + type1 + ')')
+          return false
       }
     default:
-      throw new Error('feature1 ' + type1 + ' geometry not supported')
+      // throw new Error('feature1 ' + type1 + ' geometry not supported')
+      return false
   }
 }
 export function isPolygonInMultiPolygon(
