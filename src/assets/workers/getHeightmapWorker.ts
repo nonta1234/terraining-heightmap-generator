@@ -1,5 +1,5 @@
 import { FetchError } from 'ofetch'
-import { getExtentInWorldCood } from '~/utils/getExtent'
+import { getExtentInWorldCoords } from '~/utils/getExtent'
 import type { MapType, GenerateMapOption } from '~/types/types'
 import { decodeElevation } from '~/utils/elevation'
 import { mapSpec } from '~/utils/const'
@@ -175,7 +175,7 @@ class GetHeightmapWorker {
     } = message as GenerateMapOption
     const pixelsPerTile = 512
     const extentOffset = mapType === 'cs2play' ? 0.375 : 0
-    const { x0, y0, x1, y1, centerX, centerY } = getExtentInWorldCood(settings.lng, settings.lat, settings.size * 1.5, extentOffset, pixelsPerTile)
+    const { x0, y0, x1, y1, centerX, centerY } = getExtentInWorldCoords(settings.lng, settings.lat, settings.size * 1.5, extentOffset, pixelsPerTile)
     const side = x1 - x0
     const tmpMapPixels = mapSpec[mapType].mapFaces * 1.5
     const zoom = Math.min(Math.ceil(Math.log2(tmpMapPixels / side)), 14)

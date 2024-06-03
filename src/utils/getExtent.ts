@@ -59,7 +59,7 @@ export const getExtent = (lng: number, lat: number, size: number, offset = 0) =>
  * @param pixelsPerTile default 256, Mapbox Terrain-DEM v1 \@2x is 512
  * @returns World pixel coordinates
  */
-export const getExtentInWorldCood = (lng: number, lat: number, size: number, offset = 0, pixelsPerTile = 256) => {
+export const getExtentInWorldCoords = (lng: number, lat: number, size: number, offset = 0, pixelsPerTile = 256) => {
   const centerX = lng2pixel(lng, 0, pixelsPerTile)
   const centerY = lat2pixel(lat, 0, pixelsPerTile)
   const _offset = Math.min(Math.max(offset, 0), 0.5)
