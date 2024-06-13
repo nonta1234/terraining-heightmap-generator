@@ -1,5 +1,5 @@
 import { Map, type LngLatLike } from 'mapbox-gl'
-import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolygon, MultiLineString } from 'geojson'
+import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolygon, MultiLineString, Position } from 'geojson'
 
 export type LngLat = Extract<LngLatLike, [number, number]>;
 export type HeightCalcType = 'manual' | 'limit' | 'maximize';
@@ -27,6 +27,19 @@ export type GridInfoData = {
 
 export interface GridInfo {
   [index: string]: GridInfoData;
+}
+
+export type GridPositions = {
+  topleft: Position;
+  topright: Position;
+  bottomleft: Position;
+  bottomright: Position;
+  _sides: {
+      north: number;
+      south: number;
+      east: number;
+      west: number;
+  };
 }
 
 export interface LittoralArray {
