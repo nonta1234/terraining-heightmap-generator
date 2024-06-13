@@ -1,3 +1,6 @@
+import type { Position } from 'geojson'
+import type { GridPositions } from '~/types/types'
+
 export const lng2tile = (lng: number, zoom: number) => {
   return Math.floor((lng + 180) / 360 * (2 ** zoom))
 }
@@ -50,4 +53,25 @@ export const tile2lat = (y: number, zoom: number) => {
  */
 export const calculateZoomLevel = (lat: number, mapSize: number, requiredPixels: number, pixelsPerTile = 256) => {
   return Math.log2((2 * Math.PI * 6378.137 * requiredPixels * Math.cos(lat * Math.PI / 180)) / (mapSize * pixelsPerTile))
+}
+
+export const lnglat2Pixels = (lnglat: Position, zoom: number) => {
+  const x = lng2pixel(lnglat[0], zoom)
+  const y = lat2pixel(lnglat[1], zoom)
+  return [x, y]
+}
+
+export const convert2Pixels = (positions: GridPositions, zoom: number) => {
+  const tl = lnglat2Pixels(positions.topleft, zoom)
+  const br = lnglat2Pixels(positions.bottomright, zoom)
+  const x = br[0] - tl[0]
+  const y = tl[1] - br[1]
+  const side = Math.sqrt(x * x + y * y) / Math.SQRT2
+  return {
+    topleft: tl,
+    topright: lnglat2Pixels(positions.topleft, zoom),
+    bottomleft: lnglat2Pixels(positions.bottomleft, zoom),
+    bottomright: br,
+    side,
+  }
 }
