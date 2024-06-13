@@ -2,7 +2,7 @@ import mapboxgl, { Map, GeoJSONSource } from 'mapbox-gl'
 import * as turf from '@turf/turf'
 import type { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
 import { extentGrid } from '~/utils/extentGrid'
-import type { Mapbox, Grid, LngLat } from '~/types/types'
+import type { Mapbox, Grid, LngLat, GridPositions } from '~/types/types'
 
 
 export const getGridAngle = () => {
@@ -77,7 +77,7 @@ const getRotateArea = (features: Feature<Polygon, GeoJsonProperties>[]) => {
 }
 
 
-const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'topleft' | 'topright' | 'bottomright' | 'bottomleft') => {
+const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'topleft' | 'topright' | 'bottomright' | 'bottomleft'): Position => {
   const corner = {
     topleft: 1,
     topright: 2,
@@ -87,13 +87,13 @@ const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'to
   return [
     feature.geometry.coordinates[0][corner[position]][0],
     feature.geometry.coordinates[0][corner[position]][1],
-  ] as Position
+  ]
 }
 
 
-const fixLng = (position: Position) => {
+const fixLng = (position: Position): Position => {
   const _lng = ((position[0] + 540) % 360) - 180
-  return [_lng, position[1]] as Position
+  return [_lng, position[1]]
 }
 
 
@@ -109,7 +109,7 @@ export const getPoint = (grid: Grid) => {
     east: ((Math.max(bottomleft[0], topleft[0], topright[0], bottomright[0]) + 540) % 360) - 180,
     west: ((Math.min(bottomleft[0], topleft[0], topright[0], bottomright[0]) + 540) % 360) - 180,
   }
-  const gridCorner = { topleft: fixLng(topleft), topright: fixLng(topright), bottomleft: fixLng(bottomleft), bottomright: fixLng(bottomright), _sides: sides }
+  const gridCorner: GridPositions = { topleft: fixLng(topleft), topright: fixLng(topright), bottomleft: fixLng(bottomleft), bottomright: fixLng(bottomright), _sides: sides }
   const pBottomleft = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].play[0]].geometry.coordinates[0][0]
   const pTopleft = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].play[1]].geometry.coordinates[0][1]
   const pTopright = grid.gridArea.features[mapSpec[mapbox.value.settings.gridInfo].play[2]].geometry.coordinates[0][2]
@@ -120,7 +120,7 @@ export const getPoint = (grid: Grid) => {
     east: ((Math.max(pBottomleft[0], pTopleft[0], pTopright[0], pBottomright[0]) + 540) % 360) - 180,
     west: ((Math.min(pBottomleft[0], pTopleft[0], pTopright[0], pBottomright[0]) + 540) % 360) - 180,
   }
-  const playAreaCorner = { topleft: fixLng(pTopleft), topright: fixLng(pTopright), bottomleft: fixLng(pBottomleft), bottomright: fixLng(pBottomright), _sides: pSides }
+  const playAreaCorner: GridPositions = { topleft: fixLng(pTopleft), topright: fixLng(pTopright), bottomleft: fixLng(pBottomleft), bottomright: fixLng(pBottomright), _sides: pSides }
   return { gridCorner, playAreaCorner }
 }
 
