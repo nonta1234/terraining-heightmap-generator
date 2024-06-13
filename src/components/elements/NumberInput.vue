@@ -6,6 +6,7 @@ interface Props {
   max?: number;
   min?: number;
   disabled?: boolean;
+  textHidden?: boolean;
 }
 
 interface Emits {
@@ -23,6 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
   max: 1,
   min: 0,
   disabled: false,
+  textHidden: false,
 })
 
 const emit = defineEmits<Emits>()
@@ -54,7 +56,7 @@ const filter = (src: string) => {
 }
 
 const displayText = computed({
-  get: () => ((props.value ?? props.modelValue) || 0).toFixed(decimalDigits),
+  get: () => props.textHidden ? '' : ((props.value ?? props.modelValue) || 0).toFixed(decimalDigits),
   set: (val) => {
     const str = filter(val)
     _value.value = parseFloat(str)
@@ -134,6 +136,7 @@ const onKeydown = (e: KeyboardEvent) => {
     type="text"
     inputmode="decimal"
     enterkeyhint="done"
+    :disabled="disabled"
     @input="onInput"
     @focus="onFocus"
     @compositionstart="onCompositionStart"
