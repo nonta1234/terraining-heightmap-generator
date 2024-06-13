@@ -419,7 +419,7 @@ onMounted(() => {
     color: $textColor;
     height: 2.5rem;
     width: 2.5rem;
-    border-radius: 1.25rem;
+    border-radius: 100%;
     text-align: center;
     background-color: rgba(255, 255, 255, .2);
     line-height: 1;
