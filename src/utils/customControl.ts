@@ -191,7 +191,7 @@ export class StyleButton implements IControl {
     const device = useDevice()
     const listStr: string[] = []
     for (const key in this._list) {
-      listStr.push(`<option value="${this._list[key].value}">${this._list[key].text + (device.isFirefox ? '' : '&nbsp;&nbsp;')}</option>\n`)
+      listStr.push(`<option value="${this._list[key].value}">${this._list[key].text}</option>\n`)
     }
     const chunk = listStr.join('')
     this.div = document.createElement('div')
@@ -203,7 +203,7 @@ export class StyleButton implements IControl {
     const select = document.createElement('select')
     select.id = 'select-style'
     select.title = 'Change map style'
-    select.innerHTML = `<option value="" disabled>--Select style--${device.isFirefox ? '' : '&nbsp;&nbsp;'}</option>
+    select.innerHTML = `<option value="" disabled>--Select Style--${device.isFirefox ? '' : '&nbsp;&nbsp;'}</option>
       ${chunk}`
     select.addEventListener('contextmenu', e => e.preventDefault())
     select.addEventListener('focus', () => { select.selectedIndex = -1 })
@@ -285,5 +285,5 @@ function ease(x: number) {
 }
 
 function getStyleUrl(value: string) {
-  return `mapbox://styles/mapbox/${value}?optimize=true`
+  return `mapbox://styles/${value}?optimize=true`
 }
