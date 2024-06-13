@@ -8,7 +8,6 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { isMobile } = useDevice()
-
 const bottomPosition = ref('50%')
 const transformState = ref('translate(-50%, 45%)')
 
@@ -20,7 +19,7 @@ if (isMobile) {
 
 
 <template>
-  <transition name="modal" appear>
+  <transition name="modal">
     <div v-if="props.modal" class="modal-wrapper">
       <div class="panel opaque">
         <slot />
