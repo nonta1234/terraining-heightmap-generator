@@ -78,6 +78,16 @@ const toogle = () => {
   }
 }
 
+useListen('map:miModal', (value) => {
+  if (value === undefined) {
+    if (flag.value === 1) {
+      size.value = getSize(zoom.value)
+    } else if (flag.value === 2) {
+      zoom.value = getZoom(size.value)
+    }
+  }
+})
+
 const close = () => {
   useEvent('map:miModal', false)
 }
