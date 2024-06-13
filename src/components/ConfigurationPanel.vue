@@ -45,6 +45,7 @@ const close = () => {
   <ModalWindow>
     <div id="config-panel">
       <h3>Configuration</h3>
+      <CloseButton class="close" @click="close" />
       <div class="main">
         <ul>
           <li>
@@ -124,7 +125,6 @@ const close = () => {
             </label>
           </li>
         </ul>
-        <button class="close" @click="close">CLOSE</button>
       </div>
     </div>
   </ModalWindow>
@@ -132,15 +132,24 @@ const close = () => {
 
 
 <style lang="scss" scoped>
+  #config-panel {
+    position: relative;
+  }
   h3 {
     font-size: 1rem;
     text-align: center;
     font-weight: 700;
-    padding: .5rem 0 1rem;
-    line-height: 1;
+    height: 2rem;
+    margin-bottom: 1rem;
+    line-height: 2;
+  }
+  .close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
   }
   .main {
-    padding: 0 1rem 1rem;
+    padding: 0 1rem .5rem;
   }
   ul, li {
     display: block;
@@ -247,22 +256,5 @@ const close = () => {
   input:disabled {
     color: $textDisabled;
     background-color: transparent;
-  }
-  .close {
-    height: 2.25rem;
-    border-radius: .25rem;
-    padding: 0 1rem;
-    font-size: 1rem;
-    line-height: 2.125;
-    text-align: center;
-    border: solid 1px $borderColor;
-    background-color: rgba(255, 255, 255, .1);
-    color: $textColor;
-    margin: 1.5rem 0 0 auto;
-    cursor: pointer;
-    &:hover, &:focus {
-      color: aquamarine;
-      background-color: rgba(0, 206, 209, .35);
-    }
   }
 </style>

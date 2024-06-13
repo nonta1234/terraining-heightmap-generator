@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import init, { encode_16g } from '~~/png_lib/pkg'  // eslint-disable-line
-
 const mapbox = useMapbox()
-const config = useRuntimeConfig()
 const device = useDevice()
 
 const rawButton = ref<HTMLElement>()
@@ -12,7 +10,7 @@ const osmButton = ref<HTMLElement>()
 
 const { debugMode } = useDebug()
 
-const getRawHeightMap = async () => {
+const getRawHeightmap = async () => {
   rawButton.value?.classList.add('downloading')
   try {
     if (mapbox.value.settings.gridInfo === 'cs1') {
@@ -35,7 +33,7 @@ const getRawHeightMap = async () => {
 }
 
 
-const getPngHeightMap = async () => {
+const getPngHeightmap = async () => {
   pngButton.value?.classList.add('downloading')
   try {
     if (mapbox.value.settings.gridInfo === 'cs1') {
@@ -76,66 +74,23 @@ const getPngHeightMap = async () => {
 }
 
 
-const getMapImage = async (e: Event) => {
-  imgButton.value?.startIconRotation()
-  let url = ''
-  let valueStr = ''
+const getMapImageData = async (e: Event) => {
   const value = (e.target as HTMLSelectElement).value
-  if (value === 'user') {
-    valueStr = mapbox.value.settings.userStyleURL.replace('mapbox://styles/', '')
-  } else {
-    valueStr = `mapbox/${value}`
+  if (value === 'customize') {
+    useEvent('map:miModal')
+    return
   }
-  if (mapbox.value.settings.angle === 0) {
-    const pixels = mapbox.value.settings.gridInfo === 'cs1' ? '1080' : '1280'
-    const { minX, minY, maxX, maxY } = getExtent(
-      mapbox.value.settings.lng,
-      mapbox.value.settings.lat,
-      mapbox.value.settings.size,
-      mapbox.value.settings.gridInfo === 'cs1' ? 0 : 0.375,
-    )
-    url = 'https://api.mapbox.com/styles/v1/' +
-          `${valueStr}/static/[${minX},${minY},${maxX},${maxY}` +
-          `]/${pixels}x${pixels}@2x?access_token=${config.public.token}`
-  } else {
-    let decimals = 1
-    let zoom = 0
-    let pixel = 0
-
-    for (let i = 640; i < 1281; i++) {
-      const calcZoom = calculateZoomLevel(
-        mapbox.value.settings.lat,
-        mapbox.value.settings.size / (mapbox.value.settings.gridInfo === 'cs1' ? 1 : 4),
-        i,
-        512,
-      )
-      const z = calcZoom - Math.floor(calcZoom)
-      if (z < decimals) {
-        zoom = calcZoom
-        decimals = z
-        pixel = i
-      }
-    }
-    const roundedZoom = Math.round(zoom * 100) / 100
-    const bearing = (mapbox.value.settings.angle > 0) ? mapbox.value.settings.angle : mapbox.value.settings.angle + 360
-
-    url = 'https://api.mapbox.com/styles/v1/' +
-          `${valueStr}/static/` +
-          `${mapbox.value.settings.lng},${mapbox.value.settings.lat},${roundedZoom},${bearing}` +
-          `/${pixel}x${pixel}@2x?access_token=${config.public.token}`
-  }
-
+  imgButton.value?.startIconRotation()
+  const valueStr = value === 'user'
+    ? mapbox.value.settings.userStyleURL.replace('mapbox://styles/', '')
+    : value
+  const offset = mapbox.value.settings.gridInfo === 'cs1' ? 0 : 0.375
   try {
-    const res = await fetch(url)
-    if (res.ok) {
-      const png = await res.blob()
-      download(`map-image_${value}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png)
-      saveSettings(mapbox.value.settings)
-    } else {
-      throw new Error(`download map image error: ${res.status}`)
-    }
-  } catch (e: any) {
-    console.log(e.message)
+    const png = await getMapImage(valueStr, offset)
+    download(`map-image_${valueStr}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png)
+    saveSettings(mapbox.value.settings)
+  } catch (e) {
+    console.error(e)
   } finally {
     imgButton.value?.stopIconRotation()
   }
@@ -156,7 +111,7 @@ const getOsmData = async () => {
 }
 
 
-const modal = () => {
+const cpModal = () => {
   useEvent('map:cpModal')
 }
 
@@ -179,7 +134,11 @@ function download(filename: string, data: any) {
 }
 
 
-const debug = () => {
+const debug = async () => {
+  const value = 'mapbox/outdoors-v12'
+  const blob = await getCustomMapImage(value, 16)
+  download(`map-image_${value}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, blob)
+  saveSettings(mapbox.value.settings)
   useEvent('debug:operate')
 }
 </script>
@@ -189,20 +148,20 @@ const debug = () => {
   <div id="download-panel" :class="{'is-mobile': device.isMobile, 'is-desktop': !device.isMobile}">
     <ul>
       <li v-if="debugMode"><button ref="debugButton" title="debug" class="debug" @click="debug"><DebugIcon /></button></li>
-      <li><button ref="rawButton" title="Download RAW height map" class="dl-icon" @click="getRawHeightMap"><RawIcon /></button></li>
-      <li><button ref="pngButton" title="Download PNG height map" class="dl-icon" @click="getPngHeightMap"><PngIcon /></button></li>
+      <li><button ref="rawButton" title="Download RAW height map" class="dl-icon" @click="getRawHeightmap"><RawIcon /></button></li>
+      <li><button ref="pngButton" title="Download PNG height map" class="dl-icon" @click="getPngHeightmap"><PngIcon /></button></li>
       <li>
         <SelectButton
           ref="imgButton"
           :list="styleList"
           title="Download map image"
-          @change="getMapImage"
+          @change="getMapImageData"
         >
           <ImgIcon />
         </SelectButton>
       </li>
       <li><button ref="osmButton" title="Download OSM data" class="osm" @click="getOsmData"><OsmLogo /></button></li>
-      <li><button title="Configuration" @click="modal"><font-awesome-icon :icon="['fas', 'gear']" class="fa-fw fa-2xl" /></button></li>
+      <li><button title="Configuration" @click="cpModal"><font-awesome-icon :icon="['fas', 'gear']" class="fa-fw fa-2xl" /></button></li>
       <li><button title="https://github.com/nonta1234/terraining-heightmap-generator" @click="toRepository"><font-awesome-icon :icon="['far', 'circle-question']" class="fa-fw fa-2xl" /></button></li>
     </ul>
   </div>
@@ -283,7 +242,6 @@ const debug = () => {
     }
   }
   .downloading {
-    will-change: animation, transform;
     svg {
       animation: rotateY 2s linear infinite;
     }
@@ -305,4 +263,3 @@ const debug = () => {
     }
   }
 </style>
-~/utils/getCitiesMapBak

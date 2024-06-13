@@ -32,6 +32,7 @@ const reset = (e: Event) => {
   <ModalWindow :modal="props.modal">
     <div id="littoral-editor">
       <h3>Littoral Editor</h3>
+      <CloseButton class="close" @click="close" />
       <GridCanvas />
       <div class="footer">
         <label class="select">
@@ -43,7 +44,6 @@ const reset = (e: Event) => {
             <option value="quint">Quint</option>
           </select>
         </label>
-        <button class="close" @click="close">CLOSE</button>
       </div>
     </div>
   </ModalWindow>
@@ -51,12 +51,21 @@ const reset = (e: Event) => {
 
 
 <style lang="scss" scoped>
+  #littoral-editor {
+    position: relative;
+  }
   h3 {
     font-size: 1rem;
     text-align: center;
     font-weight: 700;
-    padding: .5rem 0 .125rem;
-    line-height: 1;
+    height: 2rem;
+    margin-bottom: .5rem;
+    line-height: 2;
+  }
+  .close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
   }
   .footer {
     display: flex;
@@ -73,22 +82,6 @@ const reset = (e: Event) => {
     overflow: hidden;
     display: block;
     flex-shrink: 0;
-  }
-  .close {
-    height: 2.25rem;
-    border-radius: .25rem;
-    padding: 0 1rem;
-    font-size: 1rem;
-    line-height: 2.125;
-    text-align: center;
-    border: solid 1px $borderColor;
-    background-color: rgba(255, 255, 255, .1);
-    color: $textColor;
-    cursor: pointer;
-    &:hover, &:focus {
-      color: aquamarine;
-      background-color: rgba(0, 206, 209, .35);
-    }
   }
   select {
     width: 8rem;
