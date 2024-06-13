@@ -37,10 +37,10 @@ export const getHeightmap = async (mapType: MapType = 'cs1', isDebug = false) =>
   try {
     const { settings } = useMapbox().value
     const config = useRuntimeConfig()
-    if ((mapType !== 'cs1') && (settings.accessToken === '' || settings.accessToken === config.public.token)) {
+    if ((mapType !== 'cs1') && !isTokenValid()) {
       throw new Error('Invaid access token')
     }
-    const token = settings.gridInfo === 'cs1' ? config.public.token : (settings.accessToken || config.public.token)
+    const token = settings.gridInfo === 'cs1' ? config.public.token : settings.accessToken
     const result = await getHeightmapData(mapType, settings, token, isDebug)
     return result
   } catch (error) {
