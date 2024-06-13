@@ -6,6 +6,7 @@ type ApplicationEvents = {
   'map:changeMapSize': number;
   'map:leModal': boolean | undefined;
   'map:cpModal': boolean | undefined;
+  'map:miModal': boolean | undefined;
   'modal:changeLittArray': void;
   'modal:pointDragged': void;
   'debug:operate': void;
