@@ -3,6 +3,7 @@ import type { Canvases } from '~/types/types'
 
 const littEditVisi = ref(false)
 const configPanelVisi = ref(false)
+const cMapImagePanelVisi = ref(false)
 
 const tileCanvasRef = ref<HTMLCanvasElement>()
 const waterCanvasRef = ref<HTMLCanvasElement>()
@@ -23,6 +24,14 @@ useListen('map:cpModal', (value) => {
     configPanelVisi.value = !configPanelVisi.value
   } else {
     configPanelVisi.value = value
+  }
+})
+
+useListen('map:miModal', (value) => {
+  if (value === undefined) {
+    cMapImagePanelVisi.value = !cMapImagePanelVisi.value
+  } else {
+    cMapImagePanelVisi.value = value
   }
 })
 
@@ -61,6 +70,7 @@ onMounted(() => {
       <DownloadPanel />
       <LittoralEditor v-show="littEditVisi" :modal="false" />
       <ConfigurationPanel v-show="configPanelVisi" :modal="true" />
+      <CustomizeMapImagePanel v-show="cMapImagePanelVisi" :modal="true" />
     </MapBox>
     <canvas v-show="debugMode" id="tile-canvas" ref="tileCanvasRef" class="debug-canvas"></canvas>
     <div v-show="debugMode" class="water-canvas-container">
