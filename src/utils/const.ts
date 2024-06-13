@@ -1,6 +1,8 @@
 import type { LittoralArray, Settings, StyleList } from '~/types/types'
 
 export const NEED_TOKEN = 'You will need your own Mapbox access token\nto download the heightmap data for CS2.'
+export const ATTR = '\u00A9 Mapbox \u00A9 OpenStreetMap'
+export const ATTR_RAS = '\u00A9 Maxar \u00A9 Mapbox \u00A9 OpenStreetMap'
 
 export const mapStyle = {
   streets:    'mapbox://styles/mapbox/streets-v12?optimize=true',
@@ -12,12 +14,12 @@ export const mapStyle = {
 }
 
 export const styleList: StyleList = {
-  'Mapbox Streets': { text: 'Streets', value: 'streets-v12', before: 'pitch-outline', grid: 'black', alpha: '0.2' },
-  'Mapbox Outdoors': { text: 'Outdoors', value: 'outdoors-v12', before: 'pitch-outline', grid: 'black', alpha: '0.2' },
-  'Mapbox Light': { text: 'Light', value: 'light-v11', before: 'waterway', grid: 'black', alpha: '0.2' },
-  'Mapbox Dark': { text: 'Dark', value: 'dark-v11', before: 'waterway', grid: 'gray', alpha: '0.2' },
-  'Mapbox Satellite': { text: 'Satellite', value: 'satellite-v9', before: '', grid: 'white', alpha: '0.4' },
-  'Mapbox Satellite Streets': { text: 'Sat. Streets', value: 'satellite-streets-v12', before: '', grid: 'white', alpha: '0.4' },
+  'Mapbox Streets': { text: 'Streets', value: 'mapbox/streets-v12', before: 'pitch-outline', grid: 'black', alpha: '0.2' },
+  'Mapbox Outdoors': { text: 'Outdoors', value: 'mapbox/outdoors-v12', before: 'pitch-outline', grid: 'black', alpha: '0.2' },
+  'Mapbox Light': { text: 'Light', value: 'mapbox/light-v11', before: 'waterway', grid: 'black', alpha: '0.2' },
+  'Mapbox Dark': { text: 'Dark', value: 'mapbox/dark-v11', before: 'waterway', grid: 'gray', alpha: '0.2' },
+  'Mapbox Satellite': { text: 'Satellite', value: 'mapbox/satellite-v9', before: '', grid: 'white', alpha: '0.4' },
+  'Mapbox Satellite Streets': { text: 'Sat. Streets', value: 'mapbox/satellite-streets-v12', before: '', grid: 'white', alpha: '0.4' },
 }
 
 export const mapSpec = {
