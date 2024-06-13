@@ -11,12 +11,12 @@ const device = useDevice()
 const mapbox = useMapbox()
 const buttonEl = ref<HTMLInputElement>()
 const selectEl = ref<HTMLSelectElement>()
-const hasUserStyle = ref(false)
+const isValid = ref(isTokenValid())
+const hasUserStyle = computed(() => mapbox.value.settings.userStyleURL !== '')
+const accessToken = computed(() => mapbox.value.settings.accessToken)
 
-const userStyle = computed(() => mapbox.value.settings.userStyleURL)
-
-watch(userStyle, () => {
-  hasUserStyle.value = (userStyle.value !== '')
+watch(accessToken, () => {
+  isValid.value = isTokenValid()
 })
 
 const resetSelect = () => {
@@ -30,10 +30,6 @@ const startIconRotation = () => {
 const stopIconRotation = () => {
   buttonEl.value?.classList.remove('rotate')
 }
-
-onMounted(() => {
-  hasUserStyle.value = (mapbox.value.settings.userStyleURL !== '')
-})
 
 defineExpose({
   startIconRotation,
@@ -52,9 +48,13 @@ defineExpose({
       @focus="resetSelect"
       @blur="resetSelect"
     >
-      <option value="" disabled>{{ '--Select style--' + (device.isFirefox ? '' : '&nbsp;&nbsp;') }}</option>
-      <option v-for="item in props.list" :key="item.value" :value="item.value">{{ item.text + (device.isFirefox ? '' : '&nbsp;&nbsp;') }}</option>
-      <option v-if="hasUserStyle" value="user">{{ 'User Style' + (device.isFirefox ? '' : '&nbsp;&nbsp;') }}</option>
+      <option value="" disabled>{{ '--Select Style--' + (device.isFirefox ? '' : '&nbsp;') }}</option>
+      <option v-for="item in props.list" :key="item.value" :value="item.value">{{ item.text }}</option>
+      <option v-if="hasUserStyle" value="user">User Style</option>
+      <template v-if="isValid">
+        <option class="disabled-line" disabled>{{ '────────' + (device.isFirefox ? '' : '&nbsp;') }}</option>
+        <option value="customize">{{ 'Customize Map' + (device.isFirefox ? '' : '&nbsp;') }}</option>
+      </template>
     </select>
   </div>
 </template>
@@ -112,6 +112,9 @@ defineExpose({
     &:has(+ select:hover), &:has(+ select:focus) {
       color: aquamarine;
     }
+  }
+  .disabled-line {
+    color: $textDisabled;
   }
   .rotate {
     :deep(svg) {
