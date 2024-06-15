@@ -10,8 +10,8 @@
 **An online heightmap generator for "Cities: Skylines".**  
 **https://terraining.ateliernonta.com**
 
-[!IMPORTANT]
-Currently, my site has thousands of users each month. Considering the number of API requests needed to generate heightmaps for CS2, I am significantly exceeding the free tier limits of Mapbox. Therefore, I kindly ask for your continued cooperation in avoiding costs by inputting your Mapbox token.
+> [!IMPORTANT]
+> Currently, my site has thousands of users each month. Considering the number of API requests needed to generate heightmaps for CS2, I am significantly exceeding the free tier limits of Mapbox. Therefore, I kindly ask for your continued cooperation in avoiding costs by inputting your Mapbox token.
 
 
 ## Features
