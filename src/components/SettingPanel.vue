@@ -255,7 +255,7 @@ onMounted(() => {
         </ul>
       </div>
     </section>
-    <OverlayScrollbars :class="['setting', {'m-active': visMobile, 'd-active': visDesktop}]">
+    <OverlayScrollbars :class="['setting', { 'm-active': visMobile, 'd-active': visDesktop }]">
       <section ref="contents" class="contents">
         <div class="elevation section">
           <dl><dt>Min. Height&#8202;:</dt><dd>{{ minHeight }}<span>m</span></dd></dl>
