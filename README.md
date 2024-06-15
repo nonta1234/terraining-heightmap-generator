@@ -63,6 +63,11 @@
   * Right click&#8202;: Rotate the map so that the grid is facing up.
 - Displays the shape and smooth effect area on the map.
 
+## Customize map image panel
+
+- Download map images by customizing style, zoom level, and image size.  
+*‡ Depending on the configuration, many API requests may occur, so you'll need a Mapbox access token.*
+
 ## Configuration panel
 
 - **Heightmap Type**&#8202;: Choose either CS1 or CS2.
