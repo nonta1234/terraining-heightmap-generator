@@ -134,11 +134,7 @@ function download(filename: string, data: any) {
 }
 
 
-const debug = async () => {
-  const value = 'mapbox/outdoors-v12'
-  const blob = await getCustomMapImage(value, 16)
-  download(`map-image_${value}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, blob)
-  saveSettings(mapbox.value.settings)
+const debug = () => {
   useEvent('debug:operate')
 }
 </script>
