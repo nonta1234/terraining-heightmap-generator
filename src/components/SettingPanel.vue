@@ -190,6 +190,15 @@ const onLatChange = (value: number) => {
   setGrid(mapbox, [mapbox.value.settings.lng, value], true)
 }
 
+const onZoomChange = (value: number) => {
+  mapbox.value.map?.zoomTo(value)
+}
+
+const onAngleChange = (value: number) => {
+  mapbox.value.settings.angle = value
+  setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+}
+
 const changeMapSize = (size: number) => {
   const tmpRatio = ratio.value
   mapbox.value.settings.size = size
@@ -257,6 +266,12 @@ onMounted(() => {
     </section>
     <OverlayScrollbars :class="['setting', { 'm-active': visMobile, 'd-active': visDesktop }]">
       <section ref="contents" class="contents">
+        <div class="info section">
+          <ul>
+            <li><label>Zoom Level&#8202;:</label><NumberInput :value="mapbox.settings.zoom" :max="22" :min="0" :step="0.01" @change="onZoomChange" /></li>
+            <li><label>Grid Angle&#8202;:</label><NumberInput :value="mapbox.settings.angle" :max="180" :min="-180" :step="0.01" @change="onAngleChange" /></li>
+          </ul>
+        </div>
         <div class="elevation section">
           <dl><dt>Min. Height&#8202;:</dt><dd>{{ minHeight }}<span>m</span></dd></dl>
           <dl><dt>Max. Height&#8202;:</dt><dd>{{ maxHeight }}<span>m</span></dd></dl>
@@ -500,6 +515,21 @@ onMounted(() => {
       margin-right: .5rem;
       line-height: 1.5;
     }
+    input {
+      background-color: transparent;
+      width: 6.5rem;
+      flex-shrink: 0;
+      &:active {
+        background-color: $inputBgF;
+      }
+      &:focus {
+        background-color: $inputBgF;
+      }
+    }
+  }
+  .info {
+
+
     input {
       background-color: transparent;
       width: 6.5rem;
