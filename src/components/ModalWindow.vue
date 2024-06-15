@@ -57,7 +57,7 @@ if (isMobile) {
     position: absolute;
     height: 100dvh;
     width: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, .4);
     z-index: 20;
   }
   .modal-enter-from, .modal-leave-to {
