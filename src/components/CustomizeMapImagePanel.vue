@@ -233,8 +233,7 @@ const download = async () => {
     padding: 0 1rem;
     display: grid;
     grid-template-columns: auto 7.75rem auto;
-    grid-column-gap: 0px;
-    grid-row-gap: 1rem;
+    gap: 1rem 0;
     position: relative;
     div {
       line-height: 2;
@@ -260,6 +259,7 @@ const download = async () => {
     line-height: 2;
     grid-column-start: 1;
     padding-right: 1.5rem;
+    white-space: nowrap;
   }
   .unit {
     text-align: right;
