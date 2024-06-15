@@ -42,6 +42,8 @@
 - **Littoral Editor**&#8202;: Configure the shape of the littoral slope.
 - **Smoothing & Sharpen**&#8202;: Set ranges for terrain smoothing and sharpening.
 
+    The refresh button retrieves the minimum and maximum elevation in the grid. Additionally, grid information is displayed in the browser console.
+
 ## Download panel
 
 - Download the following data&#8202;:
@@ -86,7 +88,8 @@
 
 - [x] Improve the littoral slope shape.
 - [x] Make the entire download process a web worker.
-- [ ] Support for Larger map mod.
 - [x] Download map information.
-- [ ] Download more customized map images.
-- [ ] Improved shapeen and smooth behavior in CS2 map.
+- [x] Download more customized map images.
+- [ ] Improve shapeen and smooth behavior in CS2 map.
+- [ ] River bed level correction.
+- [ ] Support for Larger map mod.
