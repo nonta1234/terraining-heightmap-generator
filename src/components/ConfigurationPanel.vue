@@ -1,15 +1,10 @@
 <script setup lang="ts">
 const mapbox = useMapbox()
+const { isMobile } = useDevice()
 
 const heightmapTypeRef = ref<HTMLSelectElement>()
 const interpolationRef = ref<HTMLSelectElement>()
 const watersideRef = ref<HTMLSelectElement>()
-
-onMounted(() => {
-  heightmapTypeRef.value!.value = mapbox.value.settings.gridInfo
-  interpolationRef.value!.value = mapbox.value.settings.interpolation
-  watersideRef.value!.value = mapbox.value.settings.waterside.toString()
-})
 
 const onHeightmapTypeChange = () => {
   mapbox.value.settings.size = mapSpec[mapbox.value.settings.gridInfo].size
@@ -46,86 +41,73 @@ const close = () => {
     <div id="config-panel">
       <h3>Configuration</h3>
       <CloseButton class="close" @click="close" />
-      <div class="main">
-        <ul>
-          <li>
-            <label>
-              <span>Heightmap Type&#8202;:</span>
-              <span><select ref="heightmapTypeRef" v-model="mapbox.settings.gridInfo" name="heightmapType" @change="onHeightmapTypeChange">
+      <OverlayScrollbars class="innerPanel">
+        <div class="main">
+          <div class="item">
+            <label for="map-type">Heightmap Type&#8202;:</label>
+            <div>
+              <select id="map-type" ref="heightmapTypeRef" v-model="mapbox.settings.gridInfo" name="heightmapType" @change="onHeightmapTypeChange">
                 <option value="cs1">CS1</option>
                 <option value="cs2">CS2</option>
-              </select></span>
-            </label>
-          </li>
-          <li>
-            <label>
-              <span>Interpolation&#8202;:</span>
-              <span><select ref="interpolationRef" v-model="mapbox.settings.interpolation" name="interpolation">
+              </select>
+            </div>
+            <label for="interpolation">Interpolation&#8202;:</label>
+            <div>
+              <select id="interpolation" ref="interpolationRef" v-model="mapbox.settings.interpolation" name="interpolation">
                 <option value="bilinear">Bilinear</option>
                 <option value="bicubic">Bicubic</option>
-              </select></span>
-            </label>
-          </li>
-          <li>
-            <label>
-              <span>Elevation Scale&#8202;:</span>
-              <NumberInput v-model="mapbox.settings.elevationScale" :max="100000" :min="0" :step="0.001" /><span>m</span>
-            </label>
-          </li>
-          <li>
-            <label>
-              <span>Waterside Detail&#8202;:</span>
-              <span><select ref="watersideRef" v-model="mapbox.settings.waterside" name="waterside">
+              </select>
+            </div>
+            <label for="scale">Elevation Scale&#8202;:</label>
+            <div>
+              <NumberInput id="scale" v-model="mapbox.settings.elevationScale" :max="100000" :min="0" :step="0.001" />
+            </div>
+            <div class="unit">m</div>
+            <label for="ws-detail">Waterside Detail&#8202;:</label>
+            <div>
+              <select id="ws-detail" ref="watersideRef" v-model="mapbox.settings.waterside" name="waterside">
                 <option value="2">High</option>
                 <option value="1">Mid</option>
                 <option value="0">Low</option>
-              </select></span>
-            </label>
-          </li>
-          <li>
-            <label>
-              <span>Stream Depth&#8202;:</span>
-              <NumberInput v-model="mapbox.settings.streamDepth" :max="100" :min="0" :step="1" /><span>m</span>
-            </label>
-          </li>
-          <li>
-            <label>
-              <span>Smooth Count&#8202;:</span>
-              <NumberInput v-model="mapbox.settings.smoothCount" :max="20" :min="1" :step="1" />
-            </label>
-          </li>
-          <li>
-            <label>
-              <span>Noise Value&#8202;:</span><span class="prefix">&plusmn;</span>
-              <NumberInput v-model="mapbox.settings.noise" :max="100" :min="0" :step="1" /><span>m</span>
-            </label>
-          </li>
-          <li>
-            <label>
-              <span>Noise Detail&#8202;:</span>
-              <NumberInput v-model="mapbox.settings.noiseGrid" :max="100" :min="1" :step="1" />
-            </label>
-          </li>
-          <li>
-            <label class="amount">
-              <span>Reflecting the<br>amount of effect&#8202;:</span>
-              <ToggleSwitch v-model="mapbox.settings.applyEffectAmount" :name="'display-effect'" @change="toggleDisplayEffect" />
-            </label>
-          </li>
-          <li>
-            <label class="input-text">
-              <span>User Style URL&#8202;:</span>
-              <input v-model="mapbox.settings.userStyleURL" />
-            </label>
-          </li>
-          <li>
-            <label class="input-text">
-              <span>Access Token&#8202;:</span>
-              <input v-model="mapbox.settings.accessToken" />
-            </label>
-          </li>
-        </ul>
-      </div>
+              </select>
+            </div>
+          </div>
+          <div class="item">
+            <label for="depth">Stream Depth&#8202;:</label>
+            <div>
+              <NumberInput id="depth" v-model="mapbox.settings.streamDepth" :max="100" :min="0" :step="1" />
+            </div>
+            <div class="unit">m</div>
+            <label for="count">Smooth Count&#8202;:</label>
+            <div>
+              <NumberInput id="count" v-model="mapbox.settings.smoothCount" :max="20" :min="1" :step="1" />
+            </div>
+            <label class="prefix" for="noise-value">Noise Value&#8202;:</label>
+            <div>
+              <NumberInput id="noise-value" v-model="mapbox.settings.noise" :max="100" :min="0" :step="1" />
+            </div>
+            <div class="unit">m</div>
+            <label for="noise-detail">Noise Detail&#8202;:</label>
+            <div>
+              <NumberInput id="noise-detail"v-model="mapbox.settings.noiseGrid" :max="100" :min="1" :step="1" />
+            </div>
+          </div>
+        </div>
+        <div :class="['footer', { 'footer-mobile': isMobile }]">
+          <label class="amount" for="display-effect">Reflecting the amount of effect&#8202;:</label>
+          <div class="toggle">
+            <ToggleSwitch id="amount" v-model="mapbox.settings.applyEffectAmount" :name="'display-effect'" @change="toggleDisplayEffect" />
+          </div>
+          <label for="url" class="input-text">User Style URL&#8202;:</label>
+          <div class="text-input">
+            <input id="url" v-model="mapbox.settings.userStyleURL" />
+          </div>
+          <label for="token" class="input-text">Access Token&#8202;:</label>
+          <div class="text-input">
+            <input id="token" v-model="mapbox.settings.accessToken" />
+          </div>
+        </div>
+      </OverlayScrollbars>
     </div>
   </ModalWindow>
 </template>
@@ -148,49 +130,24 @@ const close = () => {
     top: 6px;
     right: 6px;
   }
+  .innerPanel {
+    max-height: calc(100dvh - 14rem - 12px);
+  }
   .main {
-    padding: 0 1rem .5rem;
-  }
-  ul, li {
-    display: block;
-  }
-  label {
-    width: 16.25rem;
     display: flex;
-    align-items: center;
+    padding: 0 1rem;
+    gap: 0 2rem;
+    flex-wrap: wrap;
+  }
+  .item {
+    display: grid;
+    grid-template-columns: auto 6rem auto;
+    gap: 1rem 0;
+    position: relative;
     margin-bottom: 1rem;
-    flex-wrap: nowrap;
-    height: 2rem;
-    line-height: 2;
-    &.input-text {
-      flex-wrap: wrap;
-      height: 3.5rem;
-    }
-    &:has(input) {
-      height: 1.5rem;
-      line-height: 1.5;
-      &.amount {
-        height: 3rem;
-      }
-    }
-    span {
-      display: block;
-      white-space: nowrap;
-      flex-shrink: 0;
-      &.prefix {
-        width: 1.25rem;
-        text-align: center;
-      }
-      &:first-child {
-        width: 9rem;
-        &:has(+ .prefix) {
-          width: 7.75rem;
-        }
-      }
-      &:last-child:not(:has(select)) {
-        width: 1.25rem;
-        text-align: right;
-      }
+    div {
+      line-height: 2;
+      height: 2rem;
       &:has(select) {
         position: relative;
         &::after {
@@ -207,7 +164,19 @@ const close = () => {
       }
     }
   }
-  button, select, .input-text input {
+  label {
+    position: relative;
+    display: block;
+    line-height: 2;
+    grid-column-start: 1;
+    padding-right: 1.5rem;
+    min-width: 9.62rem;
+  }
+  .unit {
+    text-align: right;
+    padding-left: .5rem;
+  }
+  button, select, input {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -215,7 +184,6 @@ const close = () => {
     outline: none;
     overflow: hidden;
     display: block;
-    flex-shrink: 0;
   }
   select {
     width: 6rem;
@@ -227,7 +195,6 @@ const close = () => {
     background-color: $inputBg;
     font-size: 1rem;
     cursor: pointer;
-    flex-shrink: 0;
     &:active, &:focus {
       background-color: $inputBgF;
     }
@@ -241,14 +208,14 @@ const close = () => {
     padding: 0 .25rem;
     background-color: $inputBg;
     border-radius: .25rem;
-    line-height: 1.5;
-    flex-shrink: 0;
+    line-height: 2;
+    height: 2rem;
     &:active, &:focus {
       background-color: $inputBgF;
     }
   }
-  .input-text input {
-    width: 16.25rem;
+  .text-input input {
+    width: 100%;
   }
   input[input] {
     color: #FFA500;
@@ -256,5 +223,33 @@ const close = () => {
   input:disabled {
     color: $textDisabled;
     background-color: transparent;
+  }
+  .prefix::after {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding-right: .25rem;
+      content: '\0B1';
+    }
+  .footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 1rem 1.5rem;
+    gap: 1rem 2rem;
+    div {
+      line-height: 2;
+      height: 2rem;
+      :deep(.toggle-switch) {
+        height: 1.5rem;
+        margin: .25rem 0;
+      }
+    }
+  }
+  .footer-mobile {
+    gap: 1rem 0;
+    grid-template-columns: 9.62rem auto !important;
+    .amount {
+      line-height: 1.5;
+    }
   }
 </style>
