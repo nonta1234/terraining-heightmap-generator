@@ -143,7 +143,7 @@ class GetCustomMapImage {
     const logoCtx = logoCanvas.getContext('2d') as OffscreenCanvasRenderingContext2D
     const response = await fetch(logoUrl)
     const svgText = await response.text()
-    const v = Canvg.fromString(logoCtx, svgText, { ignoreClear: true, DOMParser })
+    const v = Canvg.fromString(logoCtx, svgText, { DOMParser })
     v.resize(180, 42)
     await v.render()
     ctx.drawImage(logoCanvas, 0, canvas.height - 45)
