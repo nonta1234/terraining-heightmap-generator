@@ -14,6 +14,8 @@ const fullArea = ref(false)
 const hasUserStyle = computed(() => mapbox.value.settings.userStyleURL !== '')
 const flag = computed(() => (Number(zoomType.value === 'auto') << 1) | Number(sizeType.value === 'auto'))
 const offset = computed(() => (mapbox.value.settings.gridInfo === 'cs1' || fullArea.value) ? 0 : 0.375)
+const requests = ref(1)
+const caution = computed(() => requests.value > 1000)
 
 watch(flag, () => {
   zoomDisabled.value = zoomType.value === 'auto'
@@ -25,11 +27,7 @@ watch(flag, () => {
     zoomTextHidden.value = false
     sizeTextHidden.value = false
   }
-  if (flag.value === 1) {
-    size.value = getSize(zoom.value)
-  } else if (flag.value === 2) {
-    zoom.value = getZoom(size.value)
-  }
+  update()
 })
 
 const getZoom = (size: number) => {
@@ -41,7 +39,12 @@ const getZoom = (size: number) => {
     512,
   )
   const side = x1 - x0
-  return Math.round(Math.log2(size / side) * 100) / 100
+  const zoom = Math.round(Math.log2(size / side) * 100) / 100
+  const zx0 = x0 * (2 ** zoom)
+  const zx1 = x1 * (2 ** zoom)
+  const _side = zx1 - zx0
+  const cells = Math.ceil(_side / 2000) ** 2
+  return { calcZoom: zoom, cells }
 }
 
 const getSize = (zoom: number) => {
@@ -55,35 +58,58 @@ const getSize = (zoom: number) => {
   const zx0 = x0 * (2 ** zoom)
   const zx1 = x1 * (2 ** zoom)
   const side = zx1 - zx0
-  return Math.max(Math.min(16384, Math.round(side)), 1)
+  const cells = Math.ceil(side / 2000) ** 2
+  return { calcSize: Math.max(Math.min(16384, Math.round(side)), 1), cells }
 }
 
-const onZoomChange = (value: number) => {
-  if (flag.value === 1) {
-    size.value = getSize(value)
+const update = () => {
+  switch (flag.value) {
+    case 0: {
+      const { cells: calcCells } = getSize(zoom.value)
+      requests.value = calcCells
+      break
+    }
+    case 1: {
+      const { calcSize, cells: calcCells } = getSize(zoom.value)
+      size.value = calcSize
+      requests.value = calcCells
+      break
+    }
+    case 2: {
+      const { calcZoom, cells: calcCells } = getZoom(size.value)
+      zoom.value = calcZoom
+      requests.value = calcCells
+      break
+    }
+    case 3: {
+      requests.value = 1
+      break
+    }
   }
 }
 
-const onSizeChange = (value: number) => {
+const onZoomChange = () => {
+  if (flag.value === 1) {
+    update()
+  }
+}
+
+const onSizeChange = () => {
   if (flag.value === 2) {
-    zoom.value = getZoom(value)
+    update()
   }
 }
 
 const toogle = () => {
-  if (flag.value === 1) {
-    size.value = getSize(zoom.value)
-  } else if (flag.value === 2) {
-    zoom.value = getZoom(size.value)
+  if (flag.value === 1 || flag.value === 2) {
+    update()
   }
 }
 
 useListen('map:miModal', (value) => {
   if (value === undefined) {
     if (flag.value === 1) {
-      size.value = getSize(zoom.value)
-    } else if (flag.value === 2) {
-      zoom.value = getZoom(size.value)
+      update()
     }
   }
 })
@@ -106,13 +132,14 @@ function downloadData(filename: string, data: any) {
 
 /**
  * 0. zoom: custom, size: custom\
- *    normally use getCustomMapImage
+ *    Normally use getCustomMapImage.\
+ *    However, if it exceeds 16384px, it will be reduced to 16384px.
  * 1. zoom: custom, size: auto\
- *    set within 16384px
+ *    Set within 16384px.
  * 2. zoom: auto, size: custom\
- *    set zoom using log2
+ *    Set zoom using log2.
  * 3. zoom: auto, size: auto\
- *    use getMapImage
+ *    Use getMapImage.
  */
 const download = async () => {
   if (!style.value) {
@@ -123,10 +150,8 @@ const download = async () => {
     ? mapbox.value.settings.userStyleURL.replace('mapbox://styles/', '')
     : style.value
   try {
-    if (flag.value === 1) {
-      size.value = getSize(zoom.value)
-    } else if (flag.value === 2) {
-      zoom.value = getZoom(size.value)
+    if (flag.value === 1 || flag.value === 2) {
+      update()
     }
     const png = flag.value === 3
       ? await getMapImage(valueStr, offset.value)
@@ -167,7 +192,7 @@ const download = async () => {
           <NumberInput
             id="zoom-level"
             v-model="zoom"
-            :max="22"
+            :max="20"
             :min="0"
             :step="0.01"
             :disabled="zoomDisabled"
@@ -196,9 +221,13 @@ const download = async () => {
           />
         </div>
         <div class="unit">px</div>
-        <label class="full-area-label height1-5" for="full-area">Full Area (CS2)&#8202;:</label>
-        <div class="full-area-toggle height1-5">
+        <label class="full-area-label" for="full-area">Full Area (CS2)&#8202;:</label>
+        <div class="full-area-toggle">
           <ToggleSwitch v-model="fullArea" :name="'full-area'" @change="toogle" />
+        </div>
+        <label class="request">API Request Count&#8202;:</label>
+        <div class="request-count">
+          <div :class="{ 'caution': caution }">{{ requests }}</div>
         </div>
       </div>
       <footer>
@@ -265,10 +294,6 @@ const download = async () => {
     text-align: right;
     padding-left: .5rem;
   }
-  .height1-5 {
-    height: 1.5rem !important;
-    line-height: 1.5 !important;
-  }
   .full-area-label {
     grid-column: 1 / 3;
     grid-row: 6 / 7;
@@ -280,7 +305,19 @@ const download = async () => {
     z-index: 2;
   }
   :deep(.toggle-switch) {
-    margin: 0 0 0 auto;
+    margin: .25rem 0 .25rem auto;
+  }
+  .request {
+    grid-column: 1 / 3;
+    grid-row: 7 / 8;
+    z-index: 1;
+  }
+  .request-count {
+    grid-column: 2 / 3;
+    grid-row: 7 / 8;
+    z-index: 2;
+    padding-right: .25rem;
+    text-align: right;
   }
   button, select, input {
     -webkit-appearance: none;
@@ -327,6 +364,9 @@ const download = async () => {
   input:disabled {
     color: $textDisabled;
   }
+  .caution {
+    color: #FFA500;
+  }
   footer {
     display: flex;
     justify-content: right;
@@ -357,9 +397,9 @@ const download = async () => {
     }
     span {
       display: inline-block;
-      height: calc(2.25rem - 2px);
-      line-height: 2.125;
-      margin: 0;
+      height: calc(2.1825rem - 2px);
+      line-height: 2.0625;
+      margin: 1px 0 0;
     }
   }
   .downloading {

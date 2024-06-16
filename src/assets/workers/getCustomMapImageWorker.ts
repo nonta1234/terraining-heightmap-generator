@@ -124,14 +124,21 @@ class GetCustomMapImage {
     const processTiles = async (list: PromiseSettledResult<R>[]) => {
       const tilePromises = list.map(async (tile, index) => {
         if (tile.status === 'fulfilled') {
-          const blob = tile.value.data
-          if (blob) {
-            const image = await createImageBitmap(blob)
+          const { data, error } = tile.value
+          if (error) {
+            console.error(error)
+            throw error
+          }
+          if (data) {
+            const image = await createImageBitmap(data)
             const dx = Math.floor(index % cells) * 2000 - 5
             const dy = Math.floor(index / cells) * 2000 - 5
             ctx.drawImage(image, dx * scale, dy * scale, image.width * scale, image.height * scale)
             image.close()
           }
+        } else {
+          const error = tile.reason
+          throw error
         }
       })
       await Promise.all(tilePromises)
