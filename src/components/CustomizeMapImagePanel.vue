@@ -65,20 +65,20 @@ const getSize = (zoom: number) => {
 const update = () => {
   switch (flag.value) {
     case 0: {
-      const { cells: calcCells } = getSize(zoom.value)
-      requests.value = calcCells
+      const { cells } = getSize(zoom.value)
+      requests.value = cells
       break
     }
     case 1: {
-      const { calcSize, cells: calcCells } = getSize(zoom.value)
+      const { calcSize, cells } = getSize(zoom.value)
       size.value = calcSize
-      requests.value = calcCells
+      requests.value = cells
       break
     }
     case 2: {
-      const { calcZoom, cells: calcCells } = getZoom(size.value)
+      const { calcZoom, cells } = getZoom(size.value)
       zoom.value = calcZoom
-      requests.value = calcCells
+      requests.value = cells
       break
     }
     case 3: {
@@ -88,29 +88,9 @@ const update = () => {
   }
 }
 
-const onZoomChange = () => {
-  if (flag.value === 1) {
-    update()
-  }
-}
-
-const onSizeChange = () => {
-  if (flag.value === 2) {
-    update()
-  }
-}
-
-const toogle = () => {
-  if (flag.value === 1 || flag.value === 2) {
-    update()
-  }
-}
-
 useListen('map:miModal', (value) => {
   if (value === undefined) {
-    if (flag.value === 1) {
-      update()
-    }
+    update()
   }
 })
 
@@ -197,7 +177,7 @@ const download = async () => {
             :step="0.01"
             :disabled="zoomDisabled"
             :text-hidden="zoomTextHidden"
-            @change="onZoomChange"
+            @change="update"
           />
         </div>
         <label for="size-type">Size Type&#8202;:</label>
@@ -217,13 +197,13 @@ const download = async () => {
             :step="1"
             :disabled="sizeDisabled"
             :text-hidden="sizeTextHidden"
-            @change="onSizeChange"
+            @change="update"
           />
         </div>
         <div class="unit">px</div>
         <label class="full-area-label" for="full-area">Full Area (CS2)&#8202;:</label>
         <div class="full-area-toggle">
-          <ToggleSwitch v-model="fullArea" :name="'full-area'" @change="toogle" />
+          <ToggleSwitch v-model="fullArea" :name="'full-area'" @change="update" />
         </div>
         <label class="request">API Request Count&#8202;:</label>
         <div class="request-count">

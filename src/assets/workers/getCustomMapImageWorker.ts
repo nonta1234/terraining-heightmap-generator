@@ -69,7 +69,7 @@ class GetCustomMapImage {
       settings.lat,
       settings.size,
       offset,
-      512,
+      1024,
     )
     const zx0 = x0 * (2 ** zoom)
     const zy0 = y0 * (2 ** zoom)
@@ -109,12 +109,12 @@ class GetCustomMapImage {
     // fetch tiles
     for (let i = 0; i < cells; i++) {
       for (let j = 0; j < cells; j++) {
-        const lng = pixel2lng(centerPos[j + i * cells][0], zoom, 512)
-        const lat = pixel2lat(centerPos[j + i * cells][1], zoom, 512)
+        const lng = pixel2lng(centerPos[j + i * cells][0], zoom, 1024)
+        const lat = pixel2lat(centerPos[j + i * cells][1], zoom, 1024)
 
         const url = 'https://api.mapbox.com/styles/v1/' +
           `${styleUrl}/static/` +
-          `${lng},${lat},${zoom - 1},${bearing}` +
+          `${lng},${lat},${zoom},${bearing}` +
           `/1005x1005@2x?access_token=${settings.accessToken}&attribution=false&logo=false`
         tiles[j + i * cells] = fetchImage(url)
       }
