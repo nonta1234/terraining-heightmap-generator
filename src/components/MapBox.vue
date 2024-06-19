@@ -292,7 +292,7 @@ onMounted(() => {
       const delta = currentAngle - prevAngle
       mapbox.value.settings.angle = mapbox.value.settings.angle + delta
       setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
-      mapbox.value.settings.angle = getGridAngle()
+      mapbox.value.settings.angle = getGridAngle(mapbox)
       prevAngle = currentAngle
     }
     $throttle(rotate(), 1000 / 60)
@@ -300,7 +300,7 @@ onMounted(() => {
 
   function onRotateEnd() {
     setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
-    mapbox.value.settings.angle = getGridAngle()
+    mapbox.value.settings.angle = getGridAngle(mapbox)
     mapCanvas.value!.style.cursor = ''
     mapbox.value.map?.off('mousemove', onRotate)
     mapbox.value.map?.off('touchmove', onRotate)

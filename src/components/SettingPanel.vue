@@ -166,7 +166,7 @@ const refresh = async () => {
       adjustElevation(minmax.max)
 
       // get position
-      const grid = getGrid(mapbox.value.settings.lng, mapbox.value.settings.lat, mapbox.value.settings.size, mapbox.value.settings.angle)
+      const grid = getGrid(mapbox, mapbox.value.settings.lng, mapbox.value.settings.lat, mapbox.value.settings.size, mapbox.value.settings.angle)
       const corners = getPoint(grid)
       console.log('min:', minmax.min, 'max:', minmax.max)
       console.log(corners)
