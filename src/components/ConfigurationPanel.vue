@@ -98,11 +98,11 @@ const close = () => {
           <div class="toggle">
             <ToggleSwitch id="amount" v-model="mapbox.settings.applyEffectAmount" :name="'display-effect'" @change="toggleDisplayEffect" />
           </div>
-          <label for="url" class="input-text">User Style URL&#8202;:</label>
+          <label for="url">User Style URL&#8202;:</label>
           <div class="text-input">
             <input id="url" v-model="mapbox.settings.userStyleURL" />
           </div>
-          <label for="token" class="input-text">Access Token&#8202;:</label>
+          <label for="token">Access Token&#8202;:</label>
           <div class="text-input">
             <input id="token" v-model="mapbox.settings.accessToken" />
           </div>
@@ -141,7 +141,7 @@ const close = () => {
   }
   .item {
     display: grid;
-    grid-template-columns: auto 6rem auto;
+    grid-template-columns: 9.625rem 6rem 1.375rem;
     gap: 1rem 0;
     position: relative;
     margin-bottom: 1rem;
@@ -170,7 +170,7 @@ const close = () => {
     line-height: 2;
     grid-column-start: 1;
     padding-right: 1.5rem;
-    min-width: 9.62rem;
+    min-width: 9.625rem;
   }
   .unit {
     text-align: right;
@@ -233,9 +233,9 @@ const close = () => {
     }
   .footer {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 9.625rem 6rem 1.375rem 2rem 9.625rem 6rem 1.375rem;
     padding: 0 1rem 1.5rem;
-    gap: 1rem 2rem;
+    gap: 1rem 0;
     div {
       line-height: 2;
       height: 2rem;
@@ -244,12 +244,25 @@ const close = () => {
         margin: .25rem 0;
       }
     }
+    .amount {
+      grid-column: 1 / 5;
+    }
+    .text-input {
+      grid-column: 2 / 7;
+    }
   }
   .footer-mobile {
     gap: 1rem 0;
-    grid-template-columns: 9.62rem auto !important;
+    grid-template-columns: 9.625rem 3.25rem 2.75rem 1.375rem;
     .amount {
       line-height: 1.5;
+      grid-column: 1 / 3;
+    }
+    :deep(.toggle-switch) {
+        margin: .75rem 0 !important;
+      }
+    .text-input {
+      grid-column: 2 / 5;
     }
   }
 </style>
