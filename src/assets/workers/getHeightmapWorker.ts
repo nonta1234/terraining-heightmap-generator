@@ -262,7 +262,6 @@ class GetHeightmapWorker {
     const pixelData = (await processTiles(tileList)).data
     // In the case of reduction, high frequencies are removed by applying Gaussian blur in advance.
     const elevations = scale > 1.5 ? gaussianBlur(decodeElevation(pixelData)) : decodeElevation(pixelData)
-    console.log(scale)
 
     const result = settings.interpolation === 'bicubic'
       ? getHeightMapBicubic(mapType, elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY)
