@@ -36,7 +36,9 @@
 
 - **Lng & Lat**&#8202;: Adjust your geographic coordinates by modifying these values.
 - **Min & Max Height**&#8202;: Click the refresh button at the bottom to retrieve current area's minimum and maximum elevations. Please note that slight variations in values may occur due to interpolation based on map size.
-- **Map Size**&#8202;: Set the map size. You can change the map size between 1/2 and 4x the default size (CS1&#8202;: 17.28&#8202;km, CS2&#8202;: 57.344&#8202;km) .
+- **Zoom Level**&#8202;: Set the zoom level of the map.
+- **Grid Angle**&#8202;: Set the angle of the grid. The angle increases clockwise.
+- **Map Size**&#8202;: Set the map size. You can change the map size between 1/2 and 4x the default size (CS1&#8202;: 17.28&#8202;km, CS2&#8202;: 57.344&#8202;km) . The size includes the unplayable area.
 - **Sea Level**&#8202;: Elevations below this level are automatically adjusted to 0&#8202;m.
 - **Adjust Level**&#8202;: The sea level is automatically aligned with the minimum height.
 - **Height Ratio**&#8202;: Define the vertical-to-horizontal distance ratio.
