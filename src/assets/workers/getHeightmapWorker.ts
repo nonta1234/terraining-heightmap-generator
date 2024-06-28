@@ -10,6 +10,42 @@ type T = {
   error: FetchError<any> | undefined;
 }
 
+// gaussian blur -------------------------------------------------------------------------------------
+
+const apply1DGaussianBlur = (array: Float32Array, size: number) => {
+  const result = new Float32Array(array.length)
+  for (let y = 0; y < size; y++) {
+    // x = 0
+    result[y * size] = (array[y * size] * 2 + array[y * size + 1]) / 3
+    for (let x = 1; x < size - 1; x++) {
+      result[y * size + x] = (array[y * size + x - 1] + array[y * size + x] * 2 + array[y * size + x + 1]) / 4
+    }
+    // x = size - 1
+    result[y * size + (size - 1)] = (array[y * size + (size - 2)] + array[y * size + (size - 1)] * 2) / 3
+  }
+  return result
+}
+
+const transposeArray = (array: Float32Array, size: number) => {
+  const result = new Float32Array(array.length)
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      result[x * size + y] = array[y * size + x]
+    }
+  }
+  return result
+}
+
+const gaussianBlur = (array: Float32Array) => {
+  const size = Math.sqrt(array.length)
+  let blurredData = apply1DGaussianBlur(array, size)
+  let transposedData = transposeArray(blurredData, size)
+  blurredData = apply1DGaussianBlur(transposedData, size)
+  transposedData = transposeArray(blurredData, size)
+  return transposedData
+}
+
+
 // bilinear interpolation ----------------------------------------------------------------------------
 
 const getHeightMapBilinear = (
@@ -224,7 +260,9 @@ class GetHeightmapWorker {
       return ctx.getImageData(0, 0, tilePixels, tilePixels)
     }
     const pixelData = (await processTiles(tileList)).data
-    const elevations = decodeElevation(pixelData)
+    // In the case of reduction, high frequencies are removed by applying Gaussian blur in advance.
+    const elevations = scale > 1.5 ? gaussianBlur(decodeElevation(pixelData)) : decodeElevation(pixelData)
+    console.log(scale)
 
     const result = settings.interpolation === 'bicubic'
       ? getHeightMapBicubic(mapType, elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY)
