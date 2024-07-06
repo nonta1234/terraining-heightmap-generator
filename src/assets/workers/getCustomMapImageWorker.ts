@@ -7,7 +7,7 @@ import { pixel2lng, pixel2lat } from '~/utils/tiles'
 import type { Settings } from '~/types/types'
 import { getExtentInWorldCoords } from '~/utils/getExtent'
 import logoUrl from '~/assets/svg/mapboxgl-ctrl-logo.svg'
-import init, { encode_png } from '~~/png_lib/pkg'  // eslint-disable-line
+import initPng, { encode_png } from '~~/png_lib/pkg'  // eslint-disable-line
 
 type T = {
   settings: Settings;
@@ -157,7 +157,7 @@ class GetCustomMapImage {
 
     // attribution
     const attrText = styleUrl.includes('satellite') ? ATTR_RAS : ATTR
-    ctx.font = '20px \'Helvetica Neue\', Arial, Helvetica, sans-serif'
+    ctx.font = '20px "Helvetica Neue", Arial, Helvetica, sans-serif'
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
     const textWidth = ctx.measureText(attrText).width + 10
     ctx.fillRect(canvas.width - textWidth, canvas.height - 30, textWidth, 30)
@@ -168,14 +168,15 @@ class GetCustomMapImage {
 
     // encode
     const imageData = new Uint8Array(ctx.getImageData(0, 0, canvas.width, canvas.height).data)
-    await init()
+    const compression = _side > 4096 ? 'Best' : 'Default'
+    await initPng()
     const png = await encode_png(
       { data: imageData },
-      canvas.width,
-      canvas.height,
+      _side,
+      _side,
       'Rgba',
       'Eight',
-      'Default',
+      compression,
     )
 
     this.worker.postMessage(png.data)
