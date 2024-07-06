@@ -13,19 +13,13 @@ const getCustomMapImageData = (settings: Settings, styleUrl: string, zoom: numbe
   }
   const mapImageOption = JSON.parse(JSON.stringify(data))
   const result = new Promise<Blob>((resolve, reject) => {
-    worker.addEventListener('message', async (e) => {
+    worker.addEventListener('message', (e) => {
       if (e.data && e.data.type === 'error') {
         alert(e.data.message)
         reject(new Error(e.data.message))
         worker.terminate()
       } else if (e.data) {
-        const canvas = new OffscreenCanvas(0, 0)
-        canvas.width = e.data.width
-        canvas.height = e.data.height
-        const ctx = canvas.getContext('2d')
-        ctx!.drawImage(e.data, 0, 0)
-        const blob = await canvas.convertToBlob({ type: 'image/png' })
-        resolve(blob)
+        resolve(e.data)
         worker.terminate()
       }
     }, { once: true })

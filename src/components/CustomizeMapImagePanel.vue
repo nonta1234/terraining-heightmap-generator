@@ -136,7 +136,7 @@ const download = async () => {
     const png = flag.value === 3
       ? await getMapImage(valueStr, offset.value)
       : await getCustomMapImage(valueStr, zoom.value, offset.value, 16384, size.value)
-    downloadData(`map-image_${valueStr}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png!)
+    downloadData(`map-image_${valueStr}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png)
     saveSettings(mapbox.value.settings)
   } catch (e) {
     console.error(e)
@@ -367,6 +367,7 @@ const download = async () => {
     background-color: rgba(255, 255, 255, .1);
     cursor: pointer;
     display: flex;
+    perspective: 100px;
     &:hover, &:focus {
       color: aquamarine;
       background-color: rgba(0, 206, 209, .35);

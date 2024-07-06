@@ -7,6 +7,7 @@ import { pixel2lng, pixel2lat } from '~/utils/tiles'
 import type { Settings } from '~/types/types'
 import { getExtentInWorldCoords } from '~/utils/getExtent'
 import logoUrl from '~/assets/svg/mapboxgl-ctrl-logo.svg'
+import init, { encode_png } from '~~/png_lib/pkg'  // eslint-disable-line
 
 type T = {
   settings: Settings;
@@ -137,8 +138,7 @@ class GetCustomMapImage {
             image.close()
           }
         } else {
-          const error = tile.reason
-          throw error
+          throw tile.reason
         }
       })
       await Promise.all(tilePromises)
@@ -166,8 +166,19 @@ class GetCustomMapImage {
     ctx.textBaseline = 'bottom'
     ctx.fillText(attrText, canvas.width - 5, canvas.height - 2)
 
-    const imageBitmap = canvas.transferToImageBitmap()
-    this.worker.postMessage(imageBitmap, [imageBitmap])
+    // encode
+    const imageData = new Uint8Array(ctx.getImageData(0, 0, canvas.width, canvas.height).data)
+    await init()
+    const png = await encode_png(
+      { data: imageData },
+      canvas.width,
+      canvas.height,
+      'Rgba',
+      'Eight',
+      'Default',
+    )
+
+    this.worker.postMessage(png.data)
   }
 }
 
