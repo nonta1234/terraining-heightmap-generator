@@ -23,6 +23,12 @@ type R = {
   error: FetchError<any> | undefined;
 }
 
+const clearCanvas = (ctx: OffscreenCanvasRenderingContext2D) => {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+  ctx.canvas.width = 0
+  ctx.canvas.height = 0
+}
+
 const rotate = (array: Position[], angle: number, centerX: number, centerY: number)  => {
   const cosTheta = Math.cos(-angle * Math.PI / 180)
   const sinTheta = Math.sin(-angle * Math.PI / 180)
@@ -155,6 +161,7 @@ class GetCustomMapImage {
     await v.render()
     ctx.drawImage(logoCanvas, 0, canvas.height - 45)
 
+
     // attribution
     const attrText = styleUrl.includes('satellite') ? ATTR_RAS : ATTR
     ctx.font = '20px "Helvetica Neue", Arial, Helvetica, sans-serif'
@@ -178,6 +185,10 @@ class GetCustomMapImage {
       'Eight',
       compression,
     )
+
+    // clear canvas
+    clearCanvas(logoCtx)
+    clearCanvas(ctx)
 
     this.worker.postMessage(png.data)
   }
