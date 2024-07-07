@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import init, { encode_16g } from '~~/png_lib/pkg'  // eslint-disable-line
+import init, { encode_png } from '~~/png_lib/pkg'  // eslint-disable-line
 const mapbox = useMapbox()
 const device = useDevice()
 
@@ -39,26 +39,34 @@ const getPngHeightmap = async () => {
     if (mapbox.value.settings.gridInfo === 'cs1') {
       const { heightmap } = await getCitiesMap('cs1')
       await init()
-      const png = await encode_16g({
-        width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        data: heightmap,
-      })
+      const png = await encode_png(
+        { data: heightmap },
+        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        'Grayscale',
+        'Sixteen',
+        'Default',
+      )
       download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png.data)
     } else {
       const { heightmap, worldMap } = await getCitiesMap('cs2')
       await init()
-      const heightmapPng = await encode_16g({
-        width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        data: heightmap,
-      })
-      await init()
-      const worldMapPng = await encode_16g({
-        width: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        height: mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        data: worldMap!,
-      })
+      const heightmapPng = await encode_png(
+        { data: heightmap },
+        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        'Grayscale',
+        'Sixteen',
+        'Default',
+      )
+      const worldMapPng = await encode_png(
+        { data: worldMap },
+        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        'Grayscale',
+        'Sixteen',
+        'Default',
+      )
       download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, heightmapPng.data)
       setTimeout(
         () => download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, worldMapPng.data),
