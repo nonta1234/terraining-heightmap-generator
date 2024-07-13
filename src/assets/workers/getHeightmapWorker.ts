@@ -1,6 +1,6 @@
 import { FetchError } from 'ofetch'
 import { getExtentInWorldCoords } from '~/utils/getExtent'
-import type { MapType, GenerateMapOption } from '~/types/types'
+import type { GenerateMapOption } from '~/types/types'
 import { decodeElevation } from '~/utils/elevation'
 import { mapSpec } from '~/utils/const'
 import { useFetchTerrainTiles } from '~/composables/useFetchTiles'
@@ -14,7 +14,6 @@ type T = {
 // bilinear interpolation ----------------------------------------------------------------------------
 
 const getHeightMapBilinear = (
-  mapType: MapType,
   elevations: Float32Array,
   resultPixels: number,
   tilePixels: number,
@@ -22,12 +21,12 @@ const getHeightMapBilinear = (
   scale: number,
   offsetX: number,
   offsetY: number,
+  correction: number,
 ) => {
   const heightMap = new Float32Array(resultPixels * resultPixels)
   const cosTheta = Math.cos(-angle * Math.PI / 180)
   const sinTheta = Math.sin(-angle * Math.PI / 180)
-  const fasesOffset = mapType === 'cs1' ? 1 : 0
-  const halfSize = (resultPixels - fasesOffset) / 2
+  const halfSize = (resultPixels - correction) / 2
 
   // affine transformation & bilinear interpolation
   for (let y = 0; y < resultPixels; y++) {
@@ -84,7 +83,6 @@ const getHeightMapBilinear = (
 // bicubic interpolation -----------------------------------------------------------------------------
 
 const getHeightMapBicubic = (
-  mapType: MapType,
   elevations: Float32Array,
   resultPixels: number,
   tilePixels: number,
@@ -92,12 +90,12 @@ const getHeightMapBicubic = (
   scale: number,
   offsetX: number,
   offsetY: number,
+  correction: number,
 ) => {
   const heightMap = new Float32Array(resultPixels * resultPixels)
   const cosTheta = Math.cos(-angle * Math.PI / 180)
   const sinTheta = Math.sin(-angle * Math.PI / 180)
-  const fasesOffset = mapType === 'cs1' ? 1 : 0
-  const halfSize = (resultPixels - fasesOffset) / 2
+  const halfSize = (resultPixels - correction) / 2
 
   // affine transformation & bicubic interpolation
   const a = scale > 1 ? -1 : -0.5
@@ -230,8 +228,8 @@ class GetHeightmapWorker {
     const elevations = scale > 1.5 ? decodeElevation(pixelData) : decodeElevation(pixelData)
 
     const result = settings.interpolation === 'bicubic'
-      ? getHeightMapBicubic(mapType, elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY)
-      : getHeightMapBilinear(mapType, elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY)
+      ? getHeightMapBicubic(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, mapSpec[mapType].correction)
+      : getHeightMapBilinear(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, mapSpec[mapType].correction)
 
     if (isDebug) {
       const imageBitmap = canvas.transferToImageBitmap()
