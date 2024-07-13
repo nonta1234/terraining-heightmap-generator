@@ -32,10 +32,10 @@ const message = ref('')
 const minHeight = ref('-')
 const maxHeight = ref('-')
 
-const maxSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size * 4)
-const minSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size / 2)
+const maxSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 50.000) * 4)
+const minSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 1.000) / 2)
 
-const hScale = computed(() => mapSpec[mapbox.value.settings.gridInfo].size / mapbox.value.settings.size)
+const hScale = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || mapbox.value.settings.size) / mapbox.value.settings.size)
 const vScale = computed(() => mapbox.value.settings.vertScale)
 
 const _sharpen = computed(() => mapbox.value.settings.sharpen)
@@ -208,7 +208,7 @@ const changeMapSize = (size: number) => {
 }
 
 const resetSize = () => {
-  changeMapSize(mapSpec[mapbox.value.settings.gridInfo].size)
+  changeMapSize(mapSpec[mapbox.value.settings.gridInfo].defaultRes || 2.000)
 }
 
 const onSizeChange = (value: number) => {

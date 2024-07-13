@@ -128,7 +128,7 @@ class GetWaterMapWorker {
     const extentOffset = mapType === 'cs2play' ? 0.375 : 0
     const { x0, y0, x1, y1, centerX, centerY } = getExtentInWorldCoords(settings.lng, settings.lat, settings.size * 1.5, extentOffset, pixelsPerTile)
     const side = x1 - x0
-    const tmpMapPixels = mapSpec[mapType].mapFaces * 1.5
+    const tmpMapPixels = (settings.resolution - mapSpec[mapType].correction) * 1.5
     const zoom = Math.ceil(Math.log2(tmpMapPixels / side)) + parseInt(settings.waterside)
     const scale = tmpMapPixels / (side * (2 ** zoom))
 
@@ -141,8 +141,8 @@ class GetWaterMapWorker {
     const offsetX = resultCenterX - tileX0 * pixelsPerTile
     const offsetY = resultCenterY - tileY0 * pixelsPerTile
     const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
-    const resultPixels = mapSpec[mapType].mapPixels + 4
-    const halfMapSize = (mapSpec[mapType].mapFaces + 4) / 2
+    const resultPixels = settings.resolution + 4
+    const halfMapSize = (settings.resolution - mapSpec[mapType].correction + 4) / 2
     const theta = -settings.angle * Math.PI / 180
 
     // setup waterCtx

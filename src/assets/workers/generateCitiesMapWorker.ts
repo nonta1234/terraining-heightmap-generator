@@ -1,5 +1,4 @@
 import { createNoise2D } from 'simplex-noise'
-import { mapSpec } from '~/utils/const'
 import type { GenerateMapOption } from '~/types/types'
 
 const transposeArrayData = (arr: Float32Array, srcRows: number, srcCols: number) => {
@@ -155,7 +154,7 @@ class GenerateCitiesMapWorker {
 
     // triming
     const croppedMap = []
-    const mapPixels = mapSpec[mapType].mapPixels
+    const mapPixels = settings.resolution
     const mapSizePixelsWithBuffer = mapPixels + 4
     const scaleFactor = mapType !== 'cs1' ? settings.elevationScale / 65535 : 0.015625
 

@@ -41,8 +41,8 @@ const getPngHeightmap = async () => {
       await init()
       const png = await encode_png(
         { data: heightmap },
-        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        mapbox.value.settings.resolution,
+        mapbox.value.settings.resolution,
         'Grayscale',
         'Sixteen',
         'Default',
@@ -53,16 +53,16 @@ const getPngHeightmap = async () => {
       await init()
       const heightmapPng = await encode_png(
         { data: heightmap },
-        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        mapbox.value.settings.resolution,
+        mapbox.value.settings.resolution,
         'Grayscale',
         'Sixteen',
         'Default',
       )
       const worldMapPng = await encode_png(
         { data: worldMap },
-        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
-        mapSpec[mapbox.value.settings.gridInfo].mapPixels,
+        mapbox.value.settings.resolution,
+        mapbox.value.settings.resolution,
         'Grayscale',
         'Sixteen',
         'Default',

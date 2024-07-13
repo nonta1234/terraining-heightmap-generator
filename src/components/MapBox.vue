@@ -12,10 +12,11 @@ type GridState = 'none' | 'isMove' | 'isRotate' | 'isResize'
 let gridState: GridState = 'none'
 let prevAngle = 0
 
-const maxSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size * 4)
-const minSize = computed(() => mapSpec[mapbox.value.settings.gridInfo].size / 2)
+const maxSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 50.000) * 4)
+const minSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 1.000) / 2)
 
 const { $throttle } = useNuxtApp()
+
 
 onMounted(() => {
   createMapInstance()
@@ -53,10 +54,12 @@ onMounted(() => {
       type: 'geojson',
       data: mapbox.value.grid?.gridArea,
     })
-    mapbox.value.map?.addSource('play', {
-      type: 'geojson',
-      data: mapbox.value.grid?.playArea,
-    })
+    if (mapbox.value.grid?.playArea) {
+      mapbox.value.map?.addSource('play', {
+        type: 'geojson',
+        data: mapbox.value.grid?.playArea,
+      })
+    }
     mapbox.value.map?.addSource('center', {
       type: 'geojson',
       data: mapbox.value.grid!.centerArea,
@@ -111,15 +114,17 @@ onMounted(() => {
         'fill-opacity': 0.5,
       },
     })
-    mapbox.value.map?.addLayer({
-      id: 'playArea',
-      type: 'fill',
-      source: 'play',
-      paint: {
-        'fill-color': 'green',
-        'fill-opacity': 0.23,
-      },
-    })
+    if (mapbox.value.grid?.playArea) {
+      mapbox.value.map?.addLayer({
+        id: 'playArea',
+        type: 'fill',
+        source: 'play',
+        paint: {
+          'fill-color': 'green',
+          'fill-opacity': 0.23,
+        },
+      })
+    }
     mapbox.value.map?.addLayer({
       id: 'centerArea',
       type: 'fill',
@@ -344,10 +349,10 @@ onMounted(() => {
       let distance = turf.pointToLineDistance([e.lngLat.lng, e.lngLat.lat], lineString, { units: 'kilometers' })
       if (distance < minSize.value) { distance = minSize.value }
       if (distance > maxSize.value) { distance = maxSize.value }
-      const tmpRatio = mapbox.value.settings.vertScale / mapSpec[mapbox.value.settings.gridInfo].size * mapbox.value.settings.size
+      const tmpRatio = mapbox.value.settings.vertScale / (mapSpec[mapbox.value.settings.gridInfo].defaultSize || mapbox.value.settings.size) * mapbox.value.settings.size
       mapbox.value.settings.size = distance
       if (mapbox.value.settings.fixedRatio) {
-        mapbox.value.settings.vertScale = tmpRatio * mapSpec[mapbox.value.settings.gridInfo].size / mapbox.value.settings.size
+        mapbox.value.settings.vertScale = tmpRatio * (mapSpec[mapbox.value.settings.gridInfo].defaultSize || mapbox.value.settings.size) / mapbox.value.settings.size
       }
       setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
       useEvent('map:changeMapSize', mapbox.value.settings.size)

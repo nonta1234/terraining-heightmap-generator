@@ -4,7 +4,7 @@ import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolyg
 export type LngLat = Extract<LngLatLike, [number, number]>;
 export type HeightCalcType = 'manual' | 'limit' | 'maximize';
 export type Interpolation = 'bilinear' | 'bicubic';
-export type MapType = 'cs1' | 'cs2' | 'cs2play';
+export type MapType = 'cs1' | 'cs2' | 'cs2play' | 'unity' | 'ue';
 export type StyleType = Record<'text' | 'value' | 'before' | 'grid' | 'alpha', string>;
 
 export const viewModes = ['height', 'world'] as const
@@ -14,19 +14,24 @@ export type StyleList = {
   [index: string]: StyleType;
 }
 
-export type GridInfoData = {
-  mapPixels: number;
-  mapFaces:  number;
-  size:      number;
-  cell:      number;
-  center:    number[];
-  play:      number[];
-  rotate:    number[][];
-  side:      number[];
+export type GridSpec = {
+  cell:       number;
+  center:     number[];
+  play:       number[] | undefined;
+  rotate:     number[][];
+  side:       number[];
 }
 
-export interface GridInfo {
-  [index: string]: GridInfoData;
+export type MapSpec = {
+  defaultSize: number | undefined;
+  defaultRes:  number;
+  resolutions: number[];
+  correction:  0 | 1;
+  grid:        GridSpec;
+}
+
+export interface MapSpecs {
+  [index: string]: MapSpec;
 }
 
 export type GridPositions = {
@@ -48,7 +53,7 @@ export interface LittoralArray {
 
 export interface Grid {
   gridArea:   FeatureCollection<Polygon, GeoJsonProperties>;
-  playArea:   Feature<Polygon, GeoJsonProperties>;
+  playArea:   Feature<Polygon, GeoJsonProperties> | undefined;
   centerArea: Feature<Polygon, GeoJsonProperties>;
   rotateArea: Feature<MultiPolygon, GeoJsonProperties>;
   sideLines:  Feature<MultiLineString, GeoJsonProperties>;
@@ -60,6 +65,7 @@ export interface Settings {
   lat:               number;
   zoom:              number;
   size:              number;
+  resolution:        number;
   angle:             number;
   seaLevel:          number;
   adjLevel:          boolean;

@@ -7,7 +7,7 @@ const interpolationRef = ref<HTMLSelectElement>()
 const watersideRef = ref<HTMLSelectElement>()
 
 const onHeightmapTypeChange = () => {
-  mapbox.value.settings.size = mapSpec[mapbox.value.settings.gridInfo].size
+  mapbox.value.settings.size = mapSpec[mapbox.value.settings.gridInfo].defaultSize || 2.000
   mapbox.value.settings.fixedRatio = true
   mapbox.value.settings.vertScale = 1
 }

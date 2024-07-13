@@ -4,7 +4,7 @@ import type { MapType, GenerateMapOption } from '~/types/types'
 import { decodeElevation } from '~/utils/elevation'
 import { mapSpec } from '~/utils/const'
 import { useFetchTerrainTiles } from '~/composables/useFetchTiles'
-import { gaussianBlur } from '~/utils/filters'
+// import { gaussianBlur } from '~/utils/filters'
 
 type T = {
   data: Blob | undefined;
@@ -178,7 +178,7 @@ class GetHeightmapWorker {
     const extentOffset = mapType === 'cs2play' ? 0.375 : 0
     const { x0, y0, x1, y1, centerX, centerY } = getExtentInWorldCoords(settings.lng, settings.lat, settings.size * 1.5, extentOffset, pixelsPerTile)
     const side = x1 - x0
-    const tmpMapPixels = mapSpec[mapType].mapFaces * 1.5
+    const tmpMapPixels = (settings.resolution - mapSpec[mapType].correction) * 1.5
     const zoom = Math.min(Math.ceil(Math.log2(tmpMapPixels / side)), 14)
     const scale =  (side * (2 ** zoom)) / tmpMapPixels
     const tileX0 = Math.floor(x0 * (2 ** zoom) / pixelsPerTile)
@@ -187,11 +187,11 @@ class GetHeightmapWorker {
     const tileY1 = Math.floor(y1 * (2 ** zoom) / pixelsPerTile)
     const resultCenterX = centerX * (2 ** zoom)
     const resultCenterY = centerY * (2 ** zoom)
-    const offsetX = resultCenterX - tileX0 * pixelsPerTile
-    const offsetY = resultCenterY - tileY0 * pixelsPerTile
+    const offsetX = resultCenterX - tileX0 * pixelsPerTile - mapSpec[mapType].correction / 2
+    const offsetY = resultCenterY - tileY0 * pixelsPerTile - mapSpec[mapType].correction / 2
     const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
     const tilePixels = tileCount * pixelsPerTile
-    const resultPixels = mapSpec[mapType].mapPixels + 4
+    const resultPixels = settings.resolution + 4
 
     canvas.width = tilePixels
     canvas.height = tilePixels
@@ -218,6 +218,7 @@ class GetHeightmapWorker {
             const dx = Math.floor(index % tileCount) * pixelsPerTile
             const dy = Math.floor(index / tileCount) * pixelsPerTile
             ctx.drawImage(image, dx, dy)
+            image.close()
           }
         }
       })
@@ -226,7 +227,7 @@ class GetHeightmapWorker {
     }
     const pixelData = (await processTiles(tileList)).data
     // In the case of reduction, high frequencies are removed by applying Gaussian blur in advance.
-    const elevations = scale > 1.5 ? gaussianBlur(decodeElevation(pixelData), tilePixels, tilePixels, 1) : decodeElevation(pixelData)
+    const elevations = scale > 1.5 ? decodeElevation(pixelData) : decodeElevation(pixelData)
 
     const result = settings.interpolation === 'bicubic'
       ? getHeightMapBicubic(mapType, elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY)
