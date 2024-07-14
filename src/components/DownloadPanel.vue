@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import init, { encode_png } from '~~/png_lib/pkg'  // eslint-disable-line
+import init, { encode_png } from '~~/png_lib/pkg'
 const mapbox = useMapbox()
 const device = useDevice()
 
@@ -149,121 +149,151 @@ const debug = () => {
 
 
 <template>
-  <div id="download-panel" :class="{'is-mobile': device.isMobile, 'is-desktop': !device.isMobile}">
+  <div id="download-panel" :class="{ 'is-mobile': device.isMobile, 'is-desktop': !device.isMobile }">
     <ul>
-      <li v-if="debugMode"><button ref="debugButton" title="debug" class="debug" @click="debug"><DebugIcon /></button></li>
-      <li><button ref="rawButton" title="Download RAW height map" class="dl-icon" @click="getRawHeightmap"><RawIcon /></button></li>
-      <li><button ref="pngButton" title="Download PNG height map" class="dl-icon" @click="getPngHeightmap"><PngIcon /></button></li>
+      <li v-if="debugMode"><button ref="debugButton" title="debug" class="debug" @click="debug">
+          <DebugIcon />
+        </button></li>
+      <li><button ref="rawButton" title="Download RAW height map" class="dl-icon" @click="getRawHeightmap">
+          <RawIcon />
+        </button></li>
+      <li><button ref="pngButton" title="Download PNG height map" class="dl-icon" @click="getPngHeightmap">
+          <PngIcon />
+        </button></li>
       <li>
-        <SelectButton
-          ref="imgButton"
-          :list="styleList"
-          title="Download map image"
-          @change="getMapImageData"
-        >
+        <SelectButton ref="imgButton" :list="styleList" title="Download map image" @change="getMapImageData">
           <ImgIcon />
         </SelectButton>
       </li>
-      <li><button ref="osmButton" title="Download OSM data" class="osm" @click="getOsmData"><OsmLogo /></button></li>
-      <li><button title="Configuration" @click="cpModal"><font-awesome-icon :icon="['fas', 'gear']" class="fa-fw fa-2xl" /></button></li>
-      <li><button title="https://github.com/nonta1234/terraining-heightmap-generator" @click="toRepository"><font-awesome-icon :icon="['far', 'circle-question']" class="fa-fw fa-2xl" /></button></li>
+      <li><button ref="osmButton" title="Download OSM data" class="osm" @click="getOsmData">
+          <OsmLogo />
+        </button></li>
+      <li><button title="Configuration" @click="cpModal">
+        <font-awesome-icon
+          :icon="['fas', 'gear']"
+          class="fa-fw fa-2xl"
+        />
+      </button></li>
+      <li><button
+        title="https://github.com/nonta1234/terraining-heightmap-generator"
+        @click="toRepository"
+      >
+        <font-awesome-icon :icon="['far', 'circle-question']" class="fa-fw fa-2xl" />
+      </button></li>
     </ul>
   </div>
 </template>
 
 
 <style lang="scss" scoped>
-  #download-panel {
-    position: absolute;
-    border-radius: .375rem;
+#download-panel {
+  position: absolute;
+  border-radius: .375rem;
+  color: $textColor;
+  font-size: 1rem;
+  z-index: 2;
+  user-select: none;
+  @include grass;
+
+  ul {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .5rem;
+  }
+
+  li {
+    position: relative;
+    flex-shrink: 0;
+    height: 48px;
+    width: 56px;
+    padding: 4px 8px;
+  }
+
+  button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: none;
+    outline: none;
+    overflow: hidden;
+    display: block;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background-color: transparent;
     color: $textColor;
-    font-size: 1rem;
-    z-index: 2;
-    user-select: none;
-    @include grass;
-    ul {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: .5rem;
-    }
-    li {
-      position: relative;
-      flex-shrink: 0;
-      height: 48px;
-      width: 56px;
-      padding: 4px 8px;
-    }
-    button {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      border: none;
-      outline: none;
-      overflow: hidden;
-      display: block;
-      flex-shrink: 0;
-      width: 40px;
-      height: 40px;
-      background-color: transparent;
-      color: $textColor;
-      perspective: 100px;
-      text-align: center;
-      &:hover, &:focus {
-        color: aquamarine;
-      }
-      svg {
-        margin: auto;
-        fill: currentColor;
-      }
-    }
-  }
-  .dl-icon {
-    svg {
-      width: 28px;
-      height: 30px;
-    }
-  }
-  .is-mobile {
-    bottom: 2.25rem;
-    right: 10px;
-    width: calc(100vw - 20px);
-  }
-  .is-desktop {
-    top: 10px;
-    right: 10px;
-  }
-  .osm {
-    padding: 3.969px 4px 3px 3px;
-    svg {
-      height: 100%;
-    }
-  }
-  .debug {
-    padding: 2px 0;
-    svg {
-      height: 100%;
-    }
-  }
-  .downloading {
-    svg {
-      animation: rotateY 2s linear infinite;
-    }
-  }
-  @keyframes rotateY {
-    to {
-      transform: rotateY(-1turn);
-    }
-  }
-  :deep(.select-button) {
-    .is-active {
+    perspective: 100px;
+    text-align: center;
+
+    &:hover,
+    &:focus {
       color: aquamarine;
     }
+
     svg {
+      margin: auto;
       fill: currentColor;
-      padding: 1px 2px;
-      width: 32px;
-      height: 32px;
     }
   }
+}
+
+.dl-icon {
+  svg {
+    width: 28px;
+    height: 30px;
+  }
+}
+
+.is-mobile {
+  bottom: 2.25rem;
+  right: 10px;
+  width: calc(100vw - 20px);
+}
+
+.is-desktop {
+  top: 10px;
+  right: 10px;
+}
+
+.osm {
+  padding: 3.969px 4px 3px 3px;
+
+  svg {
+    height: 100%;
+  }
+}
+
+.debug {
+  padding: 2px 0;
+
+  svg {
+    height: 100%;
+  }
+}
+
+.downloading {
+  svg {
+    animation: rotateY 2s linear infinite;
+  }
+}
+
+@keyframes rotateY {
+  to {
+    transform: rotateY(-1turn);
+  }
+}
+
+:deep(.select-button) {
+  .is-active {
+    color: aquamarine;
+  }
+
+  svg {
+    fill: currentColor;
+    padding: 1px 2px;
+    width: 32px;
+    height: 32px;
+  }
+}
 </style>

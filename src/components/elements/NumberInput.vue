@@ -11,8 +11,7 @@ interface Props {
 
 interface Emits {
   (e: 'input'): void;
-  (e: 'update:modelValue', newValue: number): void;
-  (e: 'change', newValue: number): void;
+  (e: 'update:modelValue' | 'change', newValue: number): void;
 }
 
 const nInput = ref<HTMLInputElement>()
@@ -149,15 +148,15 @@ const onKeydown = (e: KeyboardEvent) => {
 
 
 <style lang="scss" scoped>
-  input {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border: none;
-    outline: none;
-    overflow: hidden;
-    text-align: right;
-    text-overflow: hidden;
-    font-feature-settings: "tnum";
-  }
+input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+  outline: none;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: hidden;
+  font-feature-settings: "tnum";
+}
 </style>

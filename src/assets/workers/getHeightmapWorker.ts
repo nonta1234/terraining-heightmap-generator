@@ -1,4 +1,4 @@
-import { FetchError } from 'ofetch'
+import type { FetchError } from 'ofetch'
 import { getExtentInWorldCoords } from '~/utils/getExtent'
 import type { GenerateMapOption } from '~/types/types'
 import { decodeElevation } from '~/utils/elevation'

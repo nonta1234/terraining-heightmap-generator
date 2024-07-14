@@ -1,4 +1,4 @@
-import { Map, type IControl } from 'mapbox-gl'
+import type { Map, IControl } from 'mapbox-gl'
 import type { StyleList } from '~/types/types'
 
 /**
@@ -212,7 +212,7 @@ export class StyleButton implements IControl {
       if (!(e.target instanceof HTMLSelectElement)) {
         return
       }
-      if (e.target.value !== this._list[map.getStyle().name!].value) {
+      if (e.target.value !== this._list[map.getStyle()!.name!].value) {
         map.setStyle(getStyleUrl(e.target.value))
         const mapbox = useMapbox()
         saveSettings(mapbox.value.settings)

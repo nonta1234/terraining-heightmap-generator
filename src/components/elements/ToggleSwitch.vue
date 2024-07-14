@@ -6,8 +6,7 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'update:modelValue', newValue: boolean): void;
-  (e: 'change', newValue: boolean): void;
+  (e: 'update:modelValue' | 'change', newValue: boolean): void;
 }
 
 const props = defineProps<Props>()
@@ -31,42 +30,48 @@ const toggle = () => {
 
 
 <style lang="scss" scoped>
-  .toggle-switch {
-    display: table;
+.toggle-switch {
+  display: table;
+}
+
+input {
+  display: none;
+}
+
+label {
+  display: block;
+  position: relative;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: .75rem;
+  background-color: $inputBg;
+  cursor: pointer;
+  outline: none;
+
+  &:focus {
+    outline: solid 1px $borderColor;
+    background-color: $inputBgF;
   }
-  input {
-    display: none;
-  }
-  label {
-    display: block;
-    position: relative;
-    width: 2.75rem;
-    height: 1.5rem;
-    border-radius: .75rem;
-    background-color: $inputBg;
-    cursor: pointer;
-    outline: none;
-    &:focus {
-      outline: solid 1px $borderColor;
-      background-color: $inputBgF;
-    }
-  }
-  input:checked + label {
-    background-color: rgba(255, 255, 255, .2);
-  }
-  label::before {
-    position: absolute;
-    top: .1875rem;
-    left: .1875rem;
-    width: 1.125rem;
-    height: 1.125rem;
-    border-radius: .5625rem;
-    background-color: $borderColor;
-    transition: .3s;
-    content: "";
-  }
-  input:checked + label::before {
-    left: calc(100% - 1.3125rem);
-    background-color: #DFE5E8;
-  }
+}
+
+input:checked+label {
+  background-color: rgba(255, 255, 255, .2);
+}
+
+label::before {
+  position: absolute;
+  top: .1875rem;
+  left: .1875rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: .5625rem;
+  background-color: $borderColor;
+  transition: .3s;
+  content: "";
+}
+
+input:checked+label::before {
+  left: calc(100% - 1.3125rem);
+  background-color: #DFE5E8;
+}
 </style>

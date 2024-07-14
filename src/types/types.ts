@@ -1,4 +1,4 @@
-import { Map, type LngLatLike } from 'mapbox-gl'
+import type { Map, LngLatLike } from 'mapbox-gl'
 import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolygon, MultiLineString, Position } from 'geojson'
 
 export type LngLat = Extract<LngLatLike, [number, number]>;

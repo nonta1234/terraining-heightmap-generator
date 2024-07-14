@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import * as turf from '@turf/turf'
 import { NavigationControl } from 'mapbox-gl'
+import { effectRasterColorMix } from '~/utils/const'
 
 const mapbox = useMapbox()
 const { debugMode } = useDebug()
@@ -498,15 +499,15 @@ onMounted(() => {
       text-align: center;
       border-radius: 100%;
       margin-bottom: 10px;
-      svg {
-        margin: auto;
-      }
       border: solid 1px $textColor;
       @include grass-button;
       &:hover {
         color: aquamarine;
         border: solid 1px aquamarine;
         @include shadow-4
+      }
+      svg {
+        margin: auto;
       }
     }
     .style-button + select {

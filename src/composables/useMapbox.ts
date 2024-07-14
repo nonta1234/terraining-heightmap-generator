@@ -1,4 +1,4 @@
-import mapboxgl, { Map, GeoJSONSource } from 'mapbox-gl'
+import mapboxgl, { Map, type GeoJSONSource } from 'mapbox-gl'
 import * as turf from '@turf/turf'
 import type { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
 import { extentGrid } from '~/utils/extentGrid'
@@ -213,7 +213,6 @@ export const createMapInstance = () => {
   const mapbox = useMapbox()
   const config = useRuntimeConfig()
 
-  // eslint-disable-next-line import/no-named-as-default-member
   mapboxgl.workerCount = 4
 
   mapbox.value.map = new Map({

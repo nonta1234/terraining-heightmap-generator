@@ -1,5 +1,5 @@
 import type { Position } from 'geojson'
-import { $fetch, FetchError } from 'ofetch'
+import { $fetch, type FetchError } from 'ofetch'
 import { Canvg } from 'canvg'
 import { DOMParser } from '@xmldom/xmldom'
 import { ATTR, ATTR_RAS } from '~/utils/const'

@@ -1,4 +1,4 @@
-import { FetchError } from 'ofetch'
+import type { FetchError } from 'ofetch'
 import { VectorTile, Point } from 'mapbox-vector-tile'
 import { getExtentInWorldCoords } from '~/utils/getExtent'
 import { createSlopeTexture, createRadialTexture } from '~/utils/createTexture'

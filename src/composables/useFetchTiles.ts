@@ -1,4 +1,4 @@
-import { $fetch, FetchError } from 'ofetch'
+import { $fetch, type FetchError } from 'ofetch'
 
 export const useFetchTerrainTiles = async (zoom: number, x: number, y: number, token: string) => {
   const url = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${zoom}/${x}/${y}@2x.pngraw?access_token=${token}`
