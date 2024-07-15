@@ -27,7 +27,6 @@ type circle = {
 const points: Array<circle> = []
 let selectedPoint = -1
 
-
 useListen('map:leModal', () => {
   drawGrid(gCtx.value!)
   drawPoints(oCtx.value!)
@@ -37,35 +36,27 @@ useListen('modal:changeLittArray', () => {
   drawPoints(oCtx.value!)
 })
 
-
 function drawGrid(ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-
   ctx.strokeStyle = '#606164'
   ctx.lineWidth = 1
-
   ctx.beginPath()
-
   for (let i = 0; i < cellCount + 1; i++) {
     ctx.moveTo(hPositions[i], displayPadding[0])
     ctx.lineTo(hPositions[i], ctx.canvas.height - displayPadding[2])
   }
-
   for (let i = 0; i < cellCount + 1; i++) {
     ctx.moveTo(padding[3], (i * vGridSize.value) + displayPadding[0])
     ctx.lineTo(ctx.canvas.width - padding[1], (i * vGridSize.value) + displayPadding[0])
   }
-
   ctx.stroke()
 }
 
 
 function drawPoints(ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-
   ctx.strokeStyle = '#9BA0A5'
   ctx.lineWidth = 3
-
   const calcPoints = [
     { x: displayPadding[3] - hGridSize.value, y: ref(points[0].y) } as circle,
     { x: displayPadding[3], y: ref(ctx.canvas.height - displayPadding[2]) } as circle,
@@ -73,7 +64,6 @@ function drawPoints(ctx: CanvasRenderingContext2D) {
     { x: ctx.canvas.width - displayPadding[1], y: ref(displayPadding[0]) } as circle,
     { x: ctx.canvas.width - displayPadding[1] + hGridSize.value, y: ref(points[points.length - 1].y) } as circle,
   ]
-
   const i6 = 1 / 6
 
   ctx.beginPath()
@@ -85,7 +75,6 @@ function drawPoints(ctx: CanvasRenderingContext2D) {
     const p1 = calcPoints[i - 1]
     const p2 = calcPoints[i]
     const p3 = calcPoints[i + 1]
-
     ctx.bezierCurveTo(
       p2.x * i6 + p1.x - p0.x * i6,
       p2.y.value * i6 + p1.y.value - p0.y.value * i6,
