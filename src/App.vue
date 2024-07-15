@@ -66,7 +66,7 @@ onMounted(() => {
 <template>
   <div id="map-container">
     <MapBox>
-      <SettingPanel />
+      <InfoPanel />
       <DownloadPanel />
       <LittoralEditor v-show="littEditVisi" :modal="false" />
       <ConfigurationPanel v-show="configPanelVisi" :modal="true" />
