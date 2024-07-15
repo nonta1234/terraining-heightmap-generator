@@ -199,7 +199,7 @@ const debug = () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: .5rem;
+    padding: .375rem .5rem;
   }
 
   li {
