@@ -23,8 +23,10 @@ export type GridSpec = {
 }
 
 export type MapSpec = {
+  name:        string;
   defaultSize: number | undefined;
   defaultRes:  number;
+  defaultEs:   number;
   resolutions: number[];
   correction:  0 | 1;
   grid:        GridSpec;
