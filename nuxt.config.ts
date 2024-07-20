@@ -142,7 +142,7 @@ export default defineNuxtConfig({
     download: true,
     preload: true,
     families: {
-      Inter: [400, 700],
+      "Inter Tight": [400, 700],
     },
   },
 
