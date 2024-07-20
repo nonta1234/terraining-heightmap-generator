@@ -242,7 +242,7 @@ const download = async () => {
     padding: 0 1rem;
     display: grid;
     grid-template-columns: auto 7.75rem auto;
-    gap: 1rem 0;
+    gap: .75rem 0;
     position: relative;
     div {
       line-height: 2;

@@ -82,6 +82,12 @@ $optionTagColor: rgb(43, 42, 51);
   }
 }
 
+@mixin layout {
+  @media screen and (max-width: 524px) {
+    @content;
+  }
+}
+
 @mixin mbModal {
   @media screen and (max-width: calc(420px + 2rem)) {
     @content;

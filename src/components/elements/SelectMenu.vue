@@ -1,7 +1,7 @@
 <script setup lang="ts">
 type ListObject = {
-  text: string;
   value: string;
+  label: string;
 }
 
 type T = number | string | ListObject
@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
           <option v-for="item in props.list" :key="(item as R)">{{ item }}</option>
         </template>
         <template v-else>
-          <option v-for="item in props.list" :key="(item as ListObject).value" :value="(item as ListObject).value">{{ (item as ListObject).text }}</option>
+          <option v-for="item in props.list" :key="(item as ListObject).value" :value="(item as ListObject).value">{{ (item as ListObject).label }}</option>
         </template>
       </select>
     </span>

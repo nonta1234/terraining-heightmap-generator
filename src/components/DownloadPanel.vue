@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import init, { encode_png } from '~~/png_lib/pkg'
 const mapbox = useMapbox()
-const device = useDevice()
-
 const rawButton = ref<HTMLElement>()
 const pngButton = ref<HTMLElement>()
 const imgButton = ref()
@@ -119,11 +117,6 @@ const getOsmData = async () => {
 }
 
 
-const cpModal = () => {
-  useEvent('map:cpModal')
-}
-
-
 const toRepository = () => {
   window.open('https://github.com/nonta1234/terraining-heightmap-generator', '_blank')
 }
@@ -149,7 +142,7 @@ const debug = () => {
 
 
 <template>
-  <div id="download-panel" :class="{ 'is-mobile': device.isMobile, 'is-desktop': !device.isMobile }">
+  <div id="download-panel">
     <ul>
       <li v-if="debugMode"><button ref="debugButton" title="debug" class="debug" @click="debug">
           <DebugIcon />
@@ -168,12 +161,6 @@ const debug = () => {
       <li><button ref="osmButton" title="Download OSM data" class="osm" @click="getOsmData">
           <OsmLogo />
         </button></li>
-      <li><button title="Configuration" @click="cpModal">
-        <font-awesome-icon
-          :icon="['fas', 'gear']"
-          class="fa-fw fa-2xl"
-        />
-      </button></li>
       <li><button
         title="https://github.com/nonta1234/terraining-heightmap-generator"
         @click="toRepository"
@@ -188,6 +175,8 @@ const debug = () => {
 <style lang="scss" scoped>
 #download-panel {
   position: absolute;
+  top: 10px;
+  right: 10px;
   border-radius: .375rem;
   color: $textColor;
   font-size: 1rem;
@@ -236,6 +225,14 @@ const debug = () => {
       fill: currentColor;
     }
   }
+
+  @include layout {
+    top: auto;
+    right: auto;
+    bottom: 10px;
+    left: 10px;
+    width: calc(100vw - 20px);
+  }
 }
 
 .dl-icon {
@@ -243,17 +240,6 @@ const debug = () => {
     width: 28px;
     height: 30px;
   }
-}
-
-.is-mobile {
-  bottom: 2.25rem;
-  right: 10px;
-  width: calc(100vw - 20px);
-}
-
-.is-desktop {
-  top: 10px;
-  right: 10px;
 }
 
 .osm {

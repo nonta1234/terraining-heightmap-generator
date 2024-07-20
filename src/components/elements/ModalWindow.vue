@@ -57,7 +57,10 @@ if (isMobile) {
     position: absolute;
     height: 100dvh;
     width: 100%;
-    background-color: rgba(0, 0, 0, .4);
+    // background-color: rgba(0, 0, 0, .4);
+    background: transparent;
+    -webkit-backdrop-filter: blur(2px) saturate(50%) brightness(60%);
+    backdrop-filter: blur(2px) saturate(50%) brightness(60%);
     z-index: 20;
   }
   .modal-enter-from, .modal-leave-to {

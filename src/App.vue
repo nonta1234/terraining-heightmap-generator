@@ -69,7 +69,7 @@ onMounted(() => {
       <InfoPanel />
       <DownloadPanel />
       <LittoralEditor v-show="littEditVisi" :modal="false" />
-      <ConfigurationPanel v-show="configPanelVisi" :modal="true" />
+      <!--<ConfigurationPanel v-show="configPanelVisi" :modal="true" />-->
       <CustomizeMapImagePanel v-show="cMapImagePanelVisi" :modal="true" />
     </MapBox>
     <canvas v-show="debugMode" id="tile-canvas" ref="tileCanvasRef" class="debug-canvas"></canvas>

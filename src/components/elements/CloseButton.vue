@@ -1,11 +1,11 @@
 <template>
-  <button>
+  <button class="close-button">
     <font-awesome-icon :icon="['fas', 'xmark']" class="fa-fw fa-lg" />
   </button>
 </template>
 
 <style lang="scss" scoped>
-  button {
+  .close-button {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;

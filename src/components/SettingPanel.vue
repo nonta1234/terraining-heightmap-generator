@@ -280,7 +280,7 @@ onMounted(() => {
           <ul>
             <li>
               <label>Map Size&#8202;:</label>
-              <button class="reset-size" @click="resetSize"><font-awesome-icon :icon="['fas', 'arrow-rotate-right']" class="fa-fw fa-xs" /></button>
+              <button class="size-reset" @click="resetSize"><font-awesome-icon :icon="['fas', 'arrow-rotate-right']" class="fa-fw fa-xs" /></button>
               <NumberInput :value="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.001" @change="onSizeChange" /><span>㎞</span>
             </li>
             <li><label>Sea Level&#8202;:</label><NumberInput v-model="mapbox.settings.seaLevel" :max="9999" :min="-9999" :step="0.1" /><span>m</span></li>
@@ -466,7 +466,7 @@ onMounted(() => {
       background-color: rgba(0, 206, 209, .35);
     }
   }
-  .reset-size {
+  .size-reset {
     position: relative;
     top: 2px;
     color: $textColor;

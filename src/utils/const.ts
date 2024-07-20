@@ -138,6 +138,8 @@ export const initialValue: Settings = {
   zoom:              10,
   size:              17.280,
   resolution:        1081,
+  worldPartition:    false,
+  wpCells:           1,
   angle:             0,
   seaLevel:          0,
   adjLevel:          false,

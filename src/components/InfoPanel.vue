@@ -56,15 +56,15 @@ onMounted(() => {
         </button>
       </div>
       <div class="item coordinates">
-        <label>Lng&#8202;:</label>
+        <label class="label">{{ isDesktopOrTablet ? 'Longitude' : 'Lng' }}&#8202;:</label>
         <NumberInput :value="mapbox.settings.lng" :max="180" :min="-180" :step="0.00001" @change="onLngChange" />
-        <label>Lat&#8202;:</label>
+        <label class="label">{{ isDesktopOrTablet ? 'Latitude' : 'Lat' }}&#8202;:</label>
         <NumberInput :value="mapbox.settings.lat" :max="85" :min="-85" :step="0.00001" @change="onLatChange" />
       </div>
       <div class="item info">
-        <label>{{ isDesktopOrTablet ? 'Zoom Level' : 'Zoom' }}&#8202;:</label>
+        <label class="label">{{ isDesktopOrTablet ? 'Zoom Level' : 'Zoom' }}&#8202;:</label>
         <NumberInput :value="mapbox.settings.zoom" :max="22" :min="0" :step="0.01" @change="onZoomChange" />
-        <label>{{ isDesktopOrTablet ? 'Grid Angle' : 'Angle' }}&#8202;:</label>
+        <label class="label">{{ isDesktopOrTablet ? 'Grid Angle' : 'Angle' }}&#8202;:</label>
         <NumberInput :value="mapbox.settings.angle" :max="180" :min="-180" :step="0.01" @change="onAngleChange" />
       </div>
     </section>
@@ -82,12 +82,13 @@ onMounted(() => {
   position: absolute;
   top: 10px;
   left: 10px;
-  padding: .375rem .75rem;
+  padding: .375rem 0 0;
   border-radius: .375rem;
   color: $textColor;
   font-size: 1rem;
   z-index: 2;
   user-select: none;
+  width: 28.375rem;
   max-width: calc(100vw - 20px);
   @include grass;
   :deep(.setting) {
@@ -96,39 +97,23 @@ onMounted(() => {
     transition: .4s ease;
     &.d-active {
       height: v-bind(panelHeight);
-      max-height: calc(100dvh - 4.5rem - 40px);
+      max-height: calc(100dvh - 4.5rem - 10px);
     }
     &.m-active {
       height: v-bind(panelHeight);
-      max-height: calc(100dvh - 5.5rem - 110px);
+      max-height: calc(100dvh - 4.5rem - 84px);
     }
   }
-}
-.header {
-  display: flex;
-  justify-content: space-between;
-}
-.item {
-  display: grid;
-  gap: 0 .25rem;
-}
-.coordinates {
-  padding-right: calc(1rem - .125em);
-  grid-template-columns: auto 6.25em;
-}
-.info {
-  padding-left: 1rem;
-  grid-template-columns: auto 4.5em;
-  border-left: solid 1px $borderColor
-}
-label {
-  height: 1.5rem;
-  line-height: 1.5;
+  @include layout {
+    width: calc(100vw - 71px);
+    font-size: .875rem;
+  }
 }
 input {
   background-color: transparent;
   height: 1.5rem;
   padding-right: .125em;
+  text-align: right;
   &:active {
     background-color: $inputBgF;
   }
@@ -139,13 +124,35 @@ input {
 input[input] {
   color: #FFA500;
 }
-@media screen and (max-width: 480px) {
-  #info-panel {
-    width: calc(100vw - 20px);
-    font-size: .875rem;
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 .75rem .375rem;
+}
+.item {
+  display: grid;
+  gap: 0 .25rem;
+}
+.coordinates {
+  padding-right: calc(1rem - .125em);
+  grid-template-columns: auto 6.25em;
+  @media screen and (max-width: 410px) {
+    grid-template-columns: auto 5.25em;
   }
 }
-button {
+.info {
+  padding-left: 1rem;
+  grid-template-columns: auto 4.5em;
+  border-left: solid 1px $borderColor;
+  @media screen and (max-width: 410px) {
+    grid-template-columns: auto 3.25em;
+  }
+}
+.label {
+  height: 1.5rem;
+  line-height: 1.5;
+}
+.fab {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -154,9 +161,6 @@ button {
   overflow: hidden;
   display: block;
   flex-shrink: 0;
-}
-.fab {
-  display: block;
   color: $textColor;
   height: 2.5rem;
   width: 2.5rem;
@@ -175,5 +179,8 @@ button {
   svg {
     margin: auto;
   }
+}
+.contents {
+  padding: 0 .75rem;
 }
 </style>

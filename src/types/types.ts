@@ -68,6 +68,8 @@ export interface Settings {
   zoom:              number;
   size:              number;
   resolution:        number;
+  worldPartition:    boolean;
+  wpCells:           number;
   angle:             number;
   seaLevel:          number;
   adjLevel:          boolean;
