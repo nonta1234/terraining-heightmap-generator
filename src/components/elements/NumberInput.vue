@@ -131,6 +131,7 @@ const onKeydown = (e: KeyboardEvent) => {
 <template>
   <input
     ref="nInput"
+    class="number-input"
     :value="displayText"
     type="text"
     inputmode="decimal"
@@ -148,15 +149,14 @@ const onKeydown = (e: KeyboardEvent) => {
 
 
 <style lang="scss" scoped>
-input {
+.number-input {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   border: none;
   outline: none;
   overflow: hidden;
-  text-align: right;
-  text-overflow: hidden;
+  text-overflow: clip;
   font-feature-settings: "tnum";
 }
 </style>

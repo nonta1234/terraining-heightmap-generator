@@ -23,8 +23,8 @@ const toggle = () => {
 
 <template>
   <div class="toggle-switch">
-    <input :id="props.name" type="checkbox" :checked="_value" tabindex="-1" @change="toggle">
-    <label :for="props.name" tabindex="0" @keydown.enter="toggle" @keydown.space="toggle"></label>
+    <input :id="props.name" class="input" type="checkbox" :checked="_value" tabindex="-1" @change="toggle">
+    <label :for="props.name" class="label" tabindex="0" @keydown.enter="toggle" @keydown.space="toggle"></label>
   </div>
 </template>
 
@@ -33,12 +33,17 @@ const toggle = () => {
 .toggle-switch {
   display: table;
 }
-
-input {
+.input {
   display: none;
+  &:checked + .label {
+    background-color: rgba(255, 255, 255, .2);
+    &::before {
+      left: calc(100% - 1.3125rem);
+      background-color: #DFE5E8;
+    }
+  }
 }
-
-label {
+.label {
   display: block;
   position: relative;
   width: 2.75rem;
@@ -47,31 +52,20 @@ label {
   background-color: $inputBg;
   cursor: pointer;
   outline: none;
-
   &:focus {
     outline: solid 1px $borderColor;
     background-color: $inputBgF;
   }
-}
-
-input:checked+label {
-  background-color: rgba(255, 255, 255, .2);
-}
-
-label::before {
-  position: absolute;
-  top: .1875rem;
-  left: .1875rem;
-  width: 1.125rem;
-  height: 1.125rem;
-  border-radius: .5625rem;
-  background-color: $borderColor;
-  transition: .3s;
-  content: "";
-}
-
-input:checked+label::before {
-  left: calc(100% - 1.3125rem);
-  background-color: #DFE5E8;
+  &::before {
+    position: absolute;
+    top: .1875rem;
+    left: .1875rem;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: .5625rem;
+    background-color: $borderColor;
+    transition: .3s;
+    content: "";
+  }
 }
 </style>

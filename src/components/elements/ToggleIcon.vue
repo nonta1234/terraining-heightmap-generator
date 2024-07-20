@@ -38,8 +38,8 @@ const toggle = () => {
 
 <template>
   <div class="toggle-icon">
-    <input :id="name" ref="nInput" type="checkbox" :checked="_value" tabindex="-1" @change="toggle">
-    <label :for="name" tabindex="0" @keydown.enter="toggle" @keydown.space="toggle">
+    <input :id="name" ref="nInput" class="input" type="checkbox" :checked="_value" tabindex="-1" @change="toggle">
+    <label :for="name" class="label" tabindex="0" @keydown.enter="toggle" @keydown.space="toggle">
       <template v-if="checkedIcon">
         <font-awesome-icon v-show="!_value" :icon="icon" :class="iconClass" />
         <font-awesome-icon v-show="_value" :icon="checkedIcon" :class="checkedIconClass" />
@@ -53,33 +53,24 @@ const toggle = () => {
 
 
 <style lang="scss" scoped>
-input {
+.input {
   display: none;
 }
-
-label {
+.input:checked + .label {
+  color: $textColor;
+}
+.input:disabled + .label {
+  display: none;
+}
+.label {
   display: block;
   color: $textDisabled;
   cursor: pointer;
   outline: none;
-  text-align: right;
-
-  i {
-    padding-right: 1px;
-  }
-
   &:focus {
     svg {
       filter: drop-shadow(0px 0px 3px rgba(0, 0, 0, .9));
     }
   }
-}
-
-input:checked+label {
-  color: $textColor;
-}
-
-input:disabled+label {
-  display: none;
 }
 </style>

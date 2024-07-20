@@ -26,11 +26,6 @@ type circle = {
 const points: circle[] = []
 let selectedPoint = -1
 
-useListen('map:leModal', () => {
-  drawGrid(gCtx.value!)
-  drawPoints(oCtx.value!)
-})
-
 useListen('modal:changeLittArray', () => {
   drawPoints(oCtx.value!)
 })
@@ -196,15 +191,15 @@ const setCanvasSize = () => {
 const setPositions = () => {
   hPositions.length = 0
   points.length = 0
-    hPositions.push(displayPadding[3])
-    for (let i = 1; i < cellCount; i++) {
-      hPositions.push(i * hGridSize.value + displayPadding[3])
-      points.push({
-        x: i * hGridSize.value + displayPadding[3],
-        y: computed(() => clientHeight.value - mapbox.value.settings.littArray[i - 1] * clientHeight.value + displayPadding[0]),
-      })
-    }
-    hPositions.push(cellCount * hGridSize.value + displayPadding[3])
+  hPositions.push(displayPadding[3])
+  for (let i = 1; i < cellCount; i++) {
+    hPositions.push(i * hGridSize.value + displayPadding[3])
+    points.push({
+      x: i * hGridSize.value + displayPadding[3],
+      y: computed(() => clientHeight.value - mapbox.value.settings.littArray[i - 1] * clientHeight.value + displayPadding[0]),
+    })
+  }
+  hPositions.push(cellCount * hGridSize.value + displayPadding[3])
 }
 
 const resize = () => {
@@ -212,6 +207,12 @@ const resize = () => {
   setPositions()
   drawGrid(gCtx.value!)
   drawPoints(oCtx.value!)
+}
+
+const clearCanvas = (ctx: CanvasRenderingContext2D) => {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+  ctx.canvas.width = 0
+  ctx.canvas.height = 0
 }
 
 onMounted(() => {
@@ -225,6 +226,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  clearCanvas(oCtx.value!)
+  clearCanvas(gCtx.value!)
   window.removeEventListener('resize', resize)
 })
 </script>
@@ -242,7 +245,7 @@ onUnmounted(() => {
   .grid-canvas-container {
     position: relative;
     width: 100%;
-    aspect-ratio: 5 / 4;
+    aspect-ratio: 16 / 9;
   }
   #grid-canvas,
   #obj-canvas {

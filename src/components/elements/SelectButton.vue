@@ -40,19 +40,16 @@ defineExpose({
 
 <template>
   <div class="select-button">
-    <button ref="buttonEl" tabindex="-1">
+    <button ref="buttonEl" class="btn" tabindex="-1">
       <slot />
     </button>
-    <select
-      ref="selectEl"
-      @focus="resetSelect"
-      @blur="resetSelect"
-    >
+    <select ref="selectEl" class="select-input" @focus="resetSelect" @blur="resetSelect">
       <option value="" disabled>{{ '--Select Style--' + (device.isFirefox ? '' : '&nbsp;') }}</option>
       <option v-for="item in props.list" :key="item.value" :value="item.value">{{ item.text }}</option>
       <option v-if="hasUserStyle" value="user">User Style</option>
       <template v-if="isValid">
-        <option class="disabled-line" disabled>{{ '────────' + (device.isFirefox ? '' : '&nbsp;') }}</option>
+        <option class="disabled-line" disabled>{{ '───────' + (device.isFirefox ? '' : '&nbsp;') }}</option>
+        <hr>
         <option value="customize">{{ 'Customize Map' + (device.isFirefox ? '' : '&nbsp;') }}</option>
       </template>
     </select>
@@ -68,7 +65,7 @@ defineExpose({
     background-color: transparent;
     color: $textColor;
   }
-  select {
+  .select-input {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -81,16 +78,16 @@ defineExpose({
     padding: 8px;
     border: none;
     outline: none;
-  }
-  option {
-    background: $optionTagColor;
-    color: $textColor;
-    font-size: 1rem;
-    &:first-child {
-      color: $textDisabled;
+    option {
+      background: $optionTagColor;
+      color: $textColor;
+      font-size: 1rem;
+      &:first-child {
+        color: $textDisabled;
+      }
     }
   }
-  button {
+  .btn {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -125,5 +122,9 @@ defineExpose({
     to {
       transform: rotateY(-1turn);
     }
+  }
+  hr {
+    display: block;
+    height: 1rem;
   }
 </style>
