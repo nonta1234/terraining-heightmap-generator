@@ -98,7 +98,8 @@ onMounted(() => {
   }
 
   function addTerrain() {
-    mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: mapbox.value.settings.vertScale })
+    const hScale = (mapSpec[mapbox.value.settings.gridInfo].defaultSize || mapbox.value.settings.size) / mapbox.value.settings.size
+    mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: mapbox.value.settings.vertScale / hScale })
   }
 
   function addGridLayer(styleName: string) {
