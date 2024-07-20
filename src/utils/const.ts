@@ -1,6 +1,6 @@
 import type { LittoralArray, Settings, StyleList, GridSpec, MapSpecs } from '~/types/types'
 
-export const NEED_TOKEN = 'You will need your own Mapbox access token\nto download the heightmap data for CS2.'
+export const NEED_TOKEN = 'You will need your own Mapbox access token\nto download the heightmap data for'
 export const ATTR = '\u00A9 Mapbox \u00A9 OpenStreetMap'
 export const ATTR_RAS = '\u00A9 Maxar \u00A9 Mapbox \u00A9 OpenStreetMap'
 
@@ -70,36 +70,46 @@ const gridEngine: GridSpec = {
  */
 export const mapSpec: MapSpecs = {
   cs1: {
+    name: 'CS1',
     defaultSize: 17.280,
     defaultRes: 1081,
+    defaultEs: 1024 / 65536 * 65535,
     resolutions: [1081],
     correction: 1,
     grid: gridCs1,
   },
   cs2: {
+    name: 'CS2',
     defaultSize: 57.344,
     defaultRes: 4096,
+    defaultEs: 4096,
     resolutions: [4096],
     correction: 0,
     grid: gridCs2,
   },
   cs2play: {
+    name: 'CS2',
     defaultSize: 57.344,
     defaultRes: 4096,
+    defaultEs: 4096,
     resolutions: [4096],
     correction: 0,
     grid: gridCs2,
   },
   unity: {
+    name: 'Unity',
     defaultSize: undefined,
     defaultRes: 513,
+    defaultEs: 4096,
     resolutions: [33, 65, 129, 257, 513, 1025, 2049, 4097],
     correction: 1,
     grid: gridEngine,
   },
   ue: {
+    name: 'UE',
     defaultSize: undefined,
     defaultRes: 505,
+    defaultEs: 4096,
     resolutions: [127, 253, 505, 1009, 2017, 4033, 8129],
     correction: 1,
     grid: gridEngine,
@@ -156,4 +166,8 @@ export const initialValue: Settings = {
   displayEffectArea: false,
   applyEffectAmount: false,
   accessToken:       '',
+}
+
+export const needToken = (type: string) => {
+  return `${NEED_TOKEN} ${mapSpec[type].name}.`
 }
