@@ -1,0 +1,25 @@
+@mixin common-input {
+  width: 100%;
+  color: $textColor;
+  padding: 0 .3125rem 0 .25rem;
+  background-color: $inputBg;
+  border-radius: .25rem;
+  height: 2rem;
+  line-height: 2;
+  gap: 0 .25rem;
+  &:has(.input:active, .input:focus) {
+    background-color: $inputBgF;
+  }
+  &:has(.input:disabled) {
+    color: $textDisabled;
+    background-color: transparent;
+  }
+  .unit {
+    color: $textAlt;
+  }
+  .input {
+    &[input] {
+      color: #FFA500;
+    }
+  }
+}
