@@ -5,11 +5,11 @@ export const ATTR = '\u00A9 Mapbox \u00A9 OpenStreetMap'
 export const ATTR_RAS = '\u00A9 Maxar \u00A9 Mapbox \u00A9 OpenStreetMap'
 
 export const mapStyle = {
-  streets:    'mapbox://styles/mapbox/streets-v12?optimize=true',
-  outdoors:   'mapbox://styles/mapbox/outdoors-v12?optimize=true',
-  light:      'mapbox://styles/mapbox/light-v11?optimize=true',
-  dark:       'mapbox://styles/mapbox/dark-v11?optimize=true',
-  satellite:  'mapbox://styles/mapbox/satellite-v9?optimize=true',
+  streets: 'mapbox://styles/mapbox/streets-v12?optimize=true',
+  outdoors: 'mapbox://styles/mapbox/outdoors-v12?optimize=true',
+  light: 'mapbox://styles/mapbox/light-v11?optimize=true',
+  dark: 'mapbox://styles/mapbox/dark-v11?optimize=true',
+  satellite: 'mapbox://styles/mapbox/satellite-v9?optimize=true',
   satStreets: 'mapbox://styles/mapbox/satellite-streets-v12?optimize=true',
 }
 
@@ -118,14 +118,14 @@ export const mapSpec: MapSpecs = {
 
 export const littoralArray: LittoralArray = {
   linear: [0.084, 0.188, 0.292, 0.396, 0.500, 0.604, 0.708, 0.812, 0.916],
-  sine:   [0.024, 0.095, 0.206, 0.345, 0.500, 0.655, 0.794, 0.905, 0.976],
-  cubic:  [0.004, 0.032, 0.108, 0.256, 0.500, 0.744, 0.892, 0.968, 0.996],
-  quint:  [0.001, 0.005, 0.039, 0.164, 0.500, 0.836, 0.961, 0.995, 0.999],
+  sine: [0.024, 0.095, 0.206, 0.345, 0.500, 0.655, 0.794, 0.905, 0.976],
+  cubic: [0.004, 0.032, 0.108, 0.256, 0.500, 0.744, 0.892, 0.968, 0.996],
+  quint: [0.001, 0.005, 0.039, 0.164, 0.500, 0.836, 0.961, 0.995, 0.999],
 }
 
 export const effectRasterColorRange: [number, number] = [-500, 9740]
 
-export const effectRasterColorMix: [number, number, number, number]  = [
+export const effectRasterColorMix: [number, number, number, number] = [
   256 * 256 * 256 * 0.1,
   256 * 256 * 0.1,
   256 * 0.1,
@@ -133,41 +133,44 @@ export const effectRasterColorMix: [number, number, number, number]  = [
 ]
 
 export const initialValue: Settings = {
-  lng:               -73.96530,
-  lat:               40.78280,
-  zoom:              10,
-  size:              17.280,
-  resolution:        1081,
-  worldPartition:    false,
-  wpCells:           1,
-  angle:             0,
-  seaLevel:          0,
-  adjLevel:          false,
-  vertScale:         1.00,
-  fixedRatio:        true,
-  type:              'manual',
-  depth:             40,
-  waterside:         '1',
-  streamDepth:       0,
-  littoral:          160,
-  littArray:         littoralArray.sine,
-  smoothing:         0,
-  smthThres:         0,
-  smthFade:          0,
-  smoothCount:       1,
-  sharpen:           0,
-  shrpThres:         0,
-  shrpFade:          0,
-  style:             mapStyle.outdoors,
-  userStyleURL:      '',
-  gridInfo:          'cs1',
-  elevationScale:    4096.000,
-  interpolation:     'bicubic',
-  noise:             0,
-  noiseGrid:         10,
+  lng: -73.96530,
+  lat: 40.78280,
+  zoom: 10,
+  size: 17.280,
+  resolution: 1081,
+  worldPartition: false,
+  wpCells: 1,
+  angle: 0,
+  seaLevel: 0,
+  adjLevel: false,
+  vertScale: 1.00,
+  fixedRatio: true,
+  type: 'manual',
+  depth: 40,
+  waterside: '1',
+  streamDepth: 0,
+  littoral: 160,
+  littArray: littoralArray.sine,
+  smoothing: 0,
+  smoothRadius: 1,
+  smthThres: 0,
+  smthFade: 0,
+  sharpen: 0,
+  sharpenRadius: 1,
+  shrpThres: 0,
+  shrpFade: 0,
+  style: mapStyle.outdoors,
+  userStyleURL: '',
+  gridInfo: 'cs1',
+  elevationScale: 4096.000,
+  interpolation: 'bicubic',
+  noise: 0,
+  noiseGrid: 10,
   displayEffectArea: false,
   applyEffectAmount: false,
-  accessToken:       '',
+  normalizePreview: false,
+  normalizeModify: false,
+  accessToken: '',
 }
 
 export const needToken = (type: string) => {
