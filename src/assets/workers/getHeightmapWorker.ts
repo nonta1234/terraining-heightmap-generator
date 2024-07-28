@@ -124,7 +124,7 @@ const getHeightMapBicubic = (
 
       const tmpVals = [
         fy[0] * elevations[(y0 - 1) * tilePixels + x0 - 1] + fy[1] * elevations[y0 * tilePixels + x0 - 1] + fy[2] * elevations[(y0 + 1) * tilePixels + x0 - 1] + fy[3] * elevations[(y0 + 2) * tilePixels + x0 - 1],
-        fy[0] * elevations[(y0 - 1) * tilePixels + x0]     + fy[1] * elevations[y0 * tilePixels + x0]     + fy[2] * elevations[(y0 + 1) * tilePixels + x0]     + fy[3] * elevations[(y0 + 2) * tilePixels + x0],
+        fy[0] * elevations[(y0 - 1) * tilePixels + x0] + fy[1] * elevations[y0 * tilePixels + x0] + fy[2] * elevations[(y0 + 1) * tilePixels + x0] + fy[3] * elevations[(y0 + 2) * tilePixels + x0],
         fy[0] * elevations[(y0 - 1) * tilePixels + x0 + 1] + fy[1] * elevations[y0 * tilePixels + x0 + 1] + fy[2] * elevations[(y0 + 1) * tilePixels + x0 + 1] + fy[3] * elevations[(y0 + 2) * tilePixels + x0 + 1],
         fy[0] * elevations[(y0 - 1) * tilePixels + x0 + 2] + fy[1] * elevations[y0 * tilePixels + x0 + 2] + fy[2] * elevations[(y0 + 1) * tilePixels + x0 + 2] + fy[3] * elevations[(y0 + 2) * tilePixels + x0 + 2],
       ]
@@ -192,7 +192,7 @@ class GetHeightmapWorker {
     canvas.width = tilePixels
     canvas.height = tilePixels
     ctx.clearRect(0, 0, tilePixels, tilePixels)
-    ctx.fillStyle = 'rgb(1, 134, 160)'   // = 0m
+    ctx.fillStyle = 'rgb(1, 134, 160)' // = 0m
     ctx.fillRect(0, 0, tilePixels, tilePixels)
 
     const tiles = new Array<Promise<T>>(tileCount * tileCount)
