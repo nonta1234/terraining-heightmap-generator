@@ -11,7 +11,6 @@ const resetSettings = () => {
   return store
 }
 
-
 export default defineNuxtPlugin(() => {
   return {
     provide: {

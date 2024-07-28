@@ -1,17 +1,17 @@
 <script setup lang="ts">
 interface Props {
-  name: string;
-  modelValue?: boolean;
-  value?: boolean;
-  icon: string[];
-  checkedIcon?: string[];
-  iconClass?: string;
-  checkedIconClass?: string;
-  disabled?: boolean;
+  name: string
+  modelValue?: boolean
+  value?: boolean
+  icon: string[]
+  checkedIcon?: string[]
+  iconClass?: string
+  checkedIconClass?: string
+  disabled?: boolean
 }
 
 interface Emits {
-  (e: 'update:modelValue' | 'change', newValue: boolean): void;
+  (e: 'update:modelValue' | 'change', newValue: boolean): void
 }
 
 const props = defineProps<Props>()
@@ -35,7 +35,6 @@ const toggle = () => {
 }
 </script>
 
-
 <template>
   <div class="toggle-icon">
     <input :id="name" ref="nInput" class="input" type="checkbox" :checked="_value" tabindex="-1" @change="toggle">
@@ -51,22 +50,25 @@ const toggle = () => {
   </div>
 </template>
 
-
 <style lang="scss" scoped>
 .input {
   display: none;
 }
-.input:checked + .label {
+
+.input:checked+.label {
   color: $textColor;
 }
-.input:disabled + .label {
+
+.input:disabled+.label {
   display: none;
 }
+
 .label {
   display: block;
   color: $textDisabled;
   cursor: pointer;
   outline: none;
+
   &:focus {
     svg {
       filter: drop-shadow(0px 0px 3px rgba(0, 0, 0, .9));

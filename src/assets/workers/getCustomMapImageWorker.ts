@@ -10,17 +10,17 @@ import logoUrl from '~/assets/svg/mapboxgl-ctrl-logo.svg'
 import initPng, { encode_png } from '~~/png_lib/pkg'
 
 type T = {
-  settings: Settings;
-  styleUrl: string;
-  zoom: number;
-  offset?: number;
-  maxImageSize?: number,
-  imageSize?: number;
+  settings: Settings
+  styleUrl: string
+  zoom: number
+  offset?: number
+  maxImageSize?: number
+  imageSize?: number
 }
 
 type R = {
-  data: Blob | undefined;
-  error: FetchError<any> | undefined;
+  data: Blob | undefined
+  error: FetchError<any> | undefined
 }
 
 const clearCanvas = (ctx: OffscreenCanvasRenderingContext2D) => {
@@ -29,7 +29,7 @@ const clearCanvas = (ctx: OffscreenCanvasRenderingContext2D) => {
   ctx.canvas.height = 0
 }
 
-const rotate = (array: Position[], angle: number, centerX: number, centerY: number)  => {
+const rotate = (array: Position[], angle: number, centerX: number, centerY: number) => {
   const cosTheta = Math.cos(-angle * Math.PI / 180)
   const sinTheta = Math.sin(-angle * Math.PI / 180)
   const result: Position[] = []
@@ -119,10 +119,10 @@ class GetCustomMapImage {
         const lng = pixel2lng(centerPos[j + i * cells][0], zoom, 1024)
         const lat = pixel2lat(centerPos[j + i * cells][1], zoom, 1024)
 
-        const url = 'https://api.mapbox.com/styles/v1/' +
-          `${styleUrl}/static/` +
-          `${lng},${lat},${zoom},${bearing}` +
-          `/1005x1005@2x?access_token=${settings.accessToken}&attribution=false&logo=false`
+        const url = 'https://api.mapbox.com/styles/v1/'
+          + `${styleUrl}/static/`
+          + `${lng},${lat},${zoom},${bearing}`
+          + `/1005x1005@2x?access_token=${settings.accessToken}&attribution=false&logo=false`
         tiles[j + i * cells] = fetchImage(url)
       }
     }
@@ -160,7 +160,6 @@ class GetCustomMapImage {
     v.resize(180, 42)
     await v.render()
     ctx.drawImage(logoCanvas, 0, canvas.height - 45)
-
 
     // attribution
     const attrText = styleUrl.includes('satellite') ? ATTR_RAS : ATTR

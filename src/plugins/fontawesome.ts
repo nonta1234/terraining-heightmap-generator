@@ -12,7 +12,6 @@ import {
   faCircleQuestion,
 } from '@fortawesome/free-regular-svg-icons'
 
-
 export default defineNuxtPlugin((nuxtApp) => {
   config.autoAddCss = false
   library.add(

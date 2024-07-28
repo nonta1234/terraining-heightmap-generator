@@ -7,7 +7,6 @@ const setImageBitmap = (canvas: OffscreenCanvas, image: ImageBitmap) => {
   ctx!.transferFromImageBitmap(image)
 }
 
-
 export const getCitiesMap = async (mapType: MapType) => {
   try {
     const mapbox = useMapbox()

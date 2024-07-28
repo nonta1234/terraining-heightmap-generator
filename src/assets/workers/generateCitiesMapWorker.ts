@@ -80,7 +80,6 @@ const getSharpenMap = (map: Float32Array, smoothedMap: Float32Array, k: number) 
   return sharpenMap
 }
 
-
 class GenerateCitiesMapWorker {
   private worker: Worker
 
@@ -104,12 +103,10 @@ class GenerateCitiesMapWorker {
     const tmpSmoothedMap = getSmoothedMap(heightmap)
 
     let vec = tmpSmoothedMap
-    if (settings.smoothCount > 1) {
-      for (let i = 2; i <= settings.smoothCount; i++) {
-        const tmpVec = getSmoothedMap(vec)
-        vec = tmpVec
-      }
-    }
+
+    const tmpVec = getSmoothedMap(vec)
+    vec = tmpVec
+
     const smoothedMap = vec
 
     const sharpenMap = getSharpenMap(heightmap!, tmpSmoothedMap, alphaSharpen)

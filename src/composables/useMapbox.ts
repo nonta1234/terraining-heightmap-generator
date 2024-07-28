@@ -4,14 +4,12 @@ import type { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
 import { extentGrid } from '~/utils/extentGrid'
 import type { Mapbox, Grid, LngLat, GridPositions } from '~/types/types'
 
-
 export const getGridAngle = (mapbox?: Ref<Mapbox>) => {
   const _mapbox = mapbox || useMapbox()
   const point1 = [_mapbox.value.settings.lng, _mapbox.value.settings.lat]
-  const point2 = _mapbox.value.grid?.gridArea.features[0].geometry.coordinates[0][0]   // default: -135
+  const point2 = _mapbox.value.grid?.gridArea.features[0].geometry.coordinates[0][0] // default: -135
   return (turf.rhumbBearing(point1, point2!) + 315) % 360 - 180
 }
-
 
 // -> Figure 1
 
@@ -29,7 +27,6 @@ const getPlayArea = (mapbox: Ref<Mapbox>, features: Feature<Polygon, GeoJsonProp
   return area
 }
 
-
 const getCenterArea = (mapbox: Ref<Mapbox>, features: Feature<Polygon, GeoJsonProperties>[]) => {
   const grid = mapSpec[mapbox.value.settings.gridInfo].grid.center
   const area = turf.polygon([[
@@ -41,7 +38,6 @@ const getCenterArea = (mapbox: Ref<Mapbox>, features: Feature<Polygon, GeoJsonPr
   ]])
   return area
 }
-
 
 const getRotateArea = (mapbox: Ref<Mapbox>, features: Feature<Polygon, GeoJsonProperties>[]) => {
   const grid = mapSpec[mapbox.value.settings.gridInfo].grid.rotate
@@ -78,7 +74,6 @@ const getRotateArea = (mapbox: Ref<Mapbox>, features: Feature<Polygon, GeoJsonPr
   return area
 }
 
-
 const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'topleft' | 'topright' | 'bottomright' | 'bottomleft'): Position => {
   const corner = {
     topleft: 1,
@@ -92,12 +87,10 @@ const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'to
   ]
 }
 
-
 const fixLng = (position: Position): Position => {
   const _lng = ((position[0] + 540) % 360) - 180
   return [_lng, position[1]]
 }
-
 
 export const getPoint = (grid: Grid) => {
   const mapbox = useMapbox()
@@ -132,7 +125,6 @@ export const getPoint = (grid: Grid) => {
   return { gridCorner, playAreaCorner }
 }
 
-
 export const getGrid = (mapbox: Ref<Mapbox>, lng: number, lat: number, size: number, angle: number) => {
   const grid = mapSpec[mapbox.value.settings.gridInfo].grid
   const { minX, minY, maxX, maxY } = getExtent(lng, lat, size)
@@ -166,7 +158,7 @@ export const getGrid = (mapbox: Ref<Mapbox>, lng: number, lat: number, size: num
     getPosition(gridArea.features[grid.center[2]], 'topright'),
   )
 
-  const direction =  turf.multiLineString([
+  const direction = turf.multiLineString([
     [getPosition(gridArea.features[grid.center[0]], 'bottomleft'), midpoint.geometry.coordinates],
     [midpoint.geometry.coordinates, getPosition(gridArea.features[grid.center[3]], 'bottomright')],
   ])
@@ -174,7 +166,6 @@ export const getGrid = (mapbox: Ref<Mapbox>, lng: number, lat: number, size: num
   const result: Grid = { gridArea, playArea, centerArea, rotateArea, sideLines, direction }
   return result
 }
-
 
 export const setGrid = (mapbox: Ref<Mapbox>, lnglat: LngLat, panTo: boolean) => {
   const _lng = ((lnglat[0] + 540) % 360) - 180
@@ -208,7 +199,6 @@ export const setGrid = (mapbox: Ref<Mapbox>, lnglat: LngLat, panTo: boolean) => 
   useEvent('map:changeLngLat', [mapbox.value.settings.lng, mapbox.value.settings.lat])
 }
 
-
 export const createMapInstance = () => {
   const mapbox = useMapbox()
   const config = useRuntimeConfig()
@@ -217,11 +207,11 @@ export const createMapInstance = () => {
 
   mapbox.value.map = new Map({
     accessToken: config.public.token,
-    antialias:   true,
-    container:   'map',
-    style:       initialValue.style,
-    center:      [mapbox.value.settings.lng, mapbox.value.settings.lat],
-    zoom:        mapbox.value.settings.zoom,
+    antialias: true,
+    container: 'map',
+    style:     initialValue.style,
+    center:    [mapbox.value.settings.lng, mapbox.value.settings.lat],
+    zoom:      mapbox.value.settings.zoom,
   })
 
   mapbox.value.grid = getGrid(
@@ -232,7 +222,6 @@ export const createMapInstance = () => {
     mapbox.value.settings.angle,
   )
 }
-
 
 export const useMapbox = () => {
   const mapbox = useState<Mapbox>('mapbox', () => {
@@ -248,7 +237,6 @@ export const useMapbox = () => {
   })
   return mapbox
 }
-
 
 /**
  *    grid features ~ turf.squareGrid (Figure 1)

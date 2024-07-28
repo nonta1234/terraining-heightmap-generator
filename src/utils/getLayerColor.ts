@@ -1,6 +1,6 @@
-import type { Expression } from 'mapbox-gl'
+import type { ExpressionSpecification } from 'mapbox-gl'
 
-export function getSharpenLayerColor() {
+export function getSharpenLayerColor(): ExpressionSpecification {
   const mapbox = useMapbox()
   if (mapbox.value.settings.shrpFade === 0) {
     return [
@@ -9,7 +9,7 @@ export function getSharpenLayerColor() {
       'rgba(54,22,0,0)',
       mapbox.value.settings.shrpThres,
       'rgba(54,22,0,1)',
-    ] as Expression
+    ]
   } else {
     return [
       'step',
@@ -27,11 +27,11 @@ export function getSharpenLayerColor() {
       ],
       mapbox.value.settings.shrpThres + mapbox.value.settings.shrpFade,
       'rgba(54,22,0,1)',
-    ] as Expression
+    ]
   }
 }
 
-export function getSmoothLayerColor() {
+export function getSmoothLayerColor(): ExpressionSpecification {
   const mapbox = useMapbox()
   if (mapbox.value.settings.smthFade === 0) {
     return [
@@ -40,9 +40,9 @@ export function getSmoothLayerColor() {
       'rgba(10,142,65,1)',
       mapbox.value.settings.smthThres,
       'rgba(10,142,65,0.0)',
-    ] as Expression
+    ]
   } else {
-    return  [
+    return [
       'step',
       ['raster-value'],
       'rgba(10,142,65,1)',
@@ -58,7 +58,7 @@ export function getSmoothLayerColor() {
       ],
       mapbox.value.settings.smthThres,
       'rgba(10,142,65,0)',
-    ] as Expression
+    ]
   }
 }
 

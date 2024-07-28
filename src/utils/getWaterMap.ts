@@ -2,12 +2,12 @@ import GetWaterMapWorker from '~/assets/workers/getWaterMapWorker.ts?worker'
 import type { MapType, GenerateMapOption, Settings } from '~/types/types'
 
 type T = {
-  waterMap: Float32Array;
-  waterWayMap: Float32Array;
-  waterMapImage?: ImageBitmap;
-  waterWayMapImage?: ImageBitmap;
-  littImage?: ImageBitmap;
-  cornerImage?: ImageBitmap;
+  waterMap: Float32Array
+  waterWayMap: Float32Array
+  waterMapImage?: ImageBitmap
+  waterWayMapImage?: ImageBitmap
+  littImage?: ImageBitmap
+  cornerImage?: ImageBitmap
 }
 
 const getWaterMapData = (mapType: MapType, settings: Settings, token: string, isDebug: boolean) => {

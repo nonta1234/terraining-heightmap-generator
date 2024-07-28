@@ -7,8 +7,8 @@ import { useFetchTerrainTiles } from '~/composables/useFetchTiles'
 // import { gaussianBlur } from '~/utils/filters'
 
 type T = {
-  data: Blob | undefined;
-  error: FetchError<any> | undefined;
+  data: Blob | undefined
+  error: FetchError<any> | undefined
 }
 
 // bilinear interpolation ----------------------------------------------------------------------------
@@ -44,11 +44,11 @@ const getHeightMapBilinear = (
       const dX = posX - x0
       const dY = posY - y0
 
-      const val =
-        eX * eY * elevations[y0 * tilePixels + x0] +
-        dX * eY * elevations[y0 * tilePixels + x1] +
-        eX * dY * elevations[y1 * tilePixels + x0] +
-        dX * dY * elevations[y1 * tilePixels + x1]
+      const val
+        = eX * eY * elevations[y0 * tilePixels + x0]
+        + dX * eY * elevations[y0 * tilePixels + x1]
+        + eX * dY * elevations[y1 * tilePixels + x0]
+        + dX * dY * elevations[y1 * tilePixels + x1]
 
       heightMap[y * resultPixels + x] = val
     }
@@ -78,7 +78,6 @@ const getHeightMapBilinear = (
 
   return heightMap
 }
-
 
 // bicubic interpolation -----------------------------------------------------------------------------
 
@@ -147,7 +146,6 @@ const getHeightMapBicubic = (
   return heightMap
 }
 
-
 class GetHeightmapWorker {
   private worker: Worker
 
@@ -178,7 +176,7 @@ class GetHeightmapWorker {
     const side = x1 - x0
     const tmpMapPixels = (settings.resolution - mapSpec[mapType].correction) * 1.5
     const zoom = Math.min(Math.ceil(Math.log2(tmpMapPixels / side)), 14)
-    const scale =  (side * (2 ** zoom)) / tmpMapPixels
+    const scale = (side * (2 ** zoom)) / tmpMapPixels
     const tileX0 = Math.floor(x0 * (2 ** zoom) / pixelsPerTile)
     const tileY0 = Math.floor(y0 * (2 ** zoom) / pixelsPerTile)
     const tileX1 = Math.floor(x1 * (2 ** zoom) / pixelsPerTile)
@@ -194,7 +192,7 @@ class GetHeightmapWorker {
     canvas.width = tilePixels
     canvas.height = tilePixels
     ctx.clearRect(0, 0, tilePixels, tilePixels)
-    ctx.fillStyle = 'rgb(1, 134, 160)'    // = 0m
+    ctx.fillStyle = 'rgb(1, 134, 160)'   // = 0m
     ctx.fillRect(0, 0, tilePixels, tilePixels)
 
     const tiles = new Array<Promise<T>>(tileCount * tileCount)

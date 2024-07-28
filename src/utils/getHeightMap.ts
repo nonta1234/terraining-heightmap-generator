@@ -2,8 +2,8 @@ import GetHeightMapWorker from '~/assets/workers/getHeightmapWorker.ts?worker'
 import type { MapType, GenerateMapOption, Settings } from '~/types/types'
 
 type T = {
-  heightmap: Float32Array;
-  heightmapImage?: ImageBitmap;
+  heightmap: Float32Array
+  heightmapImage?: ImageBitmap
 }
 
 const getHeightmapData = (mapType: MapType, settings: Settings, token: string, isDebug: boolean) => {

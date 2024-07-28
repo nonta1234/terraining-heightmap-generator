@@ -15,7 +15,6 @@ const reset = (e: Event) => {
 }
 </script>
 
-
 <template>
   <div id="reset-slope">
     <span class="select-label">
@@ -30,13 +29,13 @@ const reset = (e: Event) => {
   </div>
 </template>
 
-
 <style lang="scss" scoped>
 .select-label {
   position: relative;
   display: inline-flex;
   align-items: center;
   width: 7.5rem;
+
   &::after {
     position: absolute;
     right: .5rem;
@@ -48,6 +47,7 @@ const reset = (e: Event) => {
     pointer-events: none;
   }
 }
+
 .select-input {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -65,9 +65,12 @@ const reset = (e: Event) => {
   background-color: $inputBg;
   font-size: 1em;
   cursor: pointer;
-  &:active, &:focus {
+
+  &:active,
+  &:focus {
     background-color: $inputBgF;
   }
+
   option {
     background: $optionTagColor;
   }

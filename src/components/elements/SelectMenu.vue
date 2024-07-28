@@ -1,15 +1,15 @@
 <script setup lang="ts">
 type ListObject = {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
 type T = number | string | ListObject
 type R = number | string
 
 interface Props {
-  id: string;
-  list: Array<T>;
+  id: string
+  list: Array<T>
 }
 
 const model = defineModel<R>()
@@ -19,7 +19,6 @@ const props = withDefaults(defineProps<Props>(), {
   list: () => [] as Array<T>,
 })
 </script>
-
 
 <template>
   <div class="select-menu">
@@ -35,7 +34,6 @@ const props = withDefaults(defineProps<Props>(), {
     </span>
   </div>
 </template>
-
 
 <style lang="scss">
 .select-label {

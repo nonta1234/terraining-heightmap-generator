@@ -7,8 +7,8 @@ import { mapSpec } from '~/utils/const'
 import type { GenerateMapOption } from '~/types/types'
 
 type T = {
-  data: Blob | undefined;
-  error: FetchError<any> | undefined;
+  data: Blob | undefined
+  error: FetchError<any> | undefined
 }
 
 const isEqual = (a: Point, b: Point) => {
@@ -325,7 +325,8 @@ class GetWaterMapWorker {
         littImage,
         cornerImage,
       ])
-    } else {
+    }
+    else {
       this.clearCanvas(resultWaterCtx)
       this.clearCanvas(this.waterCtx)
       this.clearCanvas(this.waterSideCtx)

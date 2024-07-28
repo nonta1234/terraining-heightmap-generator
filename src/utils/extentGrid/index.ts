@@ -9,26 +9,24 @@ import type {
 } from 'geojson'
 import { featureCollection, polygon } from '@turf/helpers'
 
-
 export function extentGrid<P extends GeoJsonProperties = GeoJsonProperties>(
   bbox: BBox,
   cells: number,
   options: {
-    properties?: P;
-    mask?: Feature<Polygon | MultiPolygon> | Polygon | MultiPolygon;
+    properties?: P
+    mask?: Feature<Polygon | MultiPolygon> | Polygon | MultiPolygon
   } = {},
 ): FeatureCollection<Polygon, P> {
   return rectangleGrid(bbox, cells, cells, options)
 }
-
 
 function rectangleGrid<P extends GeoJsonProperties = GeoJsonProperties>(
   bbox: BBox,
   columns: number,
   rows: number,
   options: {
-    properties?: P;
-    mask?: Feature<Polygon | MultiPolygon> | Polygon | MultiPolygon;
+    properties?: P
+    mask?: Feature<Polygon | MultiPolygon> | Polygon | MultiPolygon
   } = {},
 ): FeatureCollection<Polygon, P> {
   // Containers
@@ -65,7 +63,8 @@ function rectangleGrid<P extends GeoJsonProperties = GeoJsonProperties>(
         if (booleanIntersects(options.mask, cellPoly)) {
           results.push(cellPoly)
         }
-      } else {
+      }
+      else {
         results.push(cellPoly)
       }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 interface Props {
-  modal: boolean;
+  modal: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -17,7 +17,6 @@ if (isMobile) {
 }
 </script>
 
-
 <template>
   <transition name="modal">
     <div v-if="props.modal" class="modal-wrapper">
@@ -31,43 +30,49 @@ if (isMobile) {
   </transition>
 </template>
 
-
 <style lang="scss" scoped>
-  .panel {
-    position: absolute;
-    bottom: v-bind(bottomPosition);
-    left: 50%;
-    transform: v-bind(transformState);
-    border-radius: .375rem;
-    color: $textColor;
-    font-size: 1rem;
-    z-index: 10;
-    padding: 0;
-    overflow: hidden;
-    user-select: none;
-    max-width: calc(100vw - 20px);
-  }
-  .grass {
-    @include grass;
-  }
-  .opaque {
-    @include opaque;
-  }
-  .modal-wrapper {
-    position: absolute;
-    height: 100dvh;
-    width: 100%;
-    // background-color: rgba(0, 0, 0, .4);
-    background: transparent;
-    -webkit-backdrop-filter: blur(2px) saturate(50%) brightness(60%);
-    backdrop-filter: blur(2px) saturate(50%) brightness(60%);
-    z-index: 20;
-  }
-  .modal-enter-from, .modal-leave-to {
-    opacity: 0;
-    filter: blur(0.5rem);
-  }
-  .modal-enter-active, .modal-leave-active {
-    transition: all .25s ease;
-  }
+.panel {
+  position: absolute;
+  bottom: v-bind(bottomPosition);
+  left: 50%;
+  transform: v-bind(transformState);
+  border-radius: .375rem;
+  color: $textColor;
+  font-size: 1rem;
+  z-index: 10;
+  padding: 0;
+  overflow: hidden;
+  user-select: none;
+  max-width: calc(100vw - 20px);
+}
+
+.grass {
+  @include grass;
+}
+
+.opaque {
+  @include opaque;
+}
+
+.modal-wrapper {
+  position: absolute;
+  height: 100dvh;
+  width: 100%;
+  // background-color: rgba(0, 0, 0, .4);
+  background: transparent;
+  -webkit-backdrop-filter: blur(2px) saturate(50%) brightness(60%);
+  backdrop-filter: blur(2px) saturate(50%) brightness(60%);
+  z-index: 20;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+  filter: blur(0.5rem);
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: all .25s ease;
+}
 </style>

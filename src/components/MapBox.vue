@@ -18,7 +18,6 @@ const minSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultS
 
 const { $throttle } = useNuxtApp()
 
-
 onMounted(() => {
   createMapInstance()
 
@@ -158,7 +157,6 @@ onMounted(() => {
         'fill-color': 'rgba(0, 0, 0, 0)',
         'fill-outline-color': 'blue',
       },
-      layout: {},
     })
     mapbox.value.map?.addLayer({
       id: 'directionMarker',
@@ -460,98 +458,96 @@ onMounted(() => {
         if (e.points.length !== 1) { return }
         e.preventDefault()
         onResizeStart(e)
-      mapbox.value.map!.on('touchmove', onResize)
-      mapbox.value.map!.once('touchend', onResizeEnd)
+        mapbox.value.map!.on('touchmove', onResize)
+        mapbox.value.map!.once('touchend', onResizeEnd)
       }
     })
   }
 })
 </script>
 
-
 <template>
   <div id="map"></div>
   <slot />
 </template>
 
-
 <style lang="scss" scoped>
-  #map {
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+:deep(.mapboxgl-ctrl-group) {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    outline: none;
+    overflow: hidden;
+    display: block;
+    width: 41px;
+    height: 41px;
+    color: $textColor;
+    background: transparent;
+    text-align: center;
+    border-radius: 100%;
+    margin-bottom: 10px;
+    border: solid 1px $textColor;
+    @include grass-button;
+    &:hover {
+      color: aquamarine;
+      border: solid 1px aquamarine;
+      @include shadow-4
+    }
+    svg {
+      margin: auto;
+    }
+  }
+  .style-button + select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     position: absolute;
     top: 0;
-    bottom: 0;
-    width: 100%;
-  }
-  :deep(.mapboxgl-ctrl-group) {
-    background: transparent;
-    box-shadow: none;
-    border-radius: 0;
-    button {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      outline: none;
-      overflow: hidden;
-      display: block;
-      width: 41px;
-      height: 41px;
+    right: 0;
+    height: 41px;
+    width: 41px;
+    opacity: 0;
+    padding: 8px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    option {
+      background: $optionTagColor;
       color: $textColor;
-      background: transparent;
-      text-align: center;
-      border-radius: 100%;
-      margin-bottom: 10px;
-      border: solid 1px $textColor;
-      @include grass-button;
-      &:hover {
-        color: aquamarine;
-        border: solid 1px aquamarine;
-        @include shadow-4
-      }
-      svg {
-        margin: auto;
-      }
-    }
-    .style-button + select {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      position: absolute;
-      top: 0;
-      right: 0;
-      height: 41px;
-      width: 41px;
-      opacity: 0;
-      padding: 8px;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      option {
-        background: $optionTagColor;
-        color: $textColor;
-        font-size: 1rem;
-        &:first-child {
-          color: $textDisabled;
-        }
-      }
-    }
-    .style-button {
-      &:has(+ select:hover) {
-        color: aquamarine;
-        border: solid 1px aquamarine;
-        @include shadow-4
+      font-size: 1rem;
+      &:first-child {
+        color: $textDisabled;
       }
     }
   }
-  :deep(.mapboxgl-ctrl) {
-    margin-bottom: 0;
+  .style-button {
+    &:has(+ select:hover) {
+      color: aquamarine;
+      border: solid 1px aquamarine;
+      @include shadow-4
+    }
   }
-  :deep(.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon) {
-    background-image: url("../assets/svg/zoomin.svg");
-  }
-  :deep(.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon) {
-    background-image: url("../assets/svg/zoomout.svg");
-  }
-  :deep(.mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon) {
-    background-image: url("../assets/svg/compass.svg");
-  }
+}
+:deep(.mapboxgl-ctrl) {
+  margin-bottom: 0;
+}
+:deep(.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon) {
+  background-image: url("../assets/svg/zoomin.svg");
+}
+:deep(.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon) {
+  background-image: url("../assets/svg/zoomout.svg");
+}
+:deep(.mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon) {
+  background-image: url("../assets/svg/compass.svg");
+}
 </style>

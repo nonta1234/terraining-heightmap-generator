@@ -1,25 +1,24 @@
 <script setup lang="ts">
 interface Props {
-  name: string;
-  modelValue?: boolean;
-  value?: boolean;
+  name: string
+  modelValue?: boolean
+  value?: boolean
 }
 
 interface Emits {
-  (e: 'update:modelValue' | 'change', newValue: boolean): void;
+  (e: 'update:modelValue' | 'change', value: boolean): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const _value = computed(() => typeof props.modelValue === 'undefined' ? props.value : props.modelValue)
+const _value = computed(() => props.modelValue === undefined ? props.value : props.modelValue)
 
 const toggle = () => {
   emit('update:modelValue', !_value.value)
   emit('change', !_value.value)
 }
 </script>
-
 
 <template>
   <div class="toggle-switch">
@@ -28,34 +27,39 @@ const toggle = () => {
   </div>
 </template>
 
-
 <style lang="scss" scoped>
 .toggle-switch {
   display: table;
 }
+
 .input {
   display: none;
-  &:checked + .label {
+
+  &:checked+.label {
     background-color: rgba(255, 255, 255, .2);
+
     &::before {
       left: calc(100% - 1.3125rem);
       background-color: #DFE5E8;
     }
   }
 }
+
 .label {
   display: block;
   position: relative;
-  width: 2.75rem;
+  width: 3rem;
   height: 1.5rem;
   border-radius: .75rem;
   background-color: $inputBg;
   cursor: pointer;
   outline: none;
+
   &:focus {
     outline: solid 1px $borderColor;
     background-color: $inputBgF;
   }
+
   &::before {
     position: absolute;
     top: .1875rem;
