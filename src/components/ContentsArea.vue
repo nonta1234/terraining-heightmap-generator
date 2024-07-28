@@ -4,10 +4,10 @@ const currentTab = ref(0)
 
 const onChangeTabs = (tab: number) => {
   currentTab.value = tab
+  useEvent('panel:tabChange', tab)
   saveSettings(mapbox.value.settings)
 }
 </script>
-
 
 <template>
   <div id="contents-area">
@@ -22,14 +22,13 @@ const onChangeTabs = (tab: number) => {
       <label class="tab-switch" for="config">Config</label>
     </header>
     <div class="contents">
-        <GeneralTab v-if="currentTab === 0" />
-        <WaterTab v-if="currentTab === 1" />
-        <ModifyTab v-if="currentTab === 2" />
-        <ConfigTab v-if="currentTab === 3" />
+      <GeneralTab v-show="currentTab === 0" />
+      <WaterTab v-show="currentTab === 1" />
+      <ModifyTab v-show="currentTab === 2" />
+      <ConfigTab v-show="currentTab === 3" />
     </div>
   </div>
 </template>
-
 
 <style lang="scss" scoped>
 #contents-area {
@@ -75,31 +74,8 @@ const onChangeTabs = (tab: number) => {
   width: 100%;
   font-size: 1rem;
   padding-top: 1rem;
-  :deep(input) {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border: none;
-    outline: none;
-    overflow: hidden;
-    text-overflow: clip;
-    width: 100%;
-    color: $textColor;
-    padding: 0 .25rem;
-    background-color: $inputBg;
-    border-radius: .25rem;
-    line-height: 2;
-    flex-shrink: 0;
-    &:active, &:focus {
-      background-color: $inputBgF;
-    }
-  }
-  :deep(input[input]) {
-    color: #FFA500;
-  }
-  :deep(input:disabled) {
-    color: $textDisabled;
-    background-color: transparent;
+  :deep(.input-wrapper) {
+    @include common-input;
   }
 }
 </style>
