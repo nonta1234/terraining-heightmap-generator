@@ -146,7 +146,6 @@ const download = async () => {
 }
 </script>
 
-
 <template>
   <ModalWindow>
     <div id="customize-map-image-panel">
@@ -213,184 +212,186 @@ const download = async () => {
       <footer>
         <button ref="dlButton" class="button download" @click="download">
           <DownloadIcon />
-          <span>DOWNLOAD</span>
+          <span>Download</span>
         </button>
       </footer>
     </div>
   </ModalWindow>
 </template>
 
-
 <style lang="scss" scoped>
-  #customize-map-image-panel {
-    position: relative;
-  }
-  h3 {
-    font-size: 1rem;
-    text-align: center;
-    font-weight: 700;
-    height: 2rem;
-    margin-bottom: 1rem;
+#customize-map-image-panel {
+  position: relative;
+}
+h3 {
+  font-size: 1rem;
+  text-align: center;
+  font-weight: 700;
+  height: 2rem;
+  margin-bottom: 1rem;
+  line-height: 2;
+}
+.close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+.main {
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: auto 7.75rem auto;
+  gap: .75rem 0;
+  position: relative;
+  div {
     line-height: 2;
-  }
-  .close {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-  }
-  .main {
-    padding: 0 1rem;
-    display: grid;
-    grid-template-columns: auto 7.75rem auto;
-    gap: .75rem 0;
-    position: relative;
-    div {
-      line-height: 2;
-      height: 2rem;
-      &:has(select) {
-        position: relative;
-        &::after {
-          position: absolute;
-          top: .8rem;
-          right: .5rem;
-          width: .625rem;
-          height: .4375rem;
-          background-color: $textAlt;
-          clip-path: polygon(0 0, 100% 0, 50% 100%);
-          content: '';
-          pointer-events: none;
-        }
+    height: 2rem;
+    &:has(select) {
+      position: relative;
+      &::after {
+        position: absolute;
+        top: .8rem;
+        right: .5rem;
+        width: .625rem;
+        height: .4375rem;
+        background-color: $textAlt;
+        clip-path: polygon(0 0, 100% 0, 50% 100%);
+        content: '';
+        pointer-events: none;
       }
     }
   }
-  label {
-    display: block;
-    line-height: 2;
-    grid-column-start: 1;
-    padding-right: 1.5rem;
-    white-space: nowrap;
+}
+label {
+  display: block;
+  line-height: 2;
+  grid-column-start: 1;
+  padding-right: 1.5rem;
+  white-space: nowrap;
+}
+.unit {
+  text-align: right;
+  padding-left: .5rem;
+}
+.full-area-label {
+  grid-column: 1 / 3;
+  grid-row: 6 / 7;
+  z-index: 1;
+}
+.full-area-toggle {
+  grid-column: 2 / 3;
+  grid-row: 6 / 7;
+  z-index: 2;
+}
+:deep(.toggle-switch) {
+  margin: .25rem 0 .25rem auto;
+}
+.request {
+  grid-column: 1 / 3;
+  grid-row: 7 / 8;
+  z-index: 1;
+}
+.request-count {
+  grid-column: 2 / 3;
+  grid-row: 7 / 8;
+  z-index: 2;
+  padding-right: .25rem;
+  text-align: right;
+}
+button, select, input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+  outline: none;
+  overflow: hidden;
+  display: block;
+}
+select {
+  width: 100%;
+  border-radius: .25rem;
+  color: $textColor;
+  padding-left: .5rem;
+  height: 2rem;
+  line-height: 2;
+  background-color: $inputBg;
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  &:active, &:focus {
+    background-color: $inputBgF;
   }
-  .unit {
-    text-align: right;
-    padding-left: .5rem;
+}
+option {
+  background: $optionTagColor;
+}
+input {
+  width: 100%;
+  color: $textColor;
+  padding: 0 .25rem;
+  background-color: $inputBg;
+  border-radius: .25rem;
+  line-height: 2;
+  height: 2rem;
+  &:active, &:focus {
+    background-color: $inputBgF;
   }
-  .full-area-label {
-    grid-column: 1 / 3;
-    grid-row: 6 / 7;
-    z-index: 1;
+}
+input[input] {
+  color: #FFA500;
+}
+input:disabled {
+  color: $textDisabled;
+}
+.caution {
+  color: #FFA500;
+}
+footer {
+  display: flex;
+  justify-content: right;
+  padding: 1.5rem 1rem 1rem;
+}
+.button {
+  height: 2rem;
+  border-radius: 1rem;
+  padding: 0 1rem 0 .625rem;
+  font-size: 1rem;
+  line-height: 2;
+  text-align: center;
+  color: $textColor;
+  flex-shrink: 0;
+}
+.download {
+  font-weight: 700;
+  background-color: rgba(255, 255, 255, .1);
+  cursor: pointer;
+  display: flex;
+  perspective: 100px;
+  @include shadow-2;
+  &:hover, &:focus {
+    color: aquamarine;
+    background-color: rgba(0, 206, 209, .35);
+    @include shadow-3;
   }
-  .full-area-toggle {
-    grid-column: 2 / 3;
-    grid-row: 6 / 7;
-    z-index: 2;
+  svg {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    margin: 4px 6px 6px 0;
   }
-  :deep(.toggle-switch) {
-    margin: .25rem 0 .25rem auto;
-  }
-  .request {
-    grid-column: 1 / 3;
-    grid-row: 7 / 8;
-    z-index: 1;
-  }
-  .request-count {
-    grid-column: 2 / 3;
-    grid-row: 7 / 8;
-    z-index: 2;
-    padding-right: .25rem;
-    text-align: right;
-  }
-  button, select, input {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border: none;
-    outline: none;
-    overflow: hidden;
-    display: block;
-  }
-  select {
-    width: 100%;
-    border-radius: .25rem;
-    color: $textColor;
-    padding-left: .5rem;
+  span {
+    display: inline-block;
     height: 2rem;
     line-height: 2;
-    background-color: $inputBg;
-    font-size: 1rem;
-    cursor: pointer;
-    flex-shrink: 0;
-    &:active, &:focus {
-      background-color: $inputBgF;
-    }
   }
-  option {
-    background: $optionTagColor;
+}
+.downloading {
+  svg {
+    animation: rotateY 2s linear infinite;
   }
-  input {
-    width: 100%;
-    color: $textColor;
-    padding: 0 .25rem;
-    background-color: $inputBg;
-    border-radius: .25rem;
-    line-height: 2;
-    height: 2rem;
-    &:active, &:focus {
-      background-color: $inputBgF;
-    }
+}
+@keyframes rotateY {
+  to {
+    transform: rotateY(-1turn);
   }
-  input[input] {
-    color: #FFA500;
-  }
-  input:disabled {
-    color: $textDisabled;
-  }
-  .caution {
-    color: #FFA500;
-  }
-  footer {
-    display: flex;
-    justify-content: right;
-    padding: 1.5rem 1rem 1rem;
-  }
-  .button {
-    height: 2.25rem;
-    border-radius: .25rem;
-    padding: 0 1rem 0 .625rem;
-    font-size: 1rem;
-    line-height: 2.125;
-    text-align: center;
-    border: solid 1px $borderColor;
-    color: $textColor;
-    flex-shrink: 0;
-  }
-  .download {
-    background-color: rgba(255, 255, 255, .1);
-    cursor: pointer;
-    display: flex;
-    perspective: 100px;
-    &:hover, &:focus {
-      color: aquamarine;
-      background-color: rgba(0, 206, 209, .35);
-    }
-    svg {
-      display: inline-block;
-      margin: 4px 6px 6px 0;
-    }
-    span {
-      display: inline-block;
-      height: calc(2.1825rem - 2px);
-      line-height: 2.0625;
-      margin: 1px 0 0;
-    }
-  }
-  .downloading {
-    svg {
-      animation: rotateY 2s linear infinite;
-    }
-  }
-  @keyframes rotateY {
-    to {
-      transform: rotateY(-1turn);
-    }
-  }
+}
 </style>
