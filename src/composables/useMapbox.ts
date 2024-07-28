@@ -209,9 +209,9 @@ export const createMapInstance = () => {
     accessToken: config.public.token,
     antialias: true,
     container: 'map',
-    style:     initialValue.style,
-    center:    [mapbox.value.settings.lng, mapbox.value.settings.lat],
-    zoom:      mapbox.value.settings.zoom,
+    style: initialValue.style,
+    center: [mapbox.value.settings.lng, mapbox.value.settings.lat],
+    zoom: mapbox.value.settings.zoom,
   })
 
   mapbox.value.grid = getGrid(

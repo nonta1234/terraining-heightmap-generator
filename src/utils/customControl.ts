@@ -87,8 +87,8 @@ export class ResetGridDirection implements IControl {
       clearTimeout(this.pressTimer)
     } else if (this.pressPosition && e && e.touches) {
       const pixel = [e.touches[0].clientX, e.touches[0].clientY]
-      if (this.pressPosition[0] > pixel[0] + 20 || this.pressPosition[0] < pixel[0] - 20 ||
-          this.pressPosition[1] > pixel[1] + 20 || this.pressPosition[1] < pixel[1] - 20) {
+      if (this.pressPosition[0] > pixel[0] + 20 || this.pressPosition[0] < pixel[0] - 20
+        || this.pressPosition[1] > pixel[1] + 20 || this.pressPosition[1] < pixel[1] - 20) {
         this.pressPosition = []
         clearTimeout(this.pressTimer)
       }

@@ -71,9 +71,9 @@ export const getMapImage = async (style: string, offset?: number) => {
       offset || 0,
     )
     url = 'https://api.mapbox.com/styles/v1/'
-      + `${style}/static/[${minX},${minY},${maxX},${maxY}`
-      + `]/${pixels}x${pixels}@2x?access_token=${config.public.token}`
-    } else {
+    + `${style}/static/[${minX},${minY},${maxX},${maxY}`
+    + `]/${pixels}x${pixels}@2x?access_token=${config.public.token}`
+  } else {
     let decimals = 1
     let zoom = 0
     let pixel = 0
@@ -96,10 +96,10 @@ export const getMapImage = async (style: string, offset?: number) => {
     const bearing = (settings.angle > 0) ? settings.angle : settings.angle + 360
 
     url = 'https://api.mapbox.com/styles/v1/'
-      + `${style}/static/`
-      + `${settings.lng},${settings.lat},${roundedZoom},${bearing}`
-      + `/${pixel}x${pixel}@2x?access_token=${config.public.token}`
-    }
+    + `${style}/static/`
+    + `${settings.lng},${settings.lat},${roundedZoom},${bearing}`
+    + `/${pixel}x${pixel}@2x?access_token=${config.public.token}`
+  }
 
   try {
     const res = await fetch(url)

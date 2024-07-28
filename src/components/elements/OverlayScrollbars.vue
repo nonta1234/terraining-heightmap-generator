@@ -5,7 +5,7 @@ import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 
 <template>
   <OverlayScrollbarsComponent
-    class="" 
+    class=""
     :options="{
       scrollbars: {
         theme: 'os-theme-dark',
