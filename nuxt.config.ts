@@ -38,7 +38,7 @@ export default defineNuxtConfig({
   ],
 
   hooks: {
-    'vite:extendConfig'(config, { isClient })  {
+    'vite:extendConfig'(config, { isClient }) {
       if (isClient) {
         (config.build!.rollupOptions!.output as OutputOptions).manualChunks = function (_id) {
           if (_id.includes('mapbox-gl') && !_id.includes('mapbox-gl.css')) {
@@ -73,7 +73,9 @@ export default defineNuxtConfig({
     css: {
       preprocessorOptions: {
         scss: {
-          additionalData: '@import "@/assets/scss/_variables.scss";',
+          additionalData:
+            `@import "@/assets/scss/_variables.scss";
+             @import "@/assets/scss/_elements.scss";`,
         },
       },
     },
@@ -142,7 +144,7 @@ export default defineNuxtConfig({
     download: true,
     preload: true,
     families: {
-      "Inter Tight": [400, 700],
+      'Inter Tight': [400, 700],
     },
   },
 
