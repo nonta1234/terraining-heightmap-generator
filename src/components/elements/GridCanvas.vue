@@ -11,7 +11,7 @@ const containerWidth = ref(0)
 const containerHeight = ref(0)
 const clientHeight = ref(0)
 
-const padding = [10, 0, 10, 0] // top, right, bottom, left
+const padding = [10, 0, 10, 0]    // top, right, bottom, left
 const displayPadding = [10, 0, 10, 0]
 const cellCount = 10
 const hGridSize = ref(0)
