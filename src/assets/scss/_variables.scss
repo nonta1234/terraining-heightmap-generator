@@ -83,7 +83,13 @@ $optionTagColor: rgb(43, 42, 51);
 }
 
 @mixin layout {
-  @media screen and (max-width: 524px) {
+  @media screen and (max-width: 513px) {
+    @content;
+  }
+}
+
+@mixin tbLayout {
+  @media screen and (max-width: 768px) {
     @content;
   }
 }
