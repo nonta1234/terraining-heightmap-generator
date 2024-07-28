@@ -30,7 +30,6 @@ const getRawHeightmap = async () => {
   }
 }
 
-
 const getPngHeightmap = async () => {
   pngButton.value?.classList.add('downloading')
   try {
@@ -79,7 +78,6 @@ const getPngHeightmap = async () => {
   }
 }
 
-
 const getMapImageData = async (e: Event) => {
   const value = (e.target as HTMLSelectElement).value
   if (value === 'customize') {
@@ -102,7 +100,6 @@ const getMapImageData = async (e: Event) => {
   }
 }
 
-
 const getOsmData = async () => {
   osmButton.value?.classList.add('downloading')
   try {
@@ -116,11 +113,9 @@ const getOsmData = async () => {
   }
 }
 
-
 const toRepository = () => {
   window.open('https://github.com/nonta1234/terraining-heightmap-generator', '_blank')
 }
-
 
 function download(filename: string, data: any) {
   const url = URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))
@@ -134,12 +129,10 @@ function download(filename: string, data: any) {
   console.log(`download completed: ${filename}`)
 }
 
-
 const debug = () => {
   useEvent('debug:operate')
 }
 </script>
-
 
 <template>
   <div id="download-panel">
@@ -170,7 +163,6 @@ const debug = () => {
     </ul>
   </div>
 </template>
-
 
 <style lang="scss" scoped>
 #download-panel {
@@ -226,7 +218,7 @@ const debug = () => {
     }
   }
 
-  @include layout {
+  @include tbLayout {
     top: auto;
     right: auto;
     bottom: 10px;
