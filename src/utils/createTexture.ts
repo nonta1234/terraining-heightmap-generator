@@ -1,9 +1,9 @@
 import type { Settings, MapType } from '~/types/types'
 
 function catmull(t: number, p0: number, p1: number, p2: number, p3: number) {
-  return 0.5 * ((2 * p1) + (-p0 + p2) * t +
-    (2 * p0 - 5 * p1 + 4 * p2 - p3) * (t ** 2) +
-    (-p0 + 3 * p1 - 3 * p2 + p3) * (t ** 3))
+  return 0.5 * ((2 * p1) + (-p0 + p2) * t
+    + (2 * p0 - 5 * p1 + 4 * p2 - p3) * (t ** 2)
+    + (-p0 + 3 * p1 - 3 * p2 + p3) * (t ** 3))
 }
 
 function getStartPos(stop: number) {
