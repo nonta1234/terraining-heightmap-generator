@@ -11,7 +11,7 @@ const containerWidth = ref(0)
 const containerHeight = ref(0)
 const clientHeight = ref(0)
 
-const padding = [10, 0, 10, 0]    // top, right, bottom, left
+const padding = [10, 0, 10, 0] // top, right, bottom, left
 const displayPadding = [10, 0, 10, 0]
 const cellCount = 10
 const hGridSize = ref(0)
@@ -19,8 +19,8 @@ const vGridSize = ref(0)
 const hPositions: number[] = []
 
 type circle = {
-  x: number;
-  y: Ref<number>;
+  x: number
+  y: Ref<number>
 }
 
 const points: circle[] = []
@@ -215,6 +215,17 @@ const clearCanvas = (ctx: CanvasRenderingContext2D) => {
   ctx.canvas.height = 0
 }
 
+useListen('panel:tabChange', (value) => {
+  if (value === 1) {
+    nextTick(() => {
+      setCanvasSize()
+      setPositions()
+      drawGrid(gCtx.value!)
+      drawPoints(oCtx.value!)
+    })
+  }
+})
+
 onMounted(() => {
   window.addEventListener('resize', resize)
   gCtx.value = gCanvas.value!.getContext('2d') as CanvasRenderingContext2D
@@ -232,7 +243,6 @@ onUnmounted(() => {
 })
 </script>
 
-
 <template>
   <div ref="container" class="grid-canvas-container">
     <canvas id="grid-canvas" ref="gCanvas"></canvas>
@@ -240,20 +250,21 @@ onUnmounted(() => {
   </div>
 </template>
 
-
 <style lang="scss" scoped>
-  .grid-canvas-container {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-  }
-  #grid-canvas,
-  #obj-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-  #grid-canvas {
-    background-color: rgba(0, 1, 4, 0.3);
-  }
+.grid-canvas-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+#grid-canvas,
+#obj-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#grid-canvas {
+  background-color: rgba(0, 1, 4, 0.3);
+}
 </style>
