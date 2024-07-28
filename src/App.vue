@@ -1,36 +1,18 @@
 <script setup lang="ts">
 import type { Canvases } from '~/types/types'
 
-const littEditVisi = ref(false)
-const configPanelVisi = ref(false)
 const cMapImagePanelVisi = ref(false)
-
 const tileCanvasRef = ref<HTMLCanvasElement>()
 const waterCanvasRef = ref<HTMLCanvasElement>()
 const waterWayCanvasRef = ref<HTMLCanvasElement>()
 const littCanvasRef = ref<HTMLCanvasElement>()
 const cornerCanvasRef = ref<HTMLCanvasElement>()
 
-useListen('map:leModal', (value) => {
-  if (value === undefined) {
-    littEditVisi.value = !littEditVisi.value
-  } else {
-    littEditVisi.value = value
-  }
-})
-
-useListen('map:cpModal', (value) => {
-  if (value === undefined) {
-    configPanelVisi.value = !configPanelVisi.value
-  } else {
-    configPanelVisi.value = value
-  }
-})
-
 useListen('map:miModal', (value) => {
   if (value === undefined) {
     cMapImagePanelVisi.value = !cMapImagePanelVisi.value
-  } else {
+  }
+  else {
     cMapImagePanelVisi.value = value
   }
 })
@@ -62,14 +44,11 @@ onMounted(() => {
 })
 </script>
 
-
 <template>
   <div id="map-container">
     <MapBox>
       <InfoPanel />
       <DownloadPanel />
-      <LittoralEditor v-show="littEditVisi" :modal="false" />
-      <!--<ConfigurationPanel v-show="configPanelVisi" :modal="true" />-->
       <CustomizeMapImagePanel v-show="cMapImagePanelVisi" :modal="true" />
     </MapBox>
     <canvas v-show="debugMode" id="tile-canvas" ref="tileCanvasRef" class="debug-canvas"></canvas>
@@ -81,7 +60,6 @@ onMounted(() => {
     <canvas v-show="debugMode" id="corner-canvas" ref="cornerCanvasRef" class="debug-canvas"></canvas>
   </div>
 </template>
-
 
 <style lang="scss" scoped>
   #map-container {
