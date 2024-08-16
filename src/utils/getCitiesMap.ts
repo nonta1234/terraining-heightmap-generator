@@ -22,7 +22,7 @@ export const getCitiesMap = async (mapType: MapType) => {
     if (mapType === 'cs1') {
       const heightmapData = async () => {
         const { heightmap, heightmapImage } = await getHeightmap('cs1', debugMode.value)
-        const minmax = getMinMaxHeight(heightmap)
+        const minmax = getMinMaxHeight(heightmap, 100)
         return { heightmap, heightmapImage, minmax }
       }
       const waterMapData = async () => {
@@ -48,8 +48,8 @@ export const getCitiesMap = async (mapType: MapType) => {
         waterMapData(),
       ])
 
-      if (mapbox.value.settings.adjLevel) {
-        mapbox.value.settings.seaLevel = results[0].minmax.min
+      if (mapbox.value.settings.adjToMin) {
+        mapbox.value.settings.baseLevel = results[0].minmax.min
       }
       adjustElevation(results[0].minmax.max)
       const citiesMap = await generateCitiesMap('cs1', results[0].heightmap, results[1].waterMap, results[1].waterWayMap)
@@ -72,7 +72,7 @@ export const getCitiesMap = async (mapType: MapType) => {
       }
       const playHeightmapData = async () => {
         const { heightmap, heightmapImage } = await getHeightmap('cs2play', heightmapView)
-        const minmax = getMinMaxHeight(heightmap)
+        const minmax = getMinMaxHeight(heightmap, 100)
         return { heightmap, heightmapImage, minmax }
       }
       const playWaterMapData = async () => {
@@ -95,7 +95,7 @@ export const getCitiesMap = async (mapType: MapType) => {
       }
       const heightmapData = async () => {
         const { heightmap, heightmapImage } = await getHeightmap('cs2', worldMapView)
-        const minmax = getMinMaxHeight(heightmap)
+        const minmax = getMinMaxHeight(heightmap, 100)
         return { heightmap, heightmapImage, minmax }
       }
       const waterMapData = async () => {
@@ -126,8 +126,8 @@ export const getCitiesMap = async (mapType: MapType) => {
       const min = Math.min(results[0].minmax.min, results[2].minmax.min)
       const max = Math.max(results[0].minmax.max, results[2].minmax.max)
 
-      if (mapbox.value.settings.adjLevel) {
-        mapbox.value.settings.seaLevel = min
+      if (mapbox.value.settings.adjToMin) {
+        mapbox.value.settings.baseLevel = min
       }
       adjustElevation(max)
 

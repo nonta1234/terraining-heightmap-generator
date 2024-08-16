@@ -17,19 +17,23 @@ export const adjustElevation = (maxHeight: number) => {
   const mapbox = useMapbox()
   if (mapbox.value.settings.type !== 'manual') {
     const csMaxHeight = (mapbox.value.settings.gridInfo === 'cs1' ? 1023.984375 : mapbox.value.settings.elevationScale) - mapbox.value.settings.depth
-    const elevationRange = maxHeight - mapbox.value.settings.seaLevel
+    const elevationRange = maxHeight - mapbox.value.settings.baseLevel
     if (mapbox.value.settings.type === 'maximize' || elevationRange * mapbox.value.settings.vertScale > csMaxHeight) {
       mapbox.value.settings.vertScale = csMaxHeight / elevationRange
     }
   }
 }
 
-export const getMinMaxHeight = (map: Float32Array) => {
+export const getMinMaxHeight = (map: Float32Array, padding: number) => {
   const heights = { min: 100000, max: -100000 }
-  for (let i = 0; i < map.length; i++) {
-    const h = map[i]
-    if (h > heights.max) { heights.max = h }
-    if (h < heights.min) { heights.min = h }
+  const size = Math.sqrt(map.length)
+  const endIndex = size - padding
+  for (let y = padding; y < endIndex; y++) {
+    for (let x = padding; x < endIndex; x++) {
+      const h = map[y * size + x]
+      if (h > heights.max) { heights.max = h }
+      if (h < heights.min) { heights.min = h }
+    }
   }
   return heights
 }

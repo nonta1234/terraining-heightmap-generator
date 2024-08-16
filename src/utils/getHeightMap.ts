@@ -6,12 +6,13 @@ type T = {
   heightmapImage?: ImageBitmap
 }
 
-const getHeightmapData = (mapType: MapType, settings: Settings, token: string, isDebug: boolean) => {
+const getHeightmapData = (mapType: MapType, settings: Settings, token: string, isDebug: boolean, resolution: number) => {
   const data: GenerateMapOption = {
     mapType,
     settings,
     token,
     isDebug,
+    resolution,
   }
   const generateMapOption = JSON.parse(JSON.stringify(data))
   const worker = new GetHeightMapWorker()
@@ -31,17 +32,22 @@ const getHeightmapData = (mapType: MapType, settings: Settings, token: string, i
  * Get heightmap in Float32Array. Also returns ImageBitmap for debugging.
  * @param mapType default 'cs1'
  * @param isDebug default false
+ * @param resolution for preview
  * @return Promise\<Float32Array, ImageBitmap\>
  */
-export const getHeightmap = async (mapType: MapType = 'cs1', isDebug = false) => {
+export const getHeightmap = async (mapType: MapType = 'cs1', preview = false, isDebug = false, resolution?: number) => {
   try {
     const { settings } = useMapbox().value
     const config = useRuntimeConfig()
-    if ((mapType !== 'cs1') && !isTokenValid()) {
+    if (!(preview === true || mapType === 'cs1') && !isTokenValid()) {
       throw new Error('Invaid access token')
     }
-    const token = settings.gridInfo === 'cs1' ? config.public.token : settings.accessToken
-    const result = await getHeightmapData(mapType, settings, token, isDebug)
+    let token = (settings.gridInfo === 'cs1' || preview === true) ? (settings.accessToken || config.public.mapboxToken) : settings.accessToken
+    if (mapType === 'ocean') {
+      token = config.public.maptilerToken
+    }
+    const _resolution = resolution || settings.resolution
+    const result = await getHeightmapData(mapType, settings, token, isDebug, _resolution)
     return result
   } catch (error) {
     console.error('An error occurred in getHeightMap:', error)

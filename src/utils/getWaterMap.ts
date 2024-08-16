@@ -10,12 +10,13 @@ type T = {
   cornerImage?: ImageBitmap
 }
 
-const getWaterMapData = (mapType: MapType, settings: Settings, token: string, isDebug: boolean) => {
+const getWaterMapData = (mapType: MapType, settings: Settings, token: string, isDebug: boolean, resolution: number) => {
   const data: GenerateMapOption = {
     mapType,
     settings,
     token,
     isDebug,
+    resolution,
   }
   const generateMapOption = JSON.parse(JSON.stringify(data))
   const worker = new GetWaterMapWorker()
@@ -37,15 +38,16 @@ const getWaterMapData = (mapType: MapType, settings: Settings, token: string, is
  * @param isDebug default false
  * @return Promise\<Float32Array, ImageBitmap\>
  */
-export const getWaterMap = async (mapType: MapType = 'cs1', isDebug = false) => {
+export const getWaterMap = async (mapType: MapType = 'cs1', preview = false, isDebug = false, resolution?: number) => {
   try {
     const { settings } = useMapbox().value
     const config = useRuntimeConfig()
-    if ((mapType !== 'cs1') && !isTokenValid()) {
+    if (!(preview === true || mapType === 'cs1') && !isTokenValid()) {
       throw new Error('Invaid access token')
     }
-    const token = settings.gridInfo === 'cs1' ? config.public.token : settings.accessToken
-    const result = await getWaterMapData(mapType, settings, token, isDebug)
+    const token = (settings.gridInfo === 'cs1' || preview === true) ? (settings.accessToken || config.public.mapboxToken) : settings.accessToken
+    const _resolution = resolution || settings.resolution
+    const result = await getWaterMapData(mapType, settings, token, isDebug, _resolution)
     return result
   } catch (error) {
     console.error('An error occurred in getWaterMap:', error)
