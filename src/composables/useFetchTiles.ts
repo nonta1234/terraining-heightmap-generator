@@ -23,3 +23,15 @@ export const useFetchVectorTiles = async (zoom: number, x: number, y: number, to
   }
   return { data, error }
 }
+
+export const useFetchOceanTiles = async (zoom: number, x: number, y: number, token: string) => {
+  const url = `https://api.maptiler.com/tiles/ocean-rgb/${zoom}/${x}/${y}.webp?key=${token}`
+  let data: Blob | undefined
+  let error: FetchError | undefined
+  try {
+    data = await $fetch<Blob>(url)
+  } catch (err) {
+    error = err as FetchError
+  }
+  return { data, error }
+}

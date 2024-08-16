@@ -179,6 +179,7 @@ export const setGrid = (mapbox: Ref<Mapbox>, lnglat: LngLat, panTo: boolean) => 
   mapbox.value.isUpdating = true
   mapbox.value.settings.lng = _lng
   mapbox.value.settings.lat = _lat
+
   mapbox.value.grid = getGrid(mapbox, _lng, _lat, mapbox.value.settings.size, mapbox.value.settings.angle);
 
   (mapbox.value.map?.getSource('grid') as GeoJSONSource).setData(mapbox.value.grid.gridArea)
@@ -206,7 +207,7 @@ export const createMapInstance = () => {
   mapboxgl.workerCount = 4
 
   mapbox.value.map = new Map({
-    accessToken: config.public.token,
+    accessToken: config.public.mapboxToken,
     antialias: true,
     container: 'map',
     style: initialValue.style,

@@ -122,16 +122,20 @@ class GetWaterMapWorker {
       settings,
       token,
       isDebug,
+      resolution,
     } = message as GenerateMapOption
 
     const pixelsPerTile = 4096
+    const _correction = mapSpec[mapType].correction
+    const _mapPixels = resolution! - _correction
+    const unitSize = settings.size / _mapPixels
+    const tmpMapPixels = Math.ceil(_mapPixels * Math.SQRT2 + 420)
+    const tmpMapSize = tmpMapPixels * unitSize
     const extentOffset = mapType === 'cs2play' ? 0.375 : 0
-    const { x0, y0, x1, y1, centerX, centerY } = getExtentInWorldCoords(settings.lng, settings.lat, settings.size * 1.5, extentOffset, pixelsPerTile)
+    const { x0, y0, x1, y1, centerX, centerY } = getExtentInWorldCoords(settings.lng, settings.lat, tmpMapSize, extentOffset, pixelsPerTile)
     const side = x1 - x0
-    const tmpMapPixels = (settings.resolution - mapSpec[mapType].correction) * 1.5
     const zoom = Math.ceil(Math.log2(tmpMapPixels / side)) + parseInt(settings.waterside)
     const scale = tmpMapPixels / (side * (2 ** zoom))
-
     const tileX0 = Math.floor(x0 * (2 ** zoom) / pixelsPerTile)
     const tileY0 = Math.floor(y0 * (2 ** zoom) / pixelsPerTile)
     const tileX1 = Math.floor(x1 * (2 ** zoom) / pixelsPerTile)
@@ -141,8 +145,9 @@ class GetWaterMapWorker {
     const offsetX = resultCenterX - tileX0 * pixelsPerTile
     const offsetY = resultCenterY - tileY0 * pixelsPerTile
     const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
-    const resultPixels = settings.resolution + 4
-    const halfMapSize = (settings.resolution - mapSpec[mapType].correction + 4) / 2
+    const padding = mapType === 'cs2play' ? 0 : 200
+    const resultPixels = resolution! + padding
+    const halfMapSize = (_mapPixels + padding) / 2
     const theta = -settings.angle * Math.PI / 180
 
     // setup waterCtx

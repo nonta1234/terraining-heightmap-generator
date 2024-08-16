@@ -125,7 +125,7 @@ class GenerateCitiesMapWorker {
 
     if (settings.noise === 0) {
       for (let i = 0; i < effectedMap.length; i++) {
-        let h = (maskedSharpenMap[i] * (1 - alphaSmooth) + maskedSmoothMap[i] * alphaSmooth) - settings.seaLevel
+        let h = (maskedSharpenMap[i] * (1 - alphaSmooth) + maskedSmoothMap[i] * alphaSmooth) - settings.baseLevel
         if (h < 0) { h = 0 }
         const waterDepth = Math.max((1 - waterMap![i]) * settings.depth, (1 - waterWayMap![i]) * strm)
         effectedMap[i] = h * settings.vertScale + settings.depth - waterDepth
@@ -137,7 +137,7 @@ class GenerateCitiesMapWorker {
       for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
           const noiseValue = noise2D(x * settings.noiseGrid / (size - 1), y * settings.noiseGrid / (size - 1)) * settings.noise
-          let h = (maskedSharpenMap[y * size + x] * (1 - alphaSmooth) + maskedSmoothMap[y * size + x] * alphaSmooth) - settings.seaLevel
+          let h = (maskedSharpenMap[y * size + x] * (1 - alphaSmooth) + maskedSmoothMap[y * size + x] * alphaSmooth) - settings.baseLevel
           if (h < 0) {
             h = 0
           } else if (h > settings.noise) {

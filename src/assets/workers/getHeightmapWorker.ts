@@ -4,6 +4,8 @@ import type { GenerateMapOption } from '~/types/types'
 import { decodeElevation } from '~/utils/elevation'
 import { mapSpec } from '~/utils/const'
 import { useFetchTerrainTiles } from '~/composables/useFetchTiles'
+import { decode } from '@jsquash/webp'
+import initPng, { decode_png } from '~~/png_lib/pkg'
 // import { gaussianBlur } from '~/utils/filters'
 
 type T = {
@@ -134,9 +136,9 @@ const getHeightMapBicubic = (
   }
 
   function cubicFunc(t: number) {
-    if (t <= 1) {
+    if (t < 1) {
       return (a + 2) * t * t * t - (a + 3) * t * t + 1
-    } else if (t > 1 && t < 2) {
+    } else if (t < 2) {
       return a * t * t * t - 5 * a * t * t + 8 * a * t - 4 * a
     } else {
       return 0
@@ -169,13 +171,19 @@ class GetHeightmapWorker {
       settings,
       token,
       isDebug,
+      resolution,
     } = message as GenerateMapOption
     const pixelsPerTile = 512
+    const _correction = mapType === 'ocean' ? mapSpec[settings.gridInfo].correction : mapSpec[mapType].correction
+    const _mapPixels = resolution! - _correction
+    const unitSize = settings.size / _mapPixels
+    const tmpMapPixels = Math.ceil(_mapPixels * Math.SQRT2 + 420)
+    const tmpMapSize = tmpMapPixels * unitSize
     const extentOffset = mapType === 'cs2play' ? 0.375 : 0
-    const { x0, y0, x1, y1, centerX, centerY } = getExtentInWorldCoords(settings.lng, settings.lat, settings.size * 1.5, extentOffset, pixelsPerTile)
+    const { x0, y0, x1, y1, centerX, centerY } = getExtentInWorldCoords(settings.lng, settings.lat, tmpMapSize, extentOffset, pixelsPerTile)
     const side = x1 - x0
-    const tmpMapPixels = (settings.resolution - mapSpec[mapType].correction) * 1.5
-    const zoom = Math.min(Math.ceil(Math.log2(tmpMapPixels / side)), 14)
+    const maxZoom = mapType === 'ocean' ? 7 : 14
+    const zoom = Math.min(Math.ceil(Math.log2(tmpMapPixels / side)), maxZoom)
     const scale = (side * (2 ** zoom)) / tmpMapPixels
     const tileX0 = Math.floor(x0 * (2 ** zoom) / pixelsPerTile)
     const tileY0 = Math.floor(y0 * (2 ** zoom) / pixelsPerTile)
@@ -183,24 +191,33 @@ class GetHeightmapWorker {
     const tileY1 = Math.floor(y1 * (2 ** zoom) / pixelsPerTile)
     const resultCenterX = centerX * (2 ** zoom)
     const resultCenterY = centerY * (2 ** zoom)
-    const offsetX = resultCenterX - tileX0 * pixelsPerTile - mapSpec[mapType].correction / 2
-    const offsetY = resultCenterY - tileY0 * pixelsPerTile - mapSpec[mapType].correction / 2
+    const offsetX = resultCenterX - tileX0 * pixelsPerTile - _correction / 2
+    const offsetY = resultCenterY - tileY0 * pixelsPerTile - _correction / 2
     const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
     const tilePixels = tileCount * pixelsPerTile
-    const resultPixels = settings.resolution + 4
+    const resultPixels = resolution! + (mapType === 'cs2play' ? 0 : 200)
 
     canvas.width = tilePixels
     canvas.height = tilePixels
     ctx.clearRect(0, 0, tilePixels, tilePixels)
-    ctx.fillStyle = 'rgb(1, 134, 160)' // = 0m
+    ctx.fillStyle = 'rgb(1, 134, 160)'  // = 0m
     ctx.fillRect(0, 0, tilePixels, tilePixels)
 
     const tiles = new Array<Promise<T>>(tileCount * tileCount)
-
+    const elevations = new Float32Array(tilePixels * tilePixels)
+    if (mapType === 'ocean') {
+      // await load()
+    } else {
+      await initPng()
+    }
     // fetch tiles
-    for (let i = 0; i < tileCount; i++) {
-      for (let j = 0; j < tileCount; j++) {
-        tiles[j + i * tileCount] = useFetchTerrainTiles(zoom, tileX0 + j, tileY0 + i, token!)
+    for (let y = 0; y < tileCount; y++) {
+      for (let x = 0; x < tileCount; x++) {
+        if (mapType === 'ocean') {
+          tiles[y * tileCount + x] = useFetchOceanTiles(zoom, tileX0 + x, tileY0 + y, token!)
+        } else {
+          tiles[y * tileCount + x] = useFetchTerrainTiles(zoom, tileX0 + x, tileY0 + y, token!)
+        }
       }
     }
     const tileList = await Promise.allSettled(tiles)
@@ -210,24 +227,35 @@ class GetHeightmapWorker {
         if (tile.status === 'fulfilled') {
           const blob = tile.value.data
           if (blob) {
-            const image = await createImageBitmap(blob)
-            const dx = Math.floor(index % tileCount) * pixelsPerTile
+            const arrBuffer = await blob.arrayBuffer()
+            let byteArray: Uint8ClampedArray
+            if (mapType === 'ocean') {
+              const imgData = await decode(arrBuffer)
+              byteArray = new Uint8ClampedArray(imgData.data)
+            } else {
+              const arr = new Uint8Array(arrBuffer)
+              const byte = await decode_png({ data: arr })
+              byteArray = new Uint8ClampedArray(byte.data)
+            }
+            const elevs = decodeElevation(byteArray)
             const dy = Math.floor(index / tileCount) * pixelsPerTile
-            ctx.drawImage(image, dx, dy)
-            image.close()
+            const dx = (index % tileCount) * pixelsPerTile
+
+            for (let y = 0; y < pixelsPerTile; y++) {
+              for (let x = 0; x < pixelsPerTile; x++) {
+                elevations[(dy + y) * tilePixels + (dx + x)] = elevs[y * pixelsPerTile + x]
+              }
+            }
           }
         }
       })
       await Promise.all(tilePromises)
-      return ctx.getImageData(0, 0, tilePixels, tilePixels)
     }
-    const pixelData = (await processTiles(tileList)).data
-    // In the case of reduction, high frequencies are removed by applying Gaussian blur in advance.
-    const elevations = scale > 1.5 ? decodeElevation(pixelData) : decodeElevation(pixelData)
+    await processTiles(tileList)
 
     const result = settings.interpolation === 'bicubic'
-      ? getHeightMapBicubic(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, mapSpec[mapType].correction)
-      : getHeightMapBilinear(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, mapSpec[mapType].correction)
+      ? getHeightMapBicubic(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
+      : getHeightMapBilinear(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
 
     if (isDebug) {
       const imageBitmap = canvas.transferToImageBitmap()

@@ -4,7 +4,7 @@ import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolyg
 export type LngLat = Extract<LngLatLike, [number, number]>
 export type HeightCalcType = 'manual' | 'limit' | 'maximize'
 export type Interpolation = 'bilinear' | 'bicubic'
-export type MapType = 'cs1' | 'cs2' | 'cs2play' | 'unity' | 'ue'
+export type MapType = 'cs1' | 'cs2' | 'cs2play' | 'unity' | 'ue' | 'ocean'
 export type StyleType = Record<'text' | 'value' | 'before' | 'grid' | 'alpha', string>
 
 export const viewModes = ['height', 'world'] as const
@@ -71,8 +71,8 @@ export interface Settings {
   worldPartition: boolean
   wpCells: number
   angle: number
-  seaLevel: number
-  adjLevel: boolean
+  baseLevel: number
+  adjToMin: boolean
   vertScale: number
   fixedRatio: boolean
   type: HeightCalcType
@@ -81,6 +81,7 @@ export interface Settings {
   streamDepth: number
   littoral: number
   littArray: number[]
+  actualSeafloor: boolean
   smoothing: number
   smoothRadius: number
   smthThres: number
@@ -99,7 +100,7 @@ export interface Settings {
   displayEffectArea: boolean
   applyEffectAmount: boolean
   normalizePreview: boolean
-  normalizeModify: boolean
+  originalPreview: boolean
   accessToken: string
 }
 
@@ -115,6 +116,7 @@ export type GenerateMapOption = {
   settings: Settings
   token?: string
   isDebug?: boolean
+  resolution?: number
 }
 
 export type Canvases = {
