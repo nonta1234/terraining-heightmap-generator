@@ -1,11 +1,14 @@
 import { visualizer } from 'rollup-plugin-visualizer'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import wasmpack from 'vite-plugin-wasm-pack'
+import wasm from 'vite-plugin-wasm'
+import topLevelAwait from 'vite-plugin-top-level-await'
 import type { OutputOptions } from 'rollup'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
-const token = process.env.NODE_ENV !== 'production' ? process.env.TOKEN : process.env.PUBLIC_TOKEN
+const mapboxToken = process.env.NODE_ENV !== 'production' ? process.env.MAPBOX_TOKEN : process.env.PUBLIC_MAPBOX_TOKEN
+const maptilerToken = process.env.NODE_ENV !== 'production' ? process.env.MAPTILER_TOKEN : process.env.PUBLIC_MAPTILER_TOKEN
 
 export default defineNuxtConfig({
   devtools: {
@@ -24,7 +27,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      token,
+      mapboxToken,
+      maptilerToken,
       gtag: '',
     },
   },
@@ -80,13 +84,22 @@ export default defineNuxtConfig({
       },
     },
     plugins: [
+      wasm(),
+      topLevelAwait(),
       nodePolyfills({
         protocolImports: true,
       }),
-      wasmpack('./png_lib'),
+      wasmpack(['./png_lib', './heightmap_lib']),
     ],
     worker: {
       format: 'es',
+      plugins: () => [
+        wasm(), // Worker内でもWasmをサポート
+        topLevelAwait(), // Worker内でのtop-level awaitをサポート
+      ],
+    },
+    optimizeDeps: {
+      exclude: ['@jsquash/webp'],
     },
   },
 
@@ -108,6 +121,7 @@ export default defineNuxtConfig({
       '@fortawesome/fontawesome-svg-core',
       '@fortawesome/free-solid-svg-icons',
       '@fortawesome/vue-fontawesome',
+      '@jsquash/webp',
     ],
   },
 
