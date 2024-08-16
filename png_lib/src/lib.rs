@@ -1,7 +1,9 @@
 use serde::{Serialize, Deserialize};
 use wasm_bindgen::prelude::*;
-
+use std::io::Cursor;
+// use web_sys::console;
 extern crate png;
+// extern crate console_error_panic_hook;
 
 #[derive(Serialize, Deserialize)]
 pub struct ImageData {
@@ -62,4 +64,23 @@ pub fn encode_png(data: JsValue, width: u32, height: u32, color_type: &str, bit_
 
     Ok(serde_wasm_bindgen::to_value(&png_data)
         .map_err(|err| JsError::new(&format!("encode_png: Failed to serialize png_data: {}", err)))?)
+}
+
+#[wasm_bindgen]
+pub fn decode_png(data: JsValue) -> Result<JsValue, JsValue> {
+    let image_data: ImageData = serde_wasm_bindgen::from_value(data)
+        .map_err(|err| JsError::new(&format!("decode_png: Failed to deserialize data: {}", err)))?;
+    let cursor = Cursor::new(image_data.data);
+
+    let decoder = png::Decoder::new(cursor);
+    let mut reader = decoder.read_info()
+        .map_err(|err| JsError::new(&format!("decode_png: Failed to read PNG image data: {}", err)))?;
+    let mut buf = vec![0; reader.output_buffer_size()];
+    let info = reader.next_frame(&mut buf)
+        .map_err(|err| JsError::new(&format!("decode_png: Failed to decode PNG frame: {}", err)))?;
+    let bytes = &buf[..info.buffer_size()];
+    let decoded_data = ImageData { data: bytes.to_vec() };
+
+    Ok(serde_wasm_bindgen::to_value(&decoded_data)
+        .map_err(|err| JsError::new(&format!("decode_png: Failed to serialize decoded data: {}", err)))?)
 }

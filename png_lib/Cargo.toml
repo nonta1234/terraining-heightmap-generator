@@ -5,7 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib"]
+
+# [features]
+# default = ["console_error_panic_hook"]
 
 [profile.release]
 lto = true
@@ -13,6 +16,8 @@ codegen-units = 1
 opt-level = "s"
 
 [dependencies]
+# console_error_panic_hook = { version = "0.1.6", optional = true }
+# web-sys = { version = "0.3", features = ["console"] }
 serde = { version = "1.0", features = ["derive"] }
 wasm-bindgen = "0.2.87"
 serde-wasm-bindgen = "0.6.5"
