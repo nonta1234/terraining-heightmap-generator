@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-app",
+  "name": "terraining-heightmap-generator",
   "private": true,
   "scripts": {
     "build": "nuxt build",
@@ -9,13 +9,17 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "wasm": "wasm-pack build png_lib --target web"
+    "wasm:png": "wasm-pack build png_lib --target web",
+    "wasm:height": "wasm-pack build heightmap_lib --target web"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-regular-svg-icons": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/vue-fontawesome": "^3.0.3",
+    "@jsquash/webp": "^1.4.0",
+    "@luma.gl/engine": "8.5.21",
+    "@luma.gl/webgl": "8.5.21",
     "@nuxt/eslint": "^0.3.13",
     "@nuxtjs/device": "^3.1.0",
     "@nuxtjs/google-fonts": "^3.0.2",
@@ -24,6 +28,7 @@
     "@types/mapbox-gl": "^3.1.0",
     "@types/node": "^20.12.7",
     "@types/overlayscrollbars": "^1.12.3",
+    "@types/pngjs": "^6.0.5",
     "@xmldom/xmldom": "^0.8.10",
     "canvg": "^4.0.2",
     "eslint": "^9.7.0",
@@ -36,11 +41,14 @@
     "osm2geojson-lite": "^0.9.4",
     "overlayscrollbars": "^2.4.4",
     "overlayscrollbars-vue": "^0.5.6",
+    "pngjs": "^7.0.0",
     "rollup-plugin-visualizer": "^5.9.2",
     "sass": "^1.62.1",
     "simplex-noise": "^4.0.1",
     "typescript": "^5.2.2",
     "vite-plugin-node-polyfills": "^0.9.0",
+    "vite-plugin-top-level-await": "^1.4.4",
+    "vite-plugin-wasm": "^3.3.0",
     "vite-plugin-wasm-pack": "^0.1.12",
     "vue-gtag-next": "^1.14.0",
     "vue-tsc": "^2.0.24"
