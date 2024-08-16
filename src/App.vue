@@ -32,14 +32,14 @@ onMounted(() => {
   const osWaterWayCanvas = waterWayCanvasRef.value!.transferControlToOffscreen()
   const osLittCanvas = littCanvasRef.value!.transferControlToOffscreen()
   const osCornerCanvas = cornerCanvasRef.value!.transferControlToOffscreen()
-  useState('canvases', () => {
+  useState<Canvases>('canvases', () => {
     return {
       osTileCanvas,
       osWaterCanvas,
       osWaterWayCanvas,
       osLittCanvas,
       osCornerCanvas,
-    } as Canvases
+    }
   })
 })
 </script>
