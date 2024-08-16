@@ -4,8 +4,8 @@
   padding: 0 .3125rem 0 .25rem;
   background-color: $inputBg;
   border-radius: .25rem;
-  height: 2rem;
-  line-height: 2;
+  height: 1.875rem;
+  line-height: 1.875;
   gap: 0 .25rem;
   &:has(.input:active, .input:focus) {
     background-color: $inputBgF;
