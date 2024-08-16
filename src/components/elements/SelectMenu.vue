@@ -62,8 +62,8 @@ const props = withDefaults(defineProps<Props>(), {
   display: block;
   border-radius: .25rem;
   color: $textColor;
-  height: 2em;
-  line-height: 2;
+  height: 1.875em;
+  line-height: 1.875;
   background-color: $inputBg;
   font-size: 1em;
   padding-left: .25rem;

@@ -3,6 +3,7 @@ interface Props {
   name: string
   modelValue?: boolean
   value?: boolean
+  disabled?: boolean
 }
 
 interface Emits {
@@ -22,8 +23,8 @@ const toggle = () => {
 
 <template>
   <div class="toggle-switch">
-    <input :id="props.name" class="input" type="checkbox" :checked="_value" tabindex="-1" @change="toggle">
-    <label :for="props.name" class="label" tabindex="0" @keydown.enter="toggle" @keydown.space="toggle"></label>
+    <input :id="props.name" class="input" type="checkbox" :checked="_value" tabindex="-1" :disabled="props.disabled" @change="toggle">
+    <label :for="props.name" class="label" tabindex="0" :disabled="props.disabled" @keydown.enter="toggle" @keydown.space="toggle"></label>
   </div>
 </template>
 
@@ -35,12 +36,20 @@ const toggle = () => {
 .input {
   display: none;
 
-  &:checked+.label {
+  &:checked + .label {
     background-color: rgba(255, 255, 255, .2);
 
     &::before {
       left: calc(100% - 1.3125rem);
       background-color: #DFE5E8;
+    }
+  }
+
+  &:disabled + .label {
+    background-color: $inputBg;
+
+    &::before {
+      background-color: transparent;
     }
   }
 }

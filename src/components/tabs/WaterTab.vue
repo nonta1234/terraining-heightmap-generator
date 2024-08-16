@@ -2,47 +2,63 @@
 const mapbox = useMapbox()
 </script>
 
-
 <template>
   <div id="water-tab">
     <GridCanvas />
     <ResetSlope class="reset-slope" />
     <div class="controls">
-      <label for="water-depth">Water Depth&#8202;:</label><NumberInput id="water-depth" v-model="mapbox.settings.depth" :max="200" :min="0" :step="1" /><span class="unit left">m</span>
-      <label for="zone">Littoral Zone&#8202;:</label><NumberInput id="zone" v-model="mapbox.settings.littoral" :max="500" :min="0" :step="1" /><span class="unit">m</span>
-      <label for="stream-depth">Stream Depth&#8202;:</label><NumberInput id="stream-depth" v-model="mapbox.settings.streamDepth" :max="100" :min="0" :step="1" /><span class="unit left">m</span>
+      <label for="water-depth">Water Depth&#8202;:</label>
+      <NumberInput id="water-depth" v-model="mapbox.settings.depth" class="gap" :max="200" :min="0" :step="1" :unit="'m'" />
+      <label for="zone">Littoral Zone&#8202;:</label>
+      <NumberInput id="zone" v-model="mapbox.settings.littoral" :max="500" :min="0" :step="1" :unit="'m'" />
+      <label for="stream-depth">Stream Depth&#8202;:</label>
+      <NumberInput id="stream-depth" v-model="mapbox.settings.streamDepth" class="gap" :max="100" :min="0" :step="1" :unit="'m'" />
+      <label for="actual-seafloor" class="as">Use Actual Seafloor&#8202;:</label>
+      <ToggleSwitch v-model="mapbox.settings.actualSeafloor" :name="'actual-seafloor'" class="as-switch" />
     </div>
   </div>
 </template>
-
 
 <style lang="scss" scoped>
 #water-tab {
   width: 100%;
 }
+
 .reset-slope {
   padding-top: .5rem;
 }
+
 .controls {
   display: grid;
   width: 100%;
   gap: .75rem 0;
   padding-top: 1rem;
-  grid-template-columns: 1fr 4.5em auto 1fr 4.5rem auto;
-  line-height: 2;
-  @media screen and (max-width: 480px) {
-    grid-template-columns: 1fr 6rem 1.375rem;
+  grid-template-columns: 7rem 6.5em 7rem 5.5rem;
+  line-height: 1.875;
+
+  @media screen and (max-width: 524px) {
+    grid-template-columns: 1fr 7rem;
   }
 }
-.unit {
-  display: block;
-  line-height: 2;
-  padding-left: .25rem;
+
+@media screen and (min-width: 525px) {
+  :deep(.gap) {
+    width: 5.5rem !important;
+  }
 }
-.left {
-  margin-right: 1.5rem;
-  @media screen and (max-width: 480px) {
-    margin-right: 0;
+
+@media screen and (min-width: 525px) {
+  .as {
+    grid-column: 3 / 5;
+    grid-row: 2 / 3;
+    z-index: 5;
+  }
+
+  .as-switch {
+    grid-column: 4 / 5;
+    grid-row: 2 / 3;
+    z-index: 10;
+    margin: auto 0 auto auto !important;
   }
 }
 </style>

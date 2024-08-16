@@ -2,49 +2,87 @@
 const mapbox = useMapbox()
 const visibillity = ref(false)
 const inputToken = ref<HTMLInputElement>()
+const hasToken = computed(() => isTokenValid())
+
+watch(hasToken, () => {
+  if (!hasToken.value) {
+    mapbox.value.settings.originalPreview = false
+  }
+})
 
 const onVisibillityChange = () => {
   visibillity.value = !visibillity.value
   inputToken.value!.type = visibillity.value ? 'text' : 'password'
 }
-</script>
 
+const onOriginalPreviewChange = async (value: boolean) => {
+  if (!isTokenValid() && value === true) {
+    alert('To preview at the original resolution, a Mapbox access token is required.')
+    await nextTick()
+    mapbox.value.settings.originalPreview = false
+  }
+}
+
+onMounted(() => {
+  if (!isTokenValid() && mapbox.value.settings.originalPreview === true) {
+    mapbox.value.settings.originalPreview = false
+  }
+  inputToken.value!.type = visibillity.value ? 'text' : 'password'
+})
+</script>
 
 <template>
   <div id="config-tab">
+    <div class="original-preview">
+      <label class="original-preview-label" for="original-preview">Preview at original resolution&#8202;:&nbsp;&nbsp;</label>
+      <ToggleSwitch v-model="mapbox.settings.originalPreview" :name="'original-preview'" :disabled="!hasToken" @change="onOriginalPreviewChange" />
+      <div v-if="!hasToken" class="required">Access token required.</div>
+    </div>
     <label for="url" class="label">Mapbox User Style URL&#8202;:</label>
-    <input id="url" v-model="mapbox.settings.userStyleURL" class="input" type="text" />
+    <div class="input-wrapper gap">
+      <input id="url" v-model="mapbox.settings.userStyleURL" class="input" type="text" />
+    </div>
     <label for="token" class="label">Mapbox Access Token&#8202;:</label>
-    <div class="token-input">
-      <input id="token" ref="inputToken" v-model="mapbox.settings.accessToken" class="input" type="password" />
+    <div class="input-wrapper">
+      <input id="token" ref="inputToken" v-model="mapbox.settings.accessToken" class="input" />
       <button class="visi-icon" @click="onVisibillityChange">
-        <VisibilityOn v-if="visibillity" />
-        <VisibilityOff v-else />
+        <VisibilityOff v-if="visibillity" />
+        <VisibilityOn v-else />
       </button>
     </div>
   </div>
 </template>
 
-
 <style lang="scss" scoped>
+.original-preview {
+  display: flex;
+  margin-bottom: .75rem
+}
+
 .label {
   display: block;
   line-height: 2;
 }
-.input {
-  width: calc(100% - 20px - .25rem) !important;
-  color: $textColor;
+
+.input-wrapper {
+  display: flex;
   padding: 0 .25rem;
-  background-color: $inputBg;
-  border-radius: .25rem;
-  margin-bottom: .75rem;
-  &:active, &:focus {
-    background-color: $inputBgF;
+  width: 100%;
+  @include common-input;
+
+  .input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: none;
+    outline: none;
+    overflow: hidden;
+    text-overflow: clip;
+    flex: 1 1 100%;
+    background-color: transparent;
   }
 }
-.token-input {
-  height: 2rem;
-}
+
 .visi-icon {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -53,12 +91,25 @@ const onVisibillityChange = () => {
   outline: none;
   background-color: transparent;
   cursor: pointer;
-  display: inline-block;
-  margin-left: .25rem;
-  position: relative;
-  top: calc((1.75rem - 20px) / 2);
-  &:hover, &:focus {
+  flex: 0 0 fit-content;
+
+  &:hover,
+  &:focus {
     color: aquamarine;
   }
+}
+
+.gap {
+  margin-bottom: .75rem;
+}
+
+:deep(.toggle-switch) {
+  margin-right: 1rem;
+}
+
+.required {
+  color: $textAlt;
+  font-size: .75rem;
+  line-height: 2;
 }
 </style>

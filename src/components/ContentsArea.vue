@@ -22,9 +22,11 @@ const onChangeTabs = (tab: number) => {
       <label class="tab-switch" for="config">Config</label>
     </header>
     <div class="contents">
-      <GeneralTab v-show="currentTab === 0" />
+      <PreviewTab v-show="currentTab === 0 || currentTab === 2">
+        <GeneralCtrls v-show="currentTab === 0" />
+        <ModifyCtrls v-show="currentTab === 2" />
+      </PreviewTab>
       <WaterTab v-show="currentTab === 1" />
-      <ModifyTab v-show="currentTab === 2" />
       <ConfigTab v-show="currentTab === 3" />
     </div>
   </div>
@@ -33,7 +35,7 @@ const onChangeTabs = (tab: number) => {
 <style lang="scss" scoped>
 #contents-area {
   width: 100%;
-  padding: .625rem 0 1.5rem;
+  padding: .625rem 0 1.25rem;
 }
 .header {
   display: flex;

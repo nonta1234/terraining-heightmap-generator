@@ -12,7 +12,11 @@ const visDesktop = ref(false)
 const visMobile = ref(false)
 
 const visibillity = computed(() => {
-  if (isMobile) { return visMobile.value } else { return visDesktop.value }
+  if (isMobile) {
+    return visMobile.value
+  } else {
+    return visDesktop.value
+  }
 })
 
 const changeVisibillity = () => {
@@ -141,7 +145,8 @@ const refresh = async () => {
       if (mapbox.value.settings.gridInfo === 'cs1') {
         const { heightmap } = await getHeightmap('cs1')
         minmax = getMinMaxHeight(heightmap)
-      } else {
+      }
+      else {
         const worldmapMinmax = async () => {
           const { heightmap } = await getHeightmap('cs2')
           return getMinMaxHeight(heightmap)
@@ -160,8 +165,8 @@ const refresh = async () => {
       }
       minHeight.value = minmax.min.toFixed(1)
       maxHeight.value = minmax.max.toFixed(1)
-      if (mapbox.value.settings.adjLevel) {
-        mapbox.value.settings.seaLevel = minmax.min
+      if (mapbox.value.settings.adjToMin) {
+        mapbox.value.settings.baseLevel = minmax.min
       }
       adjustElevation(minmax.max)
 
@@ -171,10 +176,12 @@ const refresh = async () => {
       console.log('min:', minmax.min, 'max:', minmax.max)
       console.log(corners)
       saveSettings(mapbox.value.settings)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('An error occurred in getHeightMap:', error)
       throw error
-    } finally {
+    }
+    finally {
       message.value = ''
       rotate.value = false
       refreshing = false
@@ -224,9 +231,10 @@ const onTypeChange = (e: Event) => {
 const modalButtonText = ref('OPEN')
 
 const modal = () => {
-  useEvent('map:leModal')
+  // useEvent('map:leModal')
 }
 
+/**
 useListen('map:leModal', () => {
   if (modalButtonText.value === 'OPEN') {
     modalButtonText.value = 'CLOSE'
@@ -234,6 +242,7 @@ useListen('map:leModal', () => {
     modalButtonText.value = 'OPEN'
   }
 })
+*/
 
 onMounted(() => {
   if (mapbox.value.settings.type === 'maximize') {
@@ -248,7 +257,6 @@ onMounted(() => {
   })
 })
 </script>
-
 
 <template>
   <div id="setting-panel">
@@ -283,8 +291,8 @@ onMounted(() => {
               <button class="size-reset" @click="resetSize"><font-awesome-icon :icon="['fas', 'arrow-rotate-right']" class="fa-fw fa-xs" /></button>
               <NumberInput :value="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.001" @change="onSizeChange" /><span>㎞</span>
             </li>
-            <li><label>Sea Level&#8202;:</label><NumberInput v-model="mapbox.settings.seaLevel" :max="9999" :min="-9999" :step="0.1" /><span>m</span></li>
-            <li><label>Adjust Level&#8202;:</label><ToggleSwitch v-model="mapbox.settings.adjLevel" :name="'adjust-level'" /></li>
+            <li><label>Sea Level&#8202;:</label><NumberInput v-model="mapbox.settings.baseLevel" :max="9999" :min="-9999" :step="0.1" /><span>m</span></li>
+            <li><label>Adjust Level&#8202;:</label><ToggleSwitch v-model="mapbox.settings.adjToMin" :name="'adjust-level'" /></li>
             <li>
               <label>Height Ratio&#8202;:</label>
               <NumberInput v-model="ratio" :max="10" :min="0" :step="0.001" :disabled="controlDisabled" />
@@ -337,7 +345,6 @@ onMounted(() => {
     </OverlayScrollbars>
   </div>
 </template>
-
 
 <style lang="scss" scoped>
   #setting-panel {
@@ -528,7 +535,6 @@ onMounted(() => {
     }
   }
   .info {
-
 
     input {
       background-color: transparent;
