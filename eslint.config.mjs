@@ -11,12 +11,7 @@ export default withNuxt(
   {
     files: ['**/*.vue', '**/*.ts'],
     rules: {
-      'comma-dangle': ['error', 'always-multiline'],
-      'no-multiple-empty-lines': 'off',
-      'space-before-function-paren': 'off',
-      'no-multi-spaces': 'off',
       'no-console': 'off',
-      'key-spacing': 'off',
       'no-unused-vars': 'off',
       'no-explicit-any': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
@@ -26,7 +21,6 @@ export default withNuxt(
   {
     files: ['**/*.vue'],
     rules: {
-      'vue/no-v-html': 'off',
       'vue/html-self-closing': 'off',
       'vue/singleline-html-element-content-newline': 'off',
       'vue/no-parsing-error': 'off',
@@ -44,8 +38,10 @@ export default withNuxt(
   {
     plugins: stylistic,
     rules: {
-      '@stylistic/brace-style': ['1tbs', { allowSingleLine: true }],
+      '@stylistic/brace-style': 'off',
       '@stylistic/max-statements-per-line': ['error', { max: 2 }],
+      '@stylistic/no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1 }],
+      '@stylistic/no-multi-spaces': ['error', { ignoreEOLComments: true }],
     },
   },
 )
