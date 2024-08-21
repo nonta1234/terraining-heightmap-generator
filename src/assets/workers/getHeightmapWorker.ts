@@ -99,7 +99,10 @@ const getHeightMapBicubic = (
   const halfSize = (resultPixels - correction) / 2
 
   // affine transformation & bicubic interpolation
-  const a = scale > 1 ? -1 : -0.5
+  // Mitchell
+  const b = 1 / 3
+  const c = 1 / 3
+  const coeff = cubicBCcoefficient(b, c)
 
   for (let y = 0; y < resultPixels; y++) {
     for (let x = 0; x < resultPixels; x++) {
@@ -112,16 +115,16 @@ const getHeightMapBicubic = (
       const ty = posY - y0
 
       const fx = [
-        cubicFunc(1 + tx),
-        cubicFunc(tx),
-        cubicFunc(1 - tx),
-        cubicFunc(2 - tx),
+        cubicFunc(1 + tx, coeff),
+        cubicFunc(tx, coeff),
+        cubicFunc(1 - tx, coeff),
+        cubicFunc(2 - tx, coeff),
       ]
       const fy = [
-        cubicFunc(1 + ty),
-        cubicFunc(ty),
-        cubicFunc(1 - ty),
-        cubicFunc(2 - ty),
+        cubicFunc(1 + ty, coeff),
+        cubicFunc(ty, coeff),
+        cubicFunc(1 - ty, coeff),
+        cubicFunc(2 - ty, coeff),
       ]
 
       const tmpVals = [
@@ -135,14 +138,28 @@ const getHeightMapBicubic = (
     }
   }
 
-  function cubicFunc(t: number) {
-    if (t < 1) {
-      return (a + 2) * t * t * t - (a + 3) * t * t + 1
-    } else if (t < 2) {
-      return a * t * t * t - 5 * a * t * t + 8 * a * t - 4 * a
-    } else {
-      return 0
+  function cubicBCcoefficient(b: number, c: number) {
+    const p = 2 - 1.5 * b - c
+    const q = -3 + 2 * b + c
+    const r = 0
+    const s = 1 - (1 / 3) * b
+    const t = -(1 / 6) * b - c
+    const u = b + 5 * c
+    const v = -2 * b - 8 * c
+    const w = (4 / 3) * b + 4 * c
+    return [p, q, r, s, t, u, v, w]
+  }
+
+  function cubicFunc(x: number, coeff: number[]) {
+    const [p, q, r, s, t, u, v, w] = coeff
+    let y = 0
+    const ax = Math.abs(x)
+    if (ax < 1) {
+      y = ((p * ax + q) * ax + r) * ax + s
+    } else if (ax < 2) {
+      y = ((t * ax + u) * ax + v) * ax + w
     }
+    return y
   }
 
   return heightMap
