@@ -7,19 +7,48 @@
   height: 1.875rem;
   line-height: 1.875;
   gap: 0 .25rem;
+
   &:has(.input:active, .input:focus) {
     background-color: $inputBgF;
   }
+
   &:has(.input:disabled) {
     color: $textDisabled;
     background-color: transparent;
   }
+
   .unit {
     color: $textAlt;
   }
+
   .input {
     &[input] {
       color: #FFA500;
     }
+  }
+}
+
+@mixin common-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+  outline: none;
+  display: block;
+  font-weight: 700;
+  height: 2rem;
+  line-height: 2;
+  color: $textColor;
+  padding: 0 1rem;
+  border-radius: 1rem;
+  background-color: rgba(255, 255, 255, .2);
+  cursor: pointer;
+  @include shadow-2;
+
+  &:hover,
+  &:focus {
+    color: aquamarine;
+    background-color: rgba(0, 206, 209, .35);
+    @include shadow-3;
   }
 }
