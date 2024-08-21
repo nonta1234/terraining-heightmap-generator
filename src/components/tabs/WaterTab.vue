@@ -13,7 +13,7 @@ const mapbox = useMapbox()
       <NumberInput id="zone" v-model="mapbox.settings.littoral" :max="500" :min="0" :step="1" :unit="'m'" />
       <label for="stream-depth">Stream Depth&#8202;:</label>
       <NumberInput id="stream-depth" v-model="mapbox.settings.streamDepth" class="gap" :max="100" :min="0" :step="1" :unit="'m'" />
-      <label for="actual-seafloor" class="as">Use Actual Seafloor&#8202;:</label>
+      <label for="actual-seafloor" class="as">Use actual seafloor&#8202;:</label>
       <ToggleSwitch v-model="mapbox.settings.actualSeafloor" :name="'actual-seafloor'" class="as-switch" />
     </div>
   </div>
