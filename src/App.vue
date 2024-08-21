@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Canvases } from '~/types/types'
 
+const isReloading = ref(false)
 const cMapImagePanelVisi = ref(false)
 const tileCanvasRef = ref<HTMLCanvasElement>()
 const waterCanvasRef = ref<HTMLCanvasElement>()
@@ -42,6 +43,13 @@ onMounted(() => {
     }
   })
 })
+
+useListen('map:reload', () => {
+  isReloading.value = true
+  setTimeout(() => {
+    reloadNuxtApp()
+  }, 400)
+})
 </script>
 
 <template>
@@ -59,61 +67,89 @@ onMounted(() => {
     <canvas v-show="debugMode" id="litt-canvas" ref="littCanvasRef" class="debug-canvas"></canvas>
     <canvas v-show="debugMode" id="corner-canvas" ref="cornerCanvasRef" class="debug-canvas"></canvas>
   </div>
+  <transition name="fade">
+    <div v-if="isReloading" class="full-screen-black-box"></div>
+  </transition>
 </template>
 
 <style lang="scss" scoped>
-  #map-container {
-    position: relative;
-    height: 100dvh;
-    overflow: hidden;
-  }
-  #tile-canvas {
-    bottom: 352px;
-    right: 386px;
-  }
-  #water-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 300px;
-    height: 300px;
-    background-color: black;
-    z-index: 10;
-  }
-  #waterway-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 300px;
-    height: 300px;
-    background-color: black;
-    z-index: 15;
-    mix-blend-mode: darken;
-    pointer-events: none;
-  }
-  #litt-canvas {
-    bottom: 36px;
-    right: 386px;
-  }
-  #corner-canvas {
-    bottom: 36px;
-    right: 70px;
-  }
-  .water-canvas-container {
-    position: absolute;
-    bottom: 352px;
-    right: 70px;
-    width: 300px;
-    height: 300px;
-    z-index: 5;
-    @include shadow-2;
-  }
-  .debug-canvas {
-    position: absolute;
-    width: 300px;
-    height: 300px;
-    z-index: 5;
-    background-color: black;
-    @include shadow-2;
-  }
+#map-container {
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#tile-canvas {
+  bottom: 352px;
+  right: 386px;
+}
+
+#water-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 300px;
+  height: 300px;
+  background-color: black;
+  z-index: 10;
+}
+
+#waterway-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 300px;
+  height: 300px;
+  background-color: black;
+  z-index: 15;
+  mix-blend-mode: darken;
+  pointer-events: none;
+}
+
+#litt-canvas {
+  bottom: 36px;
+  right: 386px;
+}
+
+#corner-canvas {
+  bottom: 36px;
+  right: 70px;
+}
+
+.water-canvas-container {
+  position: absolute;
+  bottom: 352px;
+  right: 70px;
+  width: 300px;
+  height: 300px;
+  z-index: 5;
+  @include shadow-2;
+}
+
+.debug-canvas {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  z-index: 5;
+  background-color: black;
+  @include shadow-2;
+}
+
+.full-screen-black-box {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+  z-index: 9999;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: all .4s;
+}
+
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
 </style>
