@@ -2,6 +2,7 @@ import mitt from 'mitt'
 import type { LngLat } from '~/types/types'
 
 type ApplicationEvents = {
+  'map:reload': void
   'map:changeLngLat': LngLat
   'map:changeMapSize': number
   'map:miModal': boolean | undefined
