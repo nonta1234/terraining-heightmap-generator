@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const mapbox = useMapbox()
+const { isMobile } = useDevice()
+const decimal = isMobile ? 1 : 4
 const previewCanvas = ref<HTMLCanvasElement>()
 const previewBox = ref<HTMLElement>()
 const { initialize, previewData, setMapData, generate } = usePreview()
@@ -81,7 +83,12 @@ onMounted(async () => {
         <div class="max">Max&#8202;: {{ previewData.max.toFixed(1) }}&#8201;m</div>
       </div>
     </div>
-    <div v-if="mapbox.settings.gridInfo === 'ue'" class="scale">Scale&#8202;:&nbsp;&nbsp;X&#8202;: {{ scaleXY.toFixed(4) }}&nbsp;&nbsp;Y&#8202;: {{ scaleXY.toFixed(4) }}&nbsp;&nbsp;Z&#8202;: {{ scaleZ.toFixed(4) }}</div>
+    <div v-if="mapbox.settings.gridInfo === 'ue'" class="scale">
+      <span>Scale&#8202;:</span>
+      <span>X&#8202;: {{ scaleXY.toFixed(decimal) }}</span>
+      <span>Y&#8202;: {{ scaleXY.toFixed(decimal) }}</span>
+      <span>Z&#8202;: {{ scaleZ.toFixed(decimal) }}</span>
+    </div>
     <slot />
     <footer class="footer">
       <div class="message">{{ message }}</div>
@@ -147,6 +154,14 @@ onMounted(async () => {
 
 .scale {
   margin-bottom: .5rem;
+
+  span {
+    margin-right: 1.5rem;
+
+    @media screen and (max-width: 524px) {
+      margin-right: .75rem;
+    }
+  }
 }
 
 .footer {
@@ -159,27 +174,6 @@ onMounted(async () => {
 }
 
 .preview-btn {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  border: none;
-  outline: none;
-  display: block;
-  font-weight: 700;
-  height: 2rem;
-  line-height: 2;
-  color: $textColor;
-  padding: 0 1rem;
-  border-radius: 1rem;
-  background-color: rgba(255, 255, 255, .2);
-  cursor: pointer;
-  @include shadow-2;
-
-  &:hover,
-  &:focus {
-    color: aquamarine;
-    background-color: rgba(0, 206, 209, .35);
-    @include shadow-3;
-  }
+  @include common-button;
 }
 </style>
