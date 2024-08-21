@@ -1,5 +1,26 @@
+import { z } from 'zod'
 import type { Map, LngLatLike } from 'mapbox-gl'
 import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolygon, MultiLineString, Position } from 'geojson'
+
+const heightCalcTypeSchema = z.union([
+  z.literal('manual'),
+  z.literal('limit'),
+  z.literal('maximize'),
+])
+
+const interpolationSchema = z.union([
+  z.literal('bilinear'),
+  z.literal('bicubic'),
+])
+
+const mapTypeSchema = z.union([
+  z.literal('cs1'),
+  z.literal('cs2'),
+  z.literal('cs2play'),
+  z.literal('unity'),
+  z.literal('ue'),
+  z.literal('ocean'),
+])
 
 export type LngLat = Extract<LngLatLike, [number, number]>
 export type HeightCalcType = 'manual' | 'limit' | 'maximize'
@@ -62,6 +83,52 @@ export interface Grid {
   direction: Feature<MultiLineString, GeoJsonProperties>
 }
 
+export const settingsSchema = z.object({
+  lng: z.number(),
+  lat: z.number(),
+  zoom: z.number(),
+  size: z.number(),
+  resolution: z.number(),
+  worldPartition: z.boolean(),
+  wpCells: z.number(),
+  angle: z.number(),
+  baseLevel: z.number(),
+  adjToMin: z.boolean(),
+  vertScale: z.number(),
+  fixedRatio: z.boolean(),
+  type: heightCalcTypeSchema,
+  depth: z.number(),
+  waterside: z.string(),
+  streamDepth: z.number(),
+  littoral: z.number(),
+  littArray: z.array(z.number()),
+  actualSeafloor: z.boolean(),
+  smoothing: z.number(),
+  smoothRadius: z.number(),
+  smthThres: z.number(),
+  smthFade: z.number(),
+  sharpen: z.number(),
+  sharpenRadius: z.number(),
+  shrpThres: z.number(),
+  shrpFade: z.number(),
+  style: z.string(),
+  userStyleURL: z.string().optional(),
+  gridInfo: mapTypeSchema,
+  elevationScale: z.number(),
+  interpolation: interpolationSchema,
+  noise: z.number(),
+  noiseGrid: z.number(),
+  displayEffectArea: z.boolean(),
+  applyEffectAmount: z.boolean(),
+  normalizePreview: z.boolean(),
+  originalPreview: z.boolean(),
+  useMapbox: z.boolean(),
+  accessToken: z.string().optional(),
+  accessTokenMT: z.string().optional(),
+})
+
+export type Settings = z.infer<typeof settingsSchema>
+/*
 export interface Settings {
   lng: number
   lat: number
@@ -101,8 +168,11 @@ export interface Settings {
   applyEffectAmount: boolean
   normalizePreview: boolean
   originalPreview: boolean
+  useMapbox: boolean
   accessToken: string
+  accessTokenMT: string
 }
+*/
 
 export interface Mapbox {
   map: Map | undefined

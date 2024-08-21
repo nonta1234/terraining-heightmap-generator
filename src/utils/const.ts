@@ -171,7 +171,9 @@ export const initialValue: Settings = {
   applyEffectAmount: false,
   normalizePreview: false,
   originalPreview: false,
+  useMapbox: false,
   accessToken: '',
+  accessTokenMT: '',
 }
 
 export const needToken = (type: string) => {
