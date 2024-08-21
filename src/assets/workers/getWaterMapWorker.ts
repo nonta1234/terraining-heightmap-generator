@@ -229,7 +229,6 @@ class GetWaterMapWorker {
             // draw start
             if (tile.layers.water) {
               const geo = tile.layers.water.feature(0).asPolygons() as Point[][][]
-
               // draw water area & inner lands
               for (let i = 0; i < geo.length; i++) {
                 const outerPath = geo[i][0]
