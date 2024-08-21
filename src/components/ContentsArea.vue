@@ -51,6 +51,7 @@ const onChangeTabs = (tab: number) => {
   border: 1px solid $borderColor2;
   &:hover {
     color: aquamarine;
+    background-color: rgba(0, 206, 209, .35);
   }
 }
 .tab-switch {
@@ -67,6 +68,7 @@ const onChangeTabs = (tab: number) => {
   cursor: pointer;
   &:hover {
     color: aquamarine;
+    background-color: rgba(0, 206, 209, .1);
   }
   @include layout {
     line-height: 1.7143;
