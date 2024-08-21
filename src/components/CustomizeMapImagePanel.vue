@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { styleList } from '~/utils/const'
 const mapbox = useMapbox()
 const dlButton = ref<HTMLElement>()
 const style = ref('')
