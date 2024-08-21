@@ -62,7 +62,6 @@ async function importSettingsFromFile(file: File): Promise<Settings | null> {
 }
 
 const importFile = async (e: Event) => {
-  console.log('change')
   const input = e.target as HTMLInputElement
   if (input.files && input.files[0]) {
     try {
