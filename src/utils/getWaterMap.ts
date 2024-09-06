@@ -10,24 +10,34 @@ type T = {
   cornerImage?: ImageBitmap
 }
 
-const getWaterMapData = (mapType: MapType, settings: Settings, token: string, isDebug: boolean, resolution: number) => {
+const getWaterMapData = (mapType: MapType, settings: Settings, includeOcean: boolean, isDebug: boolean, resolution: number) => {
   const data: GenerateMapOption = {
     mapType,
     settings,
-    token,
+    includeOcean,
     isDebug,
     resolution,
   }
   const generateMapOption = JSON.parse(JSON.stringify(data))
   const worker = new GetWaterMapWorker()
+
   const result = new Promise<T>((resolve) => {
-    worker.addEventListener('message', (e) => {
+    const handleMessage = (e: MessageEvent) => {
       if (e.data) {
-        resolve(e.data)
-        worker.terminate()
+        if (e.data.type === 'total') {
+          useEvent('tile:total', e.data.number)
+        } else if (e.data.type === 'progress') {
+          useEvent('tile:progress')
+        } else {
+          resolve(e.data)
+          worker.removeEventListener('message', handleMessage)
+          worker.terminate()
+        }
       }
-    }, { once: true })
+    }
+    worker.addEventListener('message', handleMessage)
   })
+
   worker.postMessage(generateMapOption)
   return result
 }
@@ -38,16 +48,11 @@ const getWaterMapData = (mapType: MapType, settings: Settings, token: string, is
  * @param isDebug default false
  * @return Promise\<Float32Array, ImageBitmap\>
  */
-export const getWaterMap = async (mapType: MapType = 'cs1', preview = false, isDebug = false, resolution?: number) => {
+export const getWaterMap = async (mapType: MapType = 'cs1', includeOcean: boolean, isDebug = false, resolution?: number) => {
   try {
     const { settings } = useMapbox().value
-    const config = useRuntimeConfig()
-    if (!(preview === true || mapType === 'cs1') && !isTokenValid()) {
-      throw new Error('Invaid access token')
-    }
-    const token = (settings.gridInfo === 'cs1' || preview === true) ? (settings.accessToken || config.public.mapboxToken) : settings.accessToken
     const _resolution = resolution || settings.resolution
-    const result = await getWaterMapData(mapType, settings, token, isDebug, _resolution)
+    const result = await getWaterMapData(mapType, settings, includeOcean, isDebug, _resolution)
     return result
   } catch (error) {
     console.error('An error occurred in getWaterMap:', error)

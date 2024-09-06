@@ -1,14 +1,28 @@
 <script setup lang="ts">
+import { isMtTokenValid } from '~/utils/isTokenValid'
+import type { Canvases } from '~/types/types'
+
 const mapbox = useMapbox()
 const { isMobile } = useDevice()
 const decimal = isMobile ? 1 : 4
 const previewCanvas = ref<HTMLCanvasElement>()
 const previewBox = ref<HTMLElement>()
 const { initialize, previewData, setMapData, generate } = usePreview()
-const message = ref('')
+const isDownloading = ref(false)
+const total = ref(0)
+const progress = ref(0)
+const progressMsg = computed(() => (isDownloading.value ? 'Downloading elevation data. ' : '') + `(${progress.value} / ${total.value})`)
 
 const scaleXY = computed(() => mapbox.value.settings.size * 100000 / (mapbox.value.settings.resolution - 1))
 const scaleZ = computed(() => mapbox.value.settings.elevationScale * 100 / 512)
+
+useListen('tile:total', (number: number) => {
+  total.value += number
+})
+
+useListen('tile:progress', () => {
+  progress.value += 1
+})
 
 const getResolution = () => {
   const rect = previewBox.value?.getBoundingClientRect()
@@ -19,6 +33,13 @@ const getResolution = () => {
     res = res + (res % 2) + 1
   }
   return res
+}
+
+const setImageBitmap = (canvas: OffscreenCanvas, image: ImageBitmap) => {
+  canvas.width = image.width
+  canvas.height = image.height
+  const ctx = canvas.getContext('bitmaprenderer')
+  ctx!.transferFromImageBitmap(image)
 }
 
 const prevention = (e: Event) => {
@@ -44,24 +65,51 @@ const onNormalizeChange = async () => {
 }
 
 const onPreview = async () => {
-  message.value = 'Downloading elevation data.'
-  const res = mapbox.value.settings.originalPreview ? mapbox.value.settings.resolution : Math.min(getResolution(), mapbox.value.settings.resolution)
-  if (mapbox.value.settings.actualSeafloor) {
-    const [{ heightmap }, { heightmap: waterMap }, { waterWayMap }] = await Promise.all([
-      getHeightmap(mapbox.value.settings.gridInfo, true, false, res),
-      getHeightmap('ocean', true, false, res),
-      getWaterMap(mapbox.value.settings.gridInfo, true, false, res),
-    ])
-    setMapData(heightmap, waterMap, waterWayMap)
-  } else {
-    const [{ heightmap }, { waterMap, waterWayMap }] = await Promise.all([
-      getHeightmap(mapbox.value.settings.gridInfo, true, false, res),
-      getWaterMap(mapbox.value.settings.gridInfo, true, false, res),
-    ])
-    setMapData(heightmap, waterMap, waterWayMap)
+  if (!isMtTokenValid()) {
+    alert('MapTiler API key required.')
+    return
   }
-  await render(mapbox.value.settings.normalizePreview)
-  message.value = ''
+  if (mapbox.value.settings.useMapbox && !isMbTokenValid()) {
+    alert('A mapbox access token is required to get the heightmap from mapbox.')
+    return
+  }
+
+  try {
+    const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
+    isDownloading.value = true
+    const { debugMode } = useDebug()
+    const res = mapbox.value.settings.originalPreview ? mapbox.value.settings.resolution : Math.min(getResolution(), mapbox.value.settings.resolution)
+    if (mapbox.value.settings.actualSeafloor) {
+      const [{ heightmap }, { heightmap: oceanMap }, { waterMap, waterWayMap, waterMapImage, waterWayMapImage }] = await Promise.all([
+        getHeightmap(mapbox.value.settings.gridInfo, debugMode.value, res),
+        getHeightmap('ocean', false, res),
+        getWaterMap(mapbox.value.settings.gridInfo, false, debugMode.value, res),
+      ])
+      setMapData(heightmap, oceanMap, waterMap, waterWayMap)
+      if (debugMode.value) {
+        setImageBitmap(osWaterCanvas, waterMapImage!)
+        setImageBitmap(osWaterWayCanvas, waterWayMapImage!)
+      }
+    } else {
+      const [{ heightmap }, { waterMap, waterWayMap, waterMapImage, waterWayMapImage }] = await Promise.all([
+        getHeightmap(mapbox.value.settings.gridInfo, debugMode.value, res),
+        getWaterMap(mapbox.value.settings.gridInfo, true, debugMode.value, res),
+      ])
+      const oceanMap = new Float32Array(res * res)
+      setMapData(heightmap, oceanMap, waterMap, waterWayMap)
+      if (debugMode.value) {
+        setImageBitmap(osWaterCanvas, waterMapImage!)
+        setImageBitmap(osWaterWayCanvas, waterWayMapImage!)
+      }
+    }
+    await render(mapbox.value.settings.normalizePreview)
+  } catch {
+    console.error('Failed to generate preview data.')
+  } finally {
+    isDownloading.value = false
+    total.value = 0
+    progress.value = 0
+  }
 }
 
 onMounted(async () => {
@@ -91,7 +139,7 @@ onMounted(async () => {
     </div>
     <slot />
     <footer class="footer">
-      <div class="message">{{ message }}</div>
+      <div :class="['message', { 'visibility': !isDownloading }]">{{ progressMsg }}</div>
       <button class="preview-btn" @click="onPreview">Preview</button>
     </footer>
   </div>
@@ -171,6 +219,10 @@ onMounted(async () => {
 
 .message {
   color: $textAlt;
+}
+
+.visibility {
+  visibility: hidden;
 }
 
 .preview-btn {
