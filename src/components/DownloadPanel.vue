@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import init, { encode_png } from '~~/png_lib/pkg'
+import { styleList } from '~/utils/const'
 const mapbox = useMapbox()
 const rawButton = ref<HTMLElement>()
 const pngButton = ref<HTMLElement>()
@@ -86,11 +87,11 @@ const getMapImageData = async (e: Event) => {
   }
   imgButton.value?.startIconRotation()
   const valueStr = value === 'user'
-    ? mapbox.value.settings.userStyleURL.replace('mapbox://styles/', '')
+    ? mapbox.value.settings.userStyleURL?.replace('mapbox://styles/', '')
     : value
   const offset = mapbox.value.settings.gridInfo === 'cs1' ? 0 : 0.375
   try {
-    const png = await getMapImage(valueStr, offset)
+    const png = await getMapImage(valueStr!, offset)
     download(`map-image_${valueStr}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png)
     saveSettings(mapbox.value.settings)
   } catch (e) {
