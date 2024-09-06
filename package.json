@@ -25,7 +25,6 @@
     "@nuxtjs/google-fonts": "^3.0.2",
     "@turf/turf": "^6.5.0",
     "@types/geojson2osm": "^0.0.5",
-    "@types/mapbox-gl": "^3.1.0",
     "@types/node": "22.4.1",
     "@types/overlayscrollbars": "^1.12.3",
     "@types/pngjs": "^6.0.5",
