@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { settingsSchema, type Settings } from '~/types/types'
 const mapbox = useMapbox()
+const device = useDevice()
 const visibillity = ref(false)
 const visibillityMT = ref(false)
 const inputToken = ref<HTMLInputElement>()
 const inputTokenMT = ref<HTMLInputElement>()
 const fileEl = ref<HTMLInputElement>()
-const hasToken = computed(() => isTokenValid())
+const hasToken = computed(() => isMtTokenValid())
 
 watch(hasToken, () => {
   if (!hasToken.value) {
@@ -25,8 +26,8 @@ const onVisibillityChangeMT = () => {
 }
 
 const onOriginalPreviewChange = async (value: boolean) => {
-  if (!isTokenValid() && value === true) {
-    alert('To preview at the original resolution, a Mapbox access token is required.')
+  if (!isMtTokenValid() && value === true) {
+    alert('To preview at the original resolution, a MapTiler API key is required.')
     await nextTick()
     mapbox.value.settings.originalPreview = false
   }
@@ -87,6 +88,17 @@ const onImport = () => {
   fileEl.value!.value = ''
 }
 
+function downloadBlob(filename: string, data: Blob) {
+  const url = URL.createObjectURL(data)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 const onExport = async () => {
   function exportFilteredMapSettings(excludeKeys: string[]): string {
     const mapSettingsKey = 'map-settings'
@@ -111,16 +123,20 @@ const onExport = async () => {
   const blob: Blob = new Blob([json], { type: 'application/json' })
 
   try {
-    const handle = await (window as any).showSaveFilePicker({
-      suggestedName: 'terraining-settings.json',
-      types: [{
-        description: 'JSON file',
-        accept: { 'application/json': ['.json'] },
-      }],
-    })
-    const writableStream = await handle.createWritable()
-    await writableStream.write(blob)
-    await writableStream.close()
+    if (device.isFirefox || device.isSafari) {
+      downloadBlob('terraining-settings.json', blob)
+    } else {
+      const handle = await (window as any).showSaveFilePicker({
+        suggestedName: 'terraining-settings.json',
+        types: [{
+          description: 'JSON file',
+          accept: { 'application/json': ['.json'] },
+        }],
+      })
+      const writableStream = await handle.createWritable()
+      await writableStream.write(blob)
+      await writableStream.close()
+    }
     console.log('File has been saved.')
   } catch (error) {
     console.error('Failed to save the file:', error)
@@ -151,10 +167,11 @@ const onReset = () => {
 }
 
 onMounted(() => {
-  if (!isTokenValid() && mapbox.value.settings.originalPreview === true) {
+  if (!isMtTokenValid() && mapbox.value.settings.originalPreview === true) {
     mapbox.value.settings.originalPreview = false
   }
   inputToken.value!.type = visibillity.value ? 'text' : 'password'
+  inputTokenMT.value!.type = visibillityMT.value ? 'text' : 'password'
 })
 </script>
 
@@ -165,7 +182,7 @@ onMounted(() => {
       <ToggleSwitch v-model="mapbox.settings.originalPreview" :name="'original-preview'" :disabled="!hasToken" @change="onOriginalPreviewChange" />
     </div>
     <hr>
-    <label for="token-mt" class="label">MapTiler Access Token <small>(Required)</small>&#8202;:</label>
+    <label for="token-mt" class="label">MapTiler API Key <small>(Required)</small>&#8202;:</label>
     <div class="input-wrapper gap2">
       <input id="token-mt" ref="inputTokenMT" v-model="mapbox.settings.accessTokenMT" class="input" />
       <button class="visi-icon" @click="onVisibillityChangeMT">
