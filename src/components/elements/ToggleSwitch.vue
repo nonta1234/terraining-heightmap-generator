@@ -39,6 +39,10 @@ const toggle = () => {
   &:checked + .label {
     background-color: rgba(255, 255, 255, .2);
 
+    &:focus {
+      outline: solid 1px #DFE5E8;
+    }
+
     &::before {
       left: calc(100% - 1.3125rem);
       background-color: #DFE5E8;
