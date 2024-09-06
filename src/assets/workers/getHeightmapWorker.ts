@@ -186,7 +186,6 @@ class GetHeightmapWorker {
     const {
       mapType,
       settings,
-      token,
       isDebug,
       resolution,
     } = message as GenerateMapOption
@@ -220,20 +219,24 @@ class GetHeightmapWorker {
     ctx.fillStyle = 'rgb(1, 134, 160)'  // = 0m
     ctx.fillRect(0, 0, tilePixels, tilePixels)
 
-    const tiles = new Array<Promise<T>>(tileCount * tileCount)
+    const totalTiles = tileCount * tileCount
+    this.worker.postMessage({ type: 'total', number: totalTiles })
+
+    const tiles = new Array<Promise<T>>(totalTiles)
     const elevations = new Float32Array(tilePixels * tilePixels)
-    if (mapType === 'ocean') {
-      // await load()
-    } else {
+    if (mapType !== 'ocean' || settings.useMapbox) {
       await initPng()
     }
+
+    const token = settings.useMapbox ? settings.accessToken! : settings.accessTokenMT!
+
     // fetch tiles
     for (let y = 0; y < tileCount; y++) {
       for (let x = 0; x < tileCount; x++) {
         if (mapType === 'ocean') {
-          tiles[y * tileCount + x] = useFetchOceanTiles(zoom, tileX0 + x, tileY0 + y, token!)
+          tiles[y * tileCount + x] = useFetchOceanTiles(zoom, tileX0 + x, tileY0 + y, settings.accessTokenMT!)
         } else {
-          tiles[y * tileCount + x] = useFetchTerrainTiles(zoom, tileX0 + x, tileY0 + y, token!)
+          tiles[y * tileCount + x] = useFetchTerrainTiles(zoom, tileX0 + x, tileY0 + y, token, settings.useMapbox)
         }
       }
     }
@@ -246,7 +249,7 @@ class GetHeightmapWorker {
           if (blob) {
             const arrBuffer = await blob.arrayBuffer()
             let byteArray: Uint8ClampedArray
-            if (mapType === 'ocean') {
+            if (mapType === 'ocean' || !settings.useMapbox) {
               const imgData = await decode(arrBuffer)
               byteArray = new Uint8ClampedArray(imgData.data)
             } else {
@@ -264,6 +267,7 @@ class GetHeightmapWorker {
               }
             }
           }
+          this.worker.postMessage({ type: 'progress' })
         }
       })
       await Promise.all(tilePromises)
@@ -279,7 +283,7 @@ class GetHeightmapWorker {
       this.worker.postMessage({ heightmap: result, heightmapImage: imageBitmap }, [result.buffer, imageBitmap])
     } else {
       this.clearCanvas(ctx)
-      this.worker.postMessage({ heightmap: result, heightmapImage: null }, [result.buffer])
+      this.worker.postMessage({ heightmap: result }, [result.buffer])
     }
   }
 }
