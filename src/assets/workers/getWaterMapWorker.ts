@@ -120,7 +120,7 @@ class GetWaterMapWorker {
     const {
       mapType,
       settings,
-      token,
+      includeOcean,
       isDebug,
       resolution,
     } = message as GenerateMapOption
@@ -134,7 +134,7 @@ class GetWaterMapWorker {
     const extentOffset = mapType === 'cs2play' ? 0.375 : 0
     const { x0, y0, x1, y1, centerX, centerY } = getExtentInWorldCoords(settings.lng, settings.lat, tmpMapSize, extentOffset, pixelsPerTile)
     const side = x1 - x0
-    const zoom = Math.ceil(Math.log2(tmpMapPixels / side)) + parseInt(settings.waterside)
+    const zoom = Math.ceil(Math.log2(tmpMapPixels / side)) + settings.waterside
     const scale = tmpMapPixels / (side * (2 ** zoom))
     const tileX0 = Math.floor(x0 * (2 ** zoom) / pixelsPerTile)
     const tileY0 = Math.floor(y0 * (2 ** zoom) / pixelsPerTile)
@@ -185,18 +185,22 @@ class GetWaterMapWorker {
     this.waterWayCtx.lineJoin = 'round'
 
     // create texture
-    createSlopeTexture(mapType, settings, scale, this.littCtx)
+    const pixelSize = Math.max(settings.littoral / (unitSize * 1000) / scale, 1)
+    createSlopeTexture(mapType, settings, pixelSize, this.littCtx)
     this.littCtxHalfHeight = this.littCtx.canvas.height / 2
-    createRadialTexture(mapType, settings, scale, this.cornerCtx)
+    createRadialTexture(mapType, settings, pixelSize, this.cornerCtx)
     this.cornerCtxHalfWidth = this.cornerCtx.canvas.width / 2
     this.cornerCtxHalfHeight = this.cornerCtx.canvas.height / 2
 
-    const tiles = new Array<Promise<T>>(tileCount * tileCount)
+    const totalTiles = tileCount * tileCount
+    this.worker.postMessage({ type: 'total', number: totalTiles })
+
+    const tiles = new Array<Promise<T>>(totalTiles)
 
     // fetch tiles
     for (let i = 0; i < tileCount; i++) {
       for (let j = 0; j < tileCount; j++) {
-        tiles[j + i * tileCount] = useFetchVectorTiles(zoom, tileX0 + j, tileY0 + i, token!)
+        tiles[j + i * tileCount] = useFetchVectorTiles(zoom, tileX0 + j, tileY0 + i, settings.accessTokenMT!)
       }
     }
     const tileList = await Promise.allSettled(tiles)
@@ -228,41 +232,48 @@ class GetWaterMapWorker {
 
             // draw start
             if (tile.layers.water) {
-              const geo = tile.layers.water.feature(0).asPolygons() as Point[][][]
-              // draw water area & inner lands
-              for (let i = 0; i < geo.length; i++) {
-                const outerPath = geo[i][0]
-                this.waterCtx.fillStyle = '#000000'
-                this.drawPath(outerPath).fill()
+              for (let i = 0; i < tile.layers.water.length; i++) {
+                const feature = tile.layers.water.feature(i)
+                const geo = feature.asPolygons() as Point[][][]
 
-                this.waterCtx.fillStyle = '#FFFFFF'
-                for (let m = 1; m < geo[i].length; m++) {
-                  const innerPath = geo[i][m]
-                  this.drawPath(innerPath).fill()
-                }
-              }
-
-              // draw littoral
-              for (let i = 0; i < geo.length; i++) {
-                for (let m = 0; m < geo[i].length; m++) {
-                  const path = []
-                  for (let k = 0; k < geo[i][m].length; k++) {
-                    const point = new Point(geo[i][m][k].x, geo[i][m][k].y)
-                    path.push(point)
-                    this.drawPoint(point)
+                if (includeOcean || feature.properties.class !== 'ocean') {
+                  // draw water area & inner lands
+                  for (let j = 0; j < geo.length; j++) {
+                    this.waterCtx.fillStyle = '#000000'
+                    const outerPath = geo[j][0]
+                    this.drawPath(outerPath).fill()
+                    this.waterCtx.fillStyle = '#FFFFFF'
+                    for (let m = 1; m < geo[j].length; m++) {
+                      const innerPath = geo[j][m]
+                      this.drawPath(innerPath).fill()
+                    }
                   }
-                  this.drawSlope(path)
+                }
+
+                if (includeOcean && feature.properties.class === 'ocean') {
+                  // draw littoral
+                  for (let j = 0; j < geo.length; j++) {
+                    for (let m = 0; m < geo[j].length; m++) {
+                      const path = []
+                      for (let n = 0; n < geo[j][m].length; n++) {
+                        const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
+                        path.push(point)
+                        this.drawPoint(point)
+                      }
+                      this.drawSlope(path)
+                    }
+                  }
                 }
               }
             }
 
             // draw water way
             if (tile.layers.waterway) {
-              const geo = tile.layers.waterway.feature(0).loadGeometry()
-
-              if (mapType === 'cs2play') {
-                this.waterWayCtx.strokeStyle = '#AAAAAA'
-                this.waterWayCtx.lineWidth = 3 / scale
+              for (let i = 0; i < tile.layers.waterway.length; i++) {
+                const feature = tile.layers.waterway.feature(i)
+                const geo = feature.loadGeometry()
+                this.waterWayCtx.lineWidth = Math.max(settings.streamWidth / (unitSize * 1000) / scale, 1)
+                this.waterWayCtx.strokeStyle = '#000000'
 
                 for (let m = 0; m < geo.length; m++) {
                   this.waterWayCtx.beginPath()
@@ -274,23 +285,12 @@ class GetWaterMapWorker {
                   this.waterWayCtx.stroke()
                 }
               }
-              this.waterWayCtx.strokeStyle = '#000000'
-              this.waterWayCtx.lineWidth = 1 / scale
-
-              for (let m = 0; m < geo.length; m++) {
-                this.waterWayCtx.beginPath()
-                this.waterWayCtx.moveTo(geo[m][0].x, geo[m][0].y)
-
-                for (let n = 1; n < geo[m].length; n++) {
-                  this.waterWayCtx.lineTo(geo[m][n].x, geo[m][n].y)
-                }
-                this.waterWayCtx.stroke()
-              }
             }
             this.waterCtx.restore()
             this.waterSideCtx.restore()
             this.waterWayCtx.restore()
           }
+          this.worker.postMessage({ type: 'progress' })
         }
       })
       await Promise.all(tilePromises)
