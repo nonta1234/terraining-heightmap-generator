@@ -30,8 +30,8 @@ onMounted(() => {
   mapbox.value.map?.on('style.load', (e) => {
     addSource()
     addTerrain()
-    addEffectLayer(e.style.stylesheet.name)
-    addGridLayer(e.style.stylesheet.name)
+    addEffectLayer(e.target.style.stylesheet.name!)
+    addGridLayer(e.target.style.stylesheet.name!)
     if (debugMode.value) {
       mapbox.value.map!.showTileBoundaries = true
     }
