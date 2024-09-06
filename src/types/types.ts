@@ -98,8 +98,9 @@ export const settingsSchema = z.object({
   fixedRatio: z.boolean(),
   type: heightCalcTypeSchema,
   depth: z.number(),
-  waterside: z.string(),
+  waterside: z.number(),
   streamDepth: z.number(),
+  streamWidth: z.number(),
   littoral: z.number(),
   littArray: z.array(z.number()),
   actualSeafloor: z.boolean(),
@@ -128,51 +129,6 @@ export const settingsSchema = z.object({
 })
 
 export type Settings = z.infer<typeof settingsSchema>
-/*
-export interface Settings {
-  lng: number
-  lat: number
-  zoom: number
-  size: number
-  resolution: number
-  worldPartition: boolean
-  wpCells: number
-  angle: number
-  baseLevel: number
-  adjToMin: boolean
-  vertScale: number
-  fixedRatio: boolean
-  type: HeightCalcType
-  depth: number
-  waterside: string
-  streamDepth: number
-  littoral: number
-  littArray: number[]
-  actualSeafloor: boolean
-  smoothing: number
-  smoothRadius: number
-  smthThres: number
-  smthFade: number
-  sharpen: number
-  sharpenRadius: number
-  shrpThres: number
-  shrpFade: number
-  style: string
-  userStyleURL: string
-  gridInfo: MapType
-  elevationScale: number
-  interpolation: Interpolation
-  noise: number
-  noiseGrid: number
-  displayEffectArea: boolean
-  applyEffectAmount: boolean
-  normalizePreview: boolean
-  originalPreview: boolean
-  useMapbox: boolean
-  accessToken: string
-  accessTokenMT: string
-}
-*/
 
 export interface Mapbox {
   map: Map | undefined
@@ -184,7 +140,7 @@ export interface Mapbox {
 export type GenerateMapOption = {
   mapType: MapType
   settings: Settings
-  token?: string
+  includeOcean?: boolean
   isDebug?: boolean
   resolution?: number
 }
