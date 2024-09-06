@@ -81,5 +81,8 @@ const onChangeTabs = (tab: number) => {
   :deep(.input-wrapper) {
     @include common-input;
   }
+  :deep(.select-menu) {
+    @include common-select;
+  }
 }
 </style>

@@ -13,6 +13,16 @@ const mapbox = useMapbox()
       <NumberInput id="zone" v-model="mapbox.settings.littoral" :max="500" :min="0" :step="1" :unit="'m'" />
       <label for="stream-depth">Stream Depth&#8202;:</label>
       <NumberInput id="stream-depth" v-model="mapbox.settings.streamDepth" class="gap" :max="100" :min="0" :step="1" :unit="'m'" />
+      <label for="stream-width">Stream Width&#8202;:</label>
+      <NumberInput id="stream-width" v-model="mapbox.settings.streamWidth" :max="16" :min="1" :step="1" :unit="'m'" />
+      <label for="waterside">Detail&#8202;:</label>
+      <SelectMenu id="'waterside'" v-model="mapbox.settings.waterside" class="gap"
+        :options="[
+          { value: 2, label: 'High' },
+          { value: 1, label: 'Mid' },
+          { value: 0, label: 'Low' },
+        ]"
+      />
       <label for="actual-seafloor" class="as">Use actual seafloor&#8202;:</label>
       <ToggleSwitch v-model="mapbox.settings.actualSeafloor" :name="'actual-seafloor'" class="as-switch" />
     </div>
@@ -25,7 +35,7 @@ const mapbox = useMapbox()
 }
 
 .reset-slope {
-  padding-top: .5rem;
+  margin-top: .5rem;
 }
 
 .controls {
@@ -41,24 +51,25 @@ const mapbox = useMapbox()
   }
 }
 
-@media screen and (min-width: 525px) {
-  :deep(.gap) {
-    width: 5.5rem !important;
-  }
+.as-switch {
+  margin: auto 0 auto auto !important;
 }
 
 @media screen and (min-width: 525px) {
+  .gap {
+    width: 5.5rem !important;
+  }
+
   .as {
     grid-column: 3 / 5;
-    grid-row: 2 / 3;
+    grid-row: 3 / 4;
     z-index: 5;
   }
 
   .as-switch {
     grid-column: 4 / 5;
-    grid-row: 2 / 3;
+    grid-row: 3 / 4;
     z-index: 10;
-    margin: auto 0 auto auto !important;
   }
 }
 </style>

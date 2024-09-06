@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { mapSpec } from '~/utils/const'
+
 const mapbox = useMapbox()
 const esDisabled = computed(() => mapbox.value.settings.gridInfo === 'cs1')
 const maxSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 25.000) * 4)
@@ -26,7 +28,8 @@ watch([ratio, vScale], () => {
   mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: ratio.value })
 })
 
-const onMapTypeChange = () => {
+const onMapTypeChange = async () => {
+  await nextTick()
   if (mapbox.value.settings.gridInfo !== 'cs1' && mapbox.value.settings.accessToken === '') {
     alert(needToken(mapbox.value.settings.gridInfo))
   }
@@ -102,14 +105,17 @@ const onCellsChange = () => {
   <div class="controls">
     <hr>
     <label for="map-type">Map Type&#8202;:</label>
-    <SelectMenu :id="'map-type'" v-model="mapbox.settings.gridInfo" class="gap"
-      :list="[
+    <SelectMenu
+      id="map-type"
+      v-model="mapbox.settings.gridInfo"
+      class="gap"
+      :options="[
         { value: 'cs1', label: 'CS1' },
         { value: 'cs2', label: 'CS2' },
         { value: 'unity', label: 'Unity' },
         { value: 'ue', label: 'UE' },
       ]"
-      @change="onMapTypeChange"
+      @change="onMapTypeChange()"
     />
     <div class="size-label">
       <label for="map-size">Map Size&#8202;:</label>
@@ -117,7 +123,7 @@ const onCellsChange = () => {
     </div>
     <NumberInput id="map-size" v-model="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.001" :unit="'㎞'" @change="onSizeChange" />
     <label for="resolution">Resolution&#8202;:</label>
-    <SelectMenu v-if="!mapbox.settings.worldPartition" :id="'resolution'" v-model="mapbox.settings.resolution" class="tnum gap" :list="mapSpec[mapbox.settings.gridInfo].resolutions" />
+    <SelectMenu v-if="!mapbox.settings.worldPartition" id="resolution" v-model="mapbox.settings.resolution" class="tnum gap" :options="mapSpec[mapbox.settings.gridInfo].resolutions" />
     <NumberInput v-else id="resolution" v-model="mapbox.settings.resolution" class="wp-resolution gap" disabled />
     <label for="elev-scale">Elev. Scale&#8202;:</label>
     <NumberInput id="elev-scale" ref="elevationScale" v-model="mapbox.settings.elevationScale" :max="100000" :min="0" :step="0.001" :disabled="esDisabled" :unit="'m'" class="elev-scale" />
@@ -141,16 +147,16 @@ const onCellsChange = () => {
       <ToggleIcon v-model="fixedScale" :name="'fixedScale'" :disabled="ratioScalelDisabled" :icon="['fas', 'thumbtack']" :icon-class="'fa-sm fa-fw'" />
     </NumberInput>
     <label for="elev-type">Elev. Type&#8202;:</label>
-    <SelectMenu :id="'elev-type'" v-model="mapbox.settings.type" class="gap"
-      :list="[
+    <SelectMenu id="'elev-type'" v-model="mapbox.settings.type" class="gap"
+      :options="[
         { value: 'manual', label: 'Manual' },
         { value: 'limit', label: 'Limit' },
         { value: 'maximize', label: 'Maximize' },
       ]"
     />
     <label for="interpolation">Interpolation&#8202;:</label>
-    <SelectMenu :id="'interpolation'" v-model="mapbox.settings.interpolation"
-      :list="[
+    <SelectMenu id="'interpolation'" v-model="mapbox.settings.interpolation"
+      :options="[
         { value: 'bilinear', label: 'Bilinear' },
         { value: 'bicubic', label: 'Bicubic' },
       ]"
