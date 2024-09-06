@@ -8,7 +8,6 @@ import type { OutputOptions } from 'rollup'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
 const mapboxToken = process.env.NODE_ENV !== 'production' ? process.env.MAPBOX_TOKEN : process.env.PUBLIC_MAPBOX_TOKEN
-const maptilerToken = process.env.NODE_ENV !== 'production' ? process.env.MAPTILER_TOKEN : process.env.PUBLIC_MAPTILER_TOKEN
 
 export default defineNuxtConfig({
   devtools: {
@@ -28,7 +27,6 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       mapboxToken,
-      maptilerToken,
       gtag: '',
     },
   },
