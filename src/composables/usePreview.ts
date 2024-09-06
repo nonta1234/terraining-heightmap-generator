@@ -28,7 +28,7 @@ export const usePreview = () => {
     previewData.value.controller = new Heightmap()
   }
 
-  const setMapData = (previewData: Ref<T>) => (heightmap: Float32Array, waterMap: Float32Array, waterWayMap: Float32Array) => {
+  const setMapData = (previewData: Ref<T>) => (heightmap: Float32Array, oceanMap: Float32Array, waterMap: Float32Array, waterWayMap: Float32Array) => {
     if (!(heightmap.length === waterMap.length && waterMap.length === waterWayMap.length)) {
       throw new Error('All data must be the same size.')
     }
@@ -45,10 +45,17 @@ export const usePreview = () => {
 
     const oceanMapData = new Float32Array(
       previewData.value.instance.memory.buffer,
+      previewData.value.controller?.pointer_to_oceanmap,
+      previewData.value.length,
+    )
+    oceanMapData.set(oceanMap)
+
+    const waterMapData = new Float32Array(
+      previewData.value.instance.memory.buffer,
       previewData.value.controller?.pointer_to_watermap,
       previewData.value.length,
     )
-    oceanMapData.set(waterMap)
+    waterMapData.set(waterMap)
 
     const waterWayMapData = new Float32Array(
       previewData.value.instance.memory.buffer,
@@ -73,7 +80,7 @@ export const usePreview = () => {
       )
       const { settings } = useMapbox().value
       if (settings.actualSeafloor) {
-        previewData.value.controller?.combine_heightmaps(settings.streamDepth)
+        previewData.value.controller?.combine_heightmaps(settings.depth, settings.streamDepth)
       } else {
         previewData.value.controller?.combine_heightmaps_with_littoral(settings.depth, settings.streamDepth)
       }
