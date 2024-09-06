@@ -11,12 +11,12 @@ const device = useDevice()
 const mapbox = useMapbox()
 const buttonEl = ref<HTMLInputElement>()
 const selectEl = ref<HTMLSelectElement>()
-const isValid = ref(isTokenValid())
+const isValid = ref(isMbTokenValid())
 const hasUserStyle = computed(() => mapbox.value.settings.userStyleURL !== '')
 const accessToken = computed(() => mapbox.value.settings.accessToken)
 
 watch(accessToken, () => {
-  isValid.value = isTokenValid()
+  isValid.value = isMbTokenValid()
 })
 
 const resetSelect = () => {
