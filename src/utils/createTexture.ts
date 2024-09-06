@@ -18,19 +18,12 @@ function getEndPos(stop: number) {
  * Create a texture for the littoral slope.
  * @param mapType The reference mapType is different from the mapType in settings.
  * @param settings Mapbox Settings
- * @param scale Map scale
+ * @param pixelSize Pixel size of littoral
  * @param canvas OffscreenCanvas for internal use
  * @returns PIXI.Texture
  */
-export const createSlopeTexture = (mapType: MapType, settings: Settings, scale: number, ctx: OffscreenCanvasRenderingContext2D) => {
-  let unit = 16
-  if (mapType === 'cs2') {
-    unit = 14
-  } else if (mapType === 'cs2play') {
-    unit = 3.5
-  }
-  const size = Math.max(settings.littoral / unit / scale, 1)
-  const pixels = Math.ceil(size)
+export const createSlopeTexture = (mapType: MapType, settings: Settings, pixelSize: number, ctx: OffscreenCanvasRenderingContext2D) => {
+  const pixels = Math.ceil(pixelSize)
 
   ctx.canvas.width = 1
   ctx.canvas.height = pixels * 2
@@ -38,8 +31,8 @@ export const createSlopeTexture = (mapType: MapType, settings: Settings, scale: 
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
   const stopPosition: number[] = []
-  const offset = pixels - size
-  const amount = size / 10
+  const offset = pixels - pixelSize
+  const amount = pixelSize / 10
 
   stopPosition.push(offset - amount)
   stopPosition.push(offset)
@@ -79,19 +72,12 @@ export const createSlopeTexture = (mapType: MapType, settings: Settings, scale: 
  * Create a texture for the littoral slope in the corner.
  * @param mapType The reference mapType is different from the mapType in settings.
  * @param settings Mapbox Settings
- * @param scale Map scale
+ * @param pixelSize Pixel size of littoral
  * @param canvas OffscreenCanvas for internal use
  * @returns PIXI.Texture
  */
-export const createRadialTexture = (mapType: MapType, settings: Settings, scale: number, ctx: OffscreenCanvasRenderingContext2D) => {
-  let unit = 16
-  if (mapType === 'cs2') {
-    unit = 14
-  } else if (mapType === 'cs2play') {
-    unit = 3.5
-  }
-  const size = Math.max(settings.littoral / unit / scale, 1)
-  const pixels = Math.ceil(size)
+export const createRadialTexture = (mapType: MapType, settings: Settings, pixelSize: number, ctx: OffscreenCanvasRenderingContext2D) => {
+  const pixels = Math.ceil(pixelSize)
 
   ctx.canvas.width = pixels * 2
   ctx.canvas.height = pixels * 2
@@ -100,8 +86,8 @@ export const createRadialTexture = (mapType: MapType, settings: Settings, scale:
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
   const stopPosition: number[] = []
-  const offset = pixels - size
-  const amount = size / 10
+  const offset = pixels - pixelSize
+  const amount = pixelSize / 10
 
   stopPosition.push(offset - amount)
   stopPosition.push(offset)
