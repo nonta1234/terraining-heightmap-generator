@@ -1,7 +1,9 @@
 import { $fetch, type FetchError } from 'ofetch'
 
-export const useFetchTerrainTiles = async (zoom: number, x: number, y: number, token: string) => {
-  const url = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${zoom}/${x}/${y}@2x.pngraw?access_token=${token}`
+export const useFetchTerrainTiles = async (zoom: number, x: number, y: number, token: string, fromMapbox: boolean) => {
+  const url = fromMapbox
+    ? `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${zoom}/${x}/${y}@2x.pngraw?access_token=${token}`
+    : `https://api.maptiler.com/tiles/terrain-rgb-v2/${zoom}/${x}/${y}.webp?key=${token}`
   let data: Blob | undefined
   let error: FetchError | undefined
   try {
@@ -13,7 +15,7 @@ export const useFetchTerrainTiles = async (zoom: number, x: number, y: number, t
 }
 
 export const useFetchVectorTiles = async (zoom: number, x: number, y: number, token: string) => {
-  const url = `https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/${zoom}/${x}/${y}.vector.pbf?access_token=${token}`
+  const url = `https://api.maptiler.com/tiles/v3/${zoom}/${x}/${y}.pbf?key=${token}`
   let data: Blob | undefined
   let error: FetchError | undefined
   try {

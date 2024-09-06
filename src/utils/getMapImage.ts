@@ -42,7 +42,7 @@ const getCustomMapImageData = (settings: Settings, styleUrl: string, zoom: numbe
 export const getCustomMapImage = async (style: string, zoom: number, offset?: number, maxImageSize?: number, imageSize?: number) => {
   try {
     const { settings } = useMapbox().value
-    if (!isTokenValid()) {
+    if (!isMbTokenValid()) {
       throw new Error('Invaid access token')
     }
     const result = await getCustomMapImageData(settings, style, zoom, offset, maxImageSize, imageSize)
