@@ -1,5 +1,3 @@
-import type { Settings, MapType } from '~/types/types'
-
 function catmull(t: number, p0: number, p1: number, p2: number, p3: number) {
   return 0.5 * ((2 * p1) + (-p0 + p2) * t
     + (2 * p0 - 5 * p1 + 4 * p2 - p3) * (t ** 2)
@@ -15,14 +13,12 @@ function getEndPos(stop: number) {
 }
 
 /**
- * Create a texture for the littoral slope.
- * @param mapType The reference mapType is different from the mapType in settings.
- * @param settings Mapbox Settings
- * @param pixelSize Pixel size of littoral
- * @param canvas OffscreenCanvas for internal use
- * @returns PIXI.Texture
+ * Create a texture for the waterside slope.
+ * @param slope Number array of slopes as source
+ * @param pixelSize Slope pixel size
+ * @param ctx Context for internal use
  */
-export const createSlopeTexture = (mapType: MapType, settings: Settings, pixelSize: number, ctx: OffscreenCanvasRenderingContext2D) => {
+export const createSlopeTexture = (slope: number[], pixelSize: number, ctx: OffscreenCanvasRenderingContext2D) => {
   const pixels = Math.ceil(pixelSize)
 
   ctx.canvas.width = 1
@@ -37,7 +33,7 @@ export const createSlopeTexture = (mapType: MapType, settings: Settings, pixelSi
   stopPosition.push(offset - amount)
   stopPosition.push(offset)
 
-  for (let i = 0; i < settings.littArray.length; i++) {
+  for (let i = 0; i < slope.length; i++) {
     stopPosition.push((i + 1) * amount + offset)
   }
 
@@ -45,11 +41,11 @@ export const createSlopeTexture = (mapType: MapType, settings: Settings, pixelSi
   stopPosition.push(pixels + amount)
 
   const stopValue = [
-    settings.littArray[0],
+    slope[0],
     0,
-    ...settings.littArray,
+    ...slope,
     1,
-    settings.littArray[settings.littArray.length - 1],
+    slope[slope.length - 1],
   ]
 
   for (let i = 1; i < stopPosition.length - 2; i++) {
@@ -69,14 +65,12 @@ export const createSlopeTexture = (mapType: MapType, settings: Settings, pixelSi
 }
 
 /**
- * Create a texture for the littoral slope in the corner.
- * @param mapType The reference mapType is different from the mapType in settings.
- * @param settings Mapbox Settings
- * @param pixelSize Pixel size of littoral
- * @param canvas OffscreenCanvas for internal use
- * @returns PIXI.Texture
+ * Create a corner texture for the waterside slope.
+ * @param slope Number array of slopes as source
+ * @param pixelSize Slope pixel size
+ * @param ctx Context for internal use
  */
-export const createRadialTexture = (mapType: MapType, settings: Settings, pixelSize: number, ctx: OffscreenCanvasRenderingContext2D) => {
+export const createRadialTexture = (slope: number[], pixelSize: number, ctx: OffscreenCanvasRenderingContext2D) => {
   const pixels = Math.ceil(pixelSize)
 
   ctx.canvas.width = pixels * 2
@@ -92,7 +86,7 @@ export const createRadialTexture = (mapType: MapType, settings: Settings, pixelS
   stopPosition.push(offset - amount)
   stopPosition.push(offset)
 
-  for (let i = 0; i < settings.littArray.length; i++) {
+  for (let i = 0; i < slope.length; i++) {
     stopPosition.push((i + 1) * amount + offset)
   }
 
@@ -100,11 +94,11 @@ export const createRadialTexture = (mapType: MapType, settings: Settings, pixelS
   stopPosition.push(pixels + amount)
 
   const stopValue = [
-    settings.littArray[0],
+    slope[0],
     0,
-    ...settings.littArray,
+    ...slope,
     1,
-    settings.littArray[settings.littArray.length - 1],
+    slope[slope.length - 1],
   ]
 
   for (let i = 1; i < stopPosition.length - 2; i++) {
