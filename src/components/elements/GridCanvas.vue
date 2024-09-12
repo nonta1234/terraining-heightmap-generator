@@ -108,7 +108,6 @@ const mouseDown = (e: MouseEvent) => {
 }
 
 const touchStart = (e: TouchEvent) => {
-  e.preventDefault()
   const toucheX = e.changedTouches[0].clientX - oCanvas.value!.getBoundingClientRect().left
   const toucheY = e.changedTouches[0].clientY - oCanvas.value!.getBoundingClientRect().top
 
@@ -118,7 +117,7 @@ const touchStart = (e: TouchEvent) => {
 
     if (distance <= 13) {
       selectedPoint = i
-      document.addEventListener('touchmove', touchMove)
+      document.addEventListener('touchmove', touchMove, { passive: false })
       document.addEventListener('touchend', touchEnd, { once: true })
       break
     }
@@ -159,8 +158,7 @@ const mouseUp = (e: MouseEvent) => {
   selectedPoint = -1
 }
 
-const touchEnd = (e: TouchEvent) => {
-  e.preventDefault()
+const touchEnd = () => {
   document.removeEventListener('touchmove', touchMove)
   selectedPoint = -1
 }
@@ -226,6 +224,10 @@ useListen('panel:tabChange', (value) => {
   }
 })
 
+const prevention = (e: Event) => {
+  e.preventDefault()
+}
+
 onMounted(() => {
   window.addEventListener('resize', resize)
   gCtx.value = gCanvas.value!.getContext('2d') as CanvasRenderingContext2D
@@ -246,7 +248,7 @@ onUnmounted(() => {
 <template>
   <div ref="container" class="grid-canvas-container">
     <canvas id="grid-canvas" ref="gCanvas"></canvas>
-    <canvas id="obj-canvas" ref="oCanvas" @mousedown="mouseDown" @touchstart="touchStart"></canvas>
+    <canvas id="obj-canvas" ref="oCanvas" @mousedown="mouseDown" @touchstart="touchStart" @contextmenu="prevention"></canvas>
   </div>
 </template>
 
