@@ -1,14 +1,39 @@
 import type { FetchError } from 'ofetch'
+import * as turf from '@turf/turf'
+import booleanIntersects from '@turf/boolean-intersects'
 import { VectorTile, Point } from 'mapbox-vector-tile'
 import { getExtentInWorldCoords } from '~/utils/getExtent'
 import { createSlopeTexture, createRadialTexture } from '~/utils/createTexture'
 import { useFetchVectorTiles } from '~/composables/useFetchTiles'
 import { mapSpec } from '~/utils/const'
 import type { GenerateMapOption } from '~/types/types'
+import RBush from 'rbush'
+
+/**
+ * The ocean and rivers/lakes are rendered with different slopes, but artifacts
+ * appear at river mouths and connection points. To avoid these artifacts,
+ * any polygon lines intersecting waterways will be considered connection points,
+ * such as river mouths, and no slopes will be rendered at those locations.
+ *
+ * However, since there is only one waterway, there is only one segment where
+ * rendering can be avoided. The segments on both sides cannot be determined,
+ * so they will need to be edited.
+ */
+
+/** */
 
 type T = {
   data: Blob | undefined
   error: FetchError<any> | undefined
+}
+
+interface BBoxItem {
+  minX: number
+  minY: number
+  maxX: number
+  maxY: number
+  geom: turf.Geometry
+  id: string
 }
 
 const isEqual = (a: Point, b: Point) => {
@@ -36,16 +61,47 @@ function decodeData(arr: Uint8ClampedArray) {
   return elevs
 }
 
+function getWaterwayTree(tile: VectorTile) {
+  const tree = new RBush<BBoxItem>()
+  const waterways: BBoxItem[] = []
+
+  if (tile.layers.waterway) {
+    let index = 0
+    for (let i = 0; i < tile.layers.waterway.length; i++) {
+      const feature = tile.layers.waterway.feature(i)
+      const geo = feature.loadGeometry()
+
+      for (let m = 0; m < geo.length; m++) {
+        for (let n = 0; n < geo[m].length - 1; n++) {
+          const line = turf.lineString([[geo[m][n].x, geo[m][n].y], [geo[m][n + 1].x, geo[m][n + 1].y]])
+          const bbox = turf.bbox(line)
+          const item: BBoxItem = {
+            minX: bbox[0],
+            minY: bbox[1],
+            maxX: bbox[2],
+            maxY: bbox[3],
+            geom: line.geometry,
+            id: `waterway-${index}`,
+          }
+          waterways.push(item)
+          index++
+        }
+      }
+    }
+    tree.load(waterways)
+  }
+  return tree
+}
+
 class GetWaterMapWorker {
   private worker: Worker
   private waterCtx: OffscreenCanvasRenderingContext2D
   private waterSideCtx: OffscreenCanvasRenderingContext2D
   private waterWayCtx: OffscreenCanvasRenderingContext2D
   private littCtx: OffscreenCanvasRenderingContext2D
-  private cornerCtx: OffscreenCanvasRenderingContext2D
-  private littCtxHalfHeight = 0
-  private cornerCtxHalfWidth = 0
-  private cornerCtxHalfHeight = 0
+  private littCornerCtx: OffscreenCanvasRenderingContext2D
+  private ripaCtx: OffscreenCanvasRenderingContext2D
+  private ripaCornerCtx: OffscreenCanvasRenderingContext2D
 
   constructor() {
     this.worker = self as any
@@ -53,7 +109,9 @@ class GetWaterMapWorker {
     this.waterSideCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
     this.waterWayCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
     this.littCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
-    this.cornerCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+    this.littCornerCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+    this.ripaCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+    this.ripaCornerCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
     self.onmessage = this.handleMessage.bind(this)
   }
 
@@ -63,54 +121,77 @@ class GetWaterMapWorker {
     ctx.canvas.height = 0
   }
 
-  private drawPoint = (point: Point) => {
+  private drawPoint = (src: OffscreenCanvasRenderingContext2D, dst: OffscreenCanvasRenderingContext2D, point: Point) => {
     if (isInside(point)) {
-      this.waterSideCtx.drawImage(
-        this.cornerCtx.canvas,
-        point.x - this.cornerCtxHalfWidth,
-        point.y - this.cornerCtxHalfHeight,
-        this.cornerCtx.canvas.width,
-        this.cornerCtx.canvas.height,
+      dst.drawImage(
+        src.canvas,
+        point.x - src.canvas.width / 2,
+        point.y - src.canvas.height / 2,
+        src.canvas.width,
+        src.canvas.height,
       )
     }
   }
 
-  private drawPath = (path: Point[]) => {
+  private drawPath = (ctx: OffscreenCanvasRenderingContext2D, path: Point[]) => {
     if (isEqual(path[0], path.at(-1)!)) {
       path.pop()
     }
-    this.waterCtx.beginPath()
-    this.waterCtx.moveTo(path[0].x, path[0].y)
+    ctx.beginPath()
+    ctx.moveTo(path[0].x, path[0].y)
     for (let i = 1; i < path.length; i++) {
-      this.waterCtx.lineTo(path[i].x, path[i].y)
+      ctx.lineTo(path[i].x, path[i].y)
     }
-    this.waterCtx.closePath()
-    return this.waterCtx
+    ctx.closePath()
+    return ctx
   }
 
-  private drawSlope = (points: Point[]) => {
+  private drawSlope = (src: OffscreenCanvasRenderingContext2D, dst: OffscreenCanvasRenderingContext2D, points: Point[], tree: RBush<BBoxItem>) => {
     if (!isEqual(points[0], points.at(-1)!)) {
       points.push(points[0])
     }
     for (let i = 0; i < points.length - 1; i++) {
       if (isEitherInside(points[i], points[i + 1])) {
-        const vecX = points[i + 1].x - points[i].x
-        const vecY = points[i + 1].y - points[i].y
-        const length = Math.sqrt(vecX * vecX + vecY * vecY)
-        const theta = Math.atan2(vecY, vecX)
-        const dx = points[i].x + vecX / 2
-        const dy = points[i].y + vecY / 2
-        this.waterSideCtx.save()
-        this.waterSideCtx.translate(dx, dy)
-        this.waterSideCtx.rotate(theta)
-        this.waterSideCtx.drawImage(
-          this.littCtx.canvas,
-          -length / 2,
-          -this.littCtxHalfHeight,
-          length,
-          this.littCtx.canvas.height,
-        )
-        this.waterSideCtx.restore()
+        const lineSegment = turf.lineString([[points[i].x, points[i].y], [points[i + 1].x, points[i + 1].y]])
+        const bbox = turf.bbox(lineSegment)
+
+        // narrow down waterways that may intersect by spatial index
+        const potentialWaterways = tree.search({
+          minX: bbox[0],
+          minY: bbox[1],
+          maxX: bbox[2],
+          maxY: bbox[3],
+        })
+
+        // perform intersection judgment for each line segment
+        let shouldSkip = false
+        for (const waterway of potentialWaterways) {
+          if (booleanIntersects(lineSegment, waterway.geom)) {
+            shouldSkip = true
+            break
+          }
+        }
+
+        // if there is no intersecting waterway, process the drawing
+        if (!shouldSkip) {
+          const vecX = points[i + 1].x - points[i].x
+          const vecY = points[i + 1].y - points[i].y
+          const length = Math.sqrt(vecX * vecX + vecY * vecY)
+          const theta = Math.atan2(vecY, vecX)
+          const dx = points[i].x + vecX / 2
+          const dy = points[i].y + vecY / 2
+          dst.save()
+          dst.translate(dx, dy)
+          dst.rotate(theta)
+          dst.drawImage(
+            src.canvas,
+            -length / 2,
+            -src.canvas.height / 2,
+            length,
+            src.canvas.height,
+          )
+          dst.restore()
+        }
       }
     }
   }
@@ -185,12 +266,12 @@ class GetWaterMapWorker {
     this.waterWayCtx.lineJoin = 'round'
 
     // create texture
-    const pixelSize = Math.max(settings.littoral / (unitSize * 1000) / scale, 1)
-    createSlopeTexture(mapType, settings, pixelSize, this.littCtx)
-    this.littCtxHalfHeight = this.littCtx.canvas.height / 2
-    createRadialTexture(mapType, settings, pixelSize, this.cornerCtx)
-    this.cornerCtxHalfWidth = this.cornerCtx.canvas.width / 2
-    this.cornerCtxHalfHeight = this.cornerCtx.canvas.height / 2
+    const littPixelSize = Math.max(settings.littoral / (unitSize * 1000) / scale, 1)
+    createSlopeTexture(settings.littArray, littPixelSize, this.littCtx)
+    createRadialTexture(settings.littArray, littPixelSize, this.littCornerCtx)
+    const ripaPixelSize = Math.max(settings.riparian / (unitSize * 1000) / scale, 1)
+    createSlopeTexture(settings.littArray, ripaPixelSize, this.ripaCtx)
+    createRadialTexture(settings.littArray, ripaPixelSize, this.ripaCornerCtx)
 
     const totalTiles = tileCount * tileCount
     this.worker.postMessage({ type: 'total', number: totalTiles })
@@ -230,27 +311,29 @@ class GetWaterMapWorker {
             this.waterWayCtx.rect(-2, -2, pixelsPerTile + 4, pixelsPerTile + 4)
             this.waterWayCtx.clip()
 
+            const waterways = getWaterwayTree(tile)
+
             // draw start
             if (tile.layers.water) {
               for (let i = 0; i < tile.layers.water.length; i++) {
                 const feature = tile.layers.water.feature(i)
                 const geo = feature.asPolygons() as Point[][][]
 
-                if (includeOcean || feature.properties.class !== 'ocean') {
+                if (feature.properties.class !== 'ocean' || includeOcean) {
                   // draw water area & inner lands
                   for (let j = 0; j < geo.length; j++) {
                     this.waterCtx.fillStyle = '#000000'
                     const outerPath = geo[j][0]
-                    this.drawPath(outerPath).fill()
+                    this.drawPath(this.waterCtx, outerPath).fill()
                     this.waterCtx.fillStyle = '#FFFFFF'
                     for (let m = 1; m < geo[j].length; m++) {
                       const innerPath = geo[j][m]
-                      this.drawPath(innerPath).fill()
+                      this.drawPath(this.waterCtx, innerPath).fill()
                     }
                   }
                 }
 
-                if (includeOcean && feature.properties.class === 'ocean') {
+                if (feature.properties.class === 'ocean' && includeOcean) {
                   // draw littoral
                   for (let j = 0; j < geo.length; j++) {
                     for (let m = 0; m < geo[j].length; m++) {
@@ -258,9 +341,22 @@ class GetWaterMapWorker {
                       for (let n = 0; n < geo[j][m].length; n++) {
                         const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
                         path.push(point)
-                        this.drawPoint(point)
+                        this.drawPoint(this.littCornerCtx, this.waterSideCtx, point)
                       }
-                      this.drawSlope(path)
+                      this.drawSlope(this.littCtx, this.waterSideCtx, path, waterways)
+                    }
+                  }
+                } else {
+                  // draw riparian
+                  for (let j = 0; j < geo.length; j++) {
+                    for (let m = 0; m < geo[j].length; m++) {
+                      const path = []
+                      for (let n = 0; n < geo[j][m].length; n++) {
+                        const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
+                        path.push(point)
+                        this.drawPoint(this.ripaCornerCtx, this.waterSideCtx, point)
+                      }
+                      this.drawSlope(this.ripaCtx, this.waterSideCtx, path, waterways)
                     }
                   }
                 }
@@ -269,11 +365,13 @@ class GetWaterMapWorker {
 
             // draw water way
             if (tile.layers.waterway) {
+              this.waterWayCtx.filter = 'blur(1px)'
+              this.waterWayCtx.lineWidth = Math.max(settings.streamWidth / (unitSize * 1000) / scale, 1)
+              this.waterWayCtx.strokeStyle = '#000000'
+
               for (let i = 0; i < tile.layers.waterway.length; i++) {
                 const feature = tile.layers.waterway.feature(i)
                 const geo = feature.loadGeometry()
-                this.waterWayCtx.lineWidth = Math.max(settings.streamWidth / (unitSize * 1000) / scale, 1)
-                this.waterWayCtx.strokeStyle = '#000000'
 
                 for (let m = 0; m < geo.length; m++) {
                   this.waterWayCtx.beginPath()
@@ -313,7 +411,7 @@ class GetWaterMapWorker {
       const waterMapImage = resultWaterCtx.canvas.transferToImageBitmap()
       const waterWayMapImage = this.waterWayCtx.canvas.transferToImageBitmap()
       const littImage = this.littCtx.canvas.transferToImageBitmap()
-      const cornerImage = this.cornerCtx.canvas.transferToImageBitmap()
+      const cornerImage = this.littCornerCtx.canvas.transferToImageBitmap()
       this.worker.postMessage({
         waterMap,
         waterWayMap,
@@ -336,7 +434,7 @@ class GetWaterMapWorker {
       this.clearCanvas(this.waterSideCtx)
       this.clearCanvas(this.waterWayCtx)
       this.clearCanvas(this.littCtx)
-      this.clearCanvas(this.cornerCtx)
+      this.clearCanvas(this.littCornerCtx)
       this.worker.postMessage({
         waterMap,
         waterWayMap,
