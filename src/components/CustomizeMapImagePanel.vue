@@ -128,15 +128,15 @@ const download = async () => {
   }
   dlButton.value?.classList.add('downloading')
   const valueStr = style.value === 'user'
-    ? mapbox.value.settings.userStyleURL.replace('mapbox://styles/', '')
+    ? mapbox.value.settings.userStyleURL?.replace('mapbox://styles/', '')
     : style.value
   try {
     if (flag.value === 1 || flag.value === 2) {
       update()
     }
     const png = flag.value === 3
-      ? await getMapImage(valueStr, offset.value)
-      : await getCustomMapImage(valueStr, zoom.value, offset.value, 16384, size.value)
+      ? await getMapImage(valueStr!, offset.value)
+      : await getCustomMapImage(valueStr!, zoom.value, offset.value, 16384, size.value)
     downloadData(`map-image_${valueStr}_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png)
     saveSettings(mapbox.value.settings)
   } catch (e) {
@@ -156,7 +156,7 @@ const download = async () => {
         <label for="style">Style&#8202;:</label>
         <div>
           <select id="style" v-model="style">
-            <option v-for="item in styleList" :key="item.value" :value="item.value">{{ item.text }}</option>
+            <option v-for="item in styleList" :key="item.value" :value="item.value">{{ item.label }}</option>
             <option v-if="hasUserStyle" value="user">User Style</option>
           </select>
         </div>

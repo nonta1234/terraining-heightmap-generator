@@ -244,7 +244,7 @@ onMounted(() => {
 
   const addStyleButton = () => {
     mapbox.value.map?.addControl(
-      new StyleButton(styleList), isMobile ? 'top-right' : 'bottom-right',
+      new StyleButton(), isMobile ? 'top-right' : 'bottom-right',
     )
   }
 
@@ -478,11 +478,19 @@ onMounted(() => {
   bottom: 0;
   width: 100%;
 }
+
 :deep(.mapboxgl-ctrl-group) {
   background: transparent;
   box-shadow: none;
   border-radius: 0;
-  button {
+
+  .select-menu {
+    width: 41px;
+    height: 41px;
+    margin-bottom: 10px;
+  }
+
+  button, .native-icon {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -498,55 +506,54 @@ onMounted(() => {
     margin-bottom: 10px;
     border: solid 1px $textColor;
     @include grass-button;
+
     &:hover {
-      color: aquamarine;
       border: solid 1px aquamarine;
       @include shadow-4
     }
+
     svg {
       margin: auto;
     }
   }
-  .style-button + select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    position: absolute;
-    top: 0;
-    right: 0;
-    height: 41px;
-    width: 41px;
-    opacity: 0;
-    padding: 8px;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    option {
-      background: $optionTagColor;
-      color: $textColor;
-      font-size: 1rem;
-      &:first-child {
-        color: $textDisabled;
-      }
-    }
-  }
-  .style-button {
-    &:has(+ select:hover) {
-      color: aquamarine;
+
+  .select-menu-box:focus-within {
+    .native-icon {
       border: solid 1px aquamarine;
       @include shadow-4
     }
   }
+
+  .select-menu-icon {
+    color: $textColor !important;
+
+    &:hover, &:active, &:focus {
+      color: $textColor !important;
+    }
+
+    svg {
+      margin: 10px auto auto;
+    }
+  }
 }
+
+:deep(.mapboxgl-ctrl-top-right) {
+  margin-top: 10px;
+}
+
 :deep(.mapboxgl-ctrl) {
+  margin-top: 0;
   margin-bottom: 0;
 }
+
 :deep(.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon) {
   background-image: url("../assets/svg/zoomin.svg");
 }
+
 :deep(.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon) {
   background-image: url("../assets/svg/zoomout.svg");
 }
+
 :deep(.mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon) {
   background-image: url("../assets/svg/compass.svg");
 }

@@ -11,6 +11,11 @@ const visMobile = ref(false)
 
 const visibillity = computed(() => isDesktopOrTablet ? visDesktop.value : visMobile.value)
 
+const lngLabel = computed(() => isDesktopOrTablet ? 'Longitude\u200A:' : 'Lng\u200A:')
+const latLabel = computed(() => isDesktopOrTablet ? 'Latitude\u200A:' : 'Lat\u200A:')
+const zoomLabel = computed(() => isDesktopOrTablet ? 'Zoom Lv\u200A:' : 'Zoom\u200A:')
+const angleLabel = computed(() => isDesktopOrTablet ? 'Grid Angle\u200A:' : 'Angle\u200A:')
+
 const changeVisibillity = () => {
   if (isDesktopOrTablet) {
     visDesktop.value = !visDesktop.value
@@ -68,15 +73,15 @@ onMounted(() => {
         </button>
       </div>
       <div class="item coordinates">
-        <label class="label">Lng&#8202;:</label>
+        <label class="label">{{ lngLabel }}</label>
         <NumberInput v-model="mapbox.settings.lng" class="input" :max="180" :min="-180" :step="0.00001" @change="onLngLatChange" />
-        <label class="label">Lat&#8202;:</label>
+        <label class="label">{{ latLabel }}</label>
         <NumberInput v-model="mapbox.settings.lat" :max="85" :min="-85" :step="0.00001" @change="onLngLatChange" />
       </div>
       <div class="item info">
-        <label class="label">Zoom&#8202;:</label>
+        <label class="label">{{ zoomLabel }}</label>
         <NumberInput v-model="mapbox.settings.zoom" :max="22" :min="0" :step="0.01" @change="onZoomChange" />
-        <label class="label">Angle&#8202;:</label>
+        <label class="label">{{ angleLabel }}</label>
         <NumberInput v-model="mapbox.settings.angle" :max="180" :min="-180" :step="0.01" @change="onAngleChange" />
       </div>
     </section>

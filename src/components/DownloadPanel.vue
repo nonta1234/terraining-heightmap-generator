@@ -1,13 +1,29 @@
 <script setup lang="ts">
 import init, { encode_png } from '~~/png_lib/pkg'
+import type { OptionItem } from '~/types/types'
 import { styleList } from '~/utils/const'
+
 const mapbox = useMapbox()
+const { debugMode } = useDebug()
 const rawButton = ref<HTMLElement>()
 const pngButton = ref<HTMLElement>()
 const imgButton = ref()
 const osmButton = ref<HTMLElement>()
 
-const { debugMode } = useDebug()
+const mapStyleValue = ref('')
+
+const mapStyleList = computed(() => {
+  const options: OptionItem[] = Object.values(styleList).map(({ value, label }) => ({ value, label }))
+  options.unshift({ type: 'header', label: '--Select Style--' })
+  if (mapbox.value.settings.userStyleURL) {
+    options.push({ value: mapbox.value.settings.userStyleURL, label: 'User Style' })
+  }
+  if (mapbox.value.settings.accessToken) {
+    options.push({ type: 'divide' })
+    options.push({ value: 'customize', label: 'Customize Map' })
+  }
+  return options
+})
 
 const getRawHeightmap = async () => {
   rawButton.value?.classList.add('downloading')
@@ -79,8 +95,7 @@ const getPngHeightmap = async () => {
   }
 }
 
-const getMapImageData = async (e: Event) => {
-  const value = (e.target as HTMLSelectElement).value
+const getMapImageData = async (value: string) => {
   if (value === 'customize') {
     useEvent('map:miModal')
     return
@@ -138,29 +153,38 @@ const debug = () => {
 <template>
   <div id="download-panel">
     <ul>
-      <li v-if="debugMode"><button ref="debugButton" title="debug" class="debug" @click="debug">
+      <li v-if="debugMode">
+        <button ref="debugButton" title="debug" class="debug btn" @click="debug">
           <DebugIcon />
         </button></li>
-      <li><button ref="rawButton" title="Download RAW height map" class="dl-icon" @click="getRawHeightmap">
+      <li>
+        <button ref="rawButton" title="Download RAW height map" class="dl-icon btn" @click="getRawHeightmap">
           <RawIcon />
         </button></li>
-      <li><button ref="pngButton" title="Download PNG height map" class="dl-icon" @click="getPngHeightmap">
+      <li>
+        <button ref="pngButton" title="Download PNG height map" class="dl-icon btn" @click="getPngHeightmap">
           <PngIcon />
         </button></li>
       <li>
-        <SelectButton ref="imgButton" :list="styleList" title="Download map image" @change="getMapImageData">
-          <ImgIcon />
-        </SelectButton>
+        <SelectMenu ref="imgButton" v-model="mapStyleValue" class="dl-image" :always-reset="true" :options="mapStyleList" :gap="13" title="Download map image" @change="getMapImageData">
+          <template #icon>
+            <ImgIcon />
+          </template>
+        </SelectMenu>
       </li>
-      <li><button ref="osmButton" title="Download OSM data" class="osm" @click="getOsmData">
+      <li>
+        <button ref="osmButton" title="Download OSM data" class="osm btn" @click="getOsmData">
           <OsmLogo />
         </button></li>
-      <li><button
-        title="https://github.com/nonta1234/terraining-heightmap-generator"
-        @click="toRepository"
-      >
-        <font-awesome-icon :icon="['far', 'circle-question']" class="fa-fw fa-2xl" />
-      </button></li>
+      <li>
+        <button
+          title="https://github.com/nonta1234/terraining-heightmap-generator"
+          class="btn"
+          @click="toRepository"
+        >
+          <font-awesome-icon :icon="['far', 'circle-question']" class="fa-fw fa-2xl" />
+        </button>
+      </li>
     </ul>
   </div>
 </template>
@@ -228,11 +252,20 @@ const debug = () => {
   }
 }
 
-.dl-icon {
+.dl-image {
+  width: 40px;
+  height: 40px;
+}
+
+.dl-icon, :deep(.select-menu-icon) {
   svg {
     width: 28px;
     height: 30px;
   }
+}
+
+:deep(.select-menu-icon) {
+  padding: 5px 6px;
 }
 
 .osm {
@@ -249,6 +282,10 @@ const debug = () => {
   svg {
     height: 100%;
   }
+}
+
+.btn {
+  cursor: pointer;
 }
 
 .downloading {

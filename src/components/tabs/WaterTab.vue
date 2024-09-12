@@ -7,22 +7,24 @@ const mapbox = useMapbox()
     <GridCanvas />
     <ResetSlope class="reset-slope" />
     <div class="controls">
-      <label for="water-depth">Water Depth&#8202;:</label>
-      <NumberInput id="water-depth" v-model="mapbox.settings.depth" class="gap" :max="200" :min="0" :step="1" :unit="'m'" />
-      <label for="zone">Littoral Zone&#8202;:</label>
-      <NumberInput id="zone" v-model="mapbox.settings.littoral" :max="500" :min="0" :step="1" :unit="'m'" />
-      <label for="stream-depth">Stream Depth&#8202;:</label>
-      <NumberInput id="stream-depth" v-model="mapbox.settings.streamDepth" class="gap" :max="100" :min="0" :step="1" :unit="'m'" />
-      <label for="stream-width">Stream Width&#8202;:</label>
-      <NumberInput id="stream-width" v-model="mapbox.settings.streamWidth" :max="16" :min="1" :step="1" :unit="'m'" />
       <label for="waterside">Detail&#8202;:</label>
-      <SelectMenu id="'waterside'" v-model="mapbox.settings.waterside" class="gap"
+      <SelectMenu id="waterside" v-model="mapbox.settings.waterside" class="gap"
         :options="[
           { value: 2, label: 'High' },
           { value: 1, label: 'Mid' },
           { value: 0, label: 'Low' },
         ]"
       />
+      <label for="water-depth">Water Depth&#8202;:</label>
+      <NumberInput id="water-depth" v-model="mapbox.settings.depth" :max="200" :min="0" :step="1" :unit="'m'" />
+      <label for="litt-zone">Littoral Zone&#8202;:</label>
+      <NumberInput id="litt-zone" v-model="mapbox.settings.littoral" class="gap" :max="500" :min="0" :step="1" :unit="'m'" />
+      <label for="ripa-zone">Riparian Zone&#8202;:</label>
+      <NumberInput id="ripa-zone" v-model="mapbox.settings.riparian" :max="100" :min="0" :step="1" :unit="'m'" />
+      <label for="stream-depth">Stream Depth&#8202;:</label>
+      <NumberInput id="stream-depth" v-model="mapbox.settings.streamDepth" class="gap" :max="100" :min="0" :step="1" :unit="'m'" />
+      <label for="stream-width">Stream Width&#8202;:</label>
+      <NumberInput id="stream-width" v-model="mapbox.settings.streamWidth" :max="15" :min="1" :step="1" :unit="'m'" />
       <label for="actual-seafloor" class="as">Use actual seafloor&#8202;:</label>
       <ToggleSwitch v-model="mapbox.settings.actualSeafloor" :name="'actual-seafloor'" class="as-switch" />
     </div>
@@ -52,7 +54,11 @@ const mapbox = useMapbox()
 }
 
 .as-switch {
-  margin: auto 0 auto auto !important;
+  margin: auto 1rem auto auto !important;
+
+  @media screen and (max-width: 524px) {
+    margin: auto 0 auto auto !important;
+  }
 }
 
 @media screen and (min-width: 525px) {
@@ -61,14 +67,14 @@ const mapbox = useMapbox()
   }
 
   .as {
-    grid-column: 3 / 5;
-    grid-row: 3 / 4;
+    grid-column: 1 / 3;
+    grid-row: 4 / 5;
     z-index: 5;
   }
 
   .as-switch {
-    grid-column: 4 / 5;
-    grid-row: 3 / 4;
+    grid-column: 2 / 3;
+    grid-row: 4 / 5;
     z-index: 10;
   }
 }
