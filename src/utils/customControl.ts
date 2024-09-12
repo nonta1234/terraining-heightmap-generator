@@ -1,5 +1,9 @@
+/* eslint-disable @stylistic/quote-props */
+import { h, createApp, ref } from 'vue'
 import type { Map, IControl } from 'mapbox-gl'
-import type { StyleList } from '~/types/types'
+import type { OptionItem } from '~/types/types'
+import { styleList } from '~/utils/const'
+import SelectMenu from '~/components/elements/SelectMenu.vue'
 
 /**
 const defaultHillshade = [
@@ -179,55 +183,100 @@ export class ResetGridDirection implements IControl {
 }
 
 
-export class StyleButton implements IControl {
-  private div: HTMLDivElement | undefined
-  private _list: StyleList
+const StyleButtonComponent = defineComponent({
+  props: {
+    modelValue: {
+      type: [String, Number],
+      required: true,
+    },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    const selectedValue = ref(props.modelValue)
 
-  constructor(list: StyleList) {
-    this._list = list
+    watch(() => props.modelValue, (newValue) => {
+      selectedValue.value = newValue
+    })
+
+    watch(selectedValue, (newValue) => {
+      emit('update:modelValue', newValue)
+    })
+
+    const options: OptionItem[] = Object.values(styleList).map(({ value, label }) => ({ value, label }))
+    options.unshift({ type: 'header', label: '--Select Style--' })
+
+    const handleUpdate = (value: string | number) => {
+      selectedValue.value = value
+    }
+
+    const icon = () =>
+      h(
+        'svg',
+        {
+          xmlns: 'http://www.w3.org/2000/svg',
+          height: '19px',
+          viewBox: '0 0 576 512',
+          fill: '#F1F3F4',
+        },
+        [
+          h('path', {
+            d: 'M264.5 5.2c14.9-6.9 32.1-6.9 47 0l218.6 101c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 149.8C37.4 145.8 32 137.3 32 128s5.4-17.9 13.9-21.8L264.5 5.2zM476.9 209.6l53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 277.8C37.4 273.8 32 265.3 32 256s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0l152-70.2zm-152 198.2l152-70.2 53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 405.8C37.4 401.8 32 393.3 32 384s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0z',
+          }),
+        ],
+      )
+
+    return () => h(SelectMenu, {
+      menuPosition: 'left',
+      gap: 4,
+      options,
+      modelValue: selectedValue.value,
+      'onUpdate:modelValue': handleUpdate,
+    }, {
+      icon,
+    })
+  },
+})
+
+export class StyleButton implements IControl {
+  private container: HTMLElement | undefined
+  private vueApp: ReturnType<typeof createApp> | undefined
+  private map?: Map
+
+  constructor() {
+    this.container = document.createElement('div')
+    this.container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group'
+  }
+
+  private handleStyleUpdate(value: string | number) {
+    this.map?.setStyle(getStyleUrl(value.toString()))
+    const mapbox = useMapbox()
+    saveSettings(mapbox.value.settings)
   }
 
   onAdd(map: Map) {
-    const device = useDevice()
-    const listStr: string[] = []
-    for (const key in this._list) {
-      listStr.push(`<option value="${this._list[key].value}">${this._list[key].text}</option>\n`)
-    }
-    const chunk = listStr.join('')
-    this.div = document.createElement('div')
-    this.div.className = 'mapboxgl-ctrl mapboxgl-ctrl-group'
-    this.div.innerHTML = `<button type="button" class="style-button" aria-label="Change map style" aria-disabled="false" title="Change map style">
-      <svg xmlns="http://www.w3.org/2000/svg" height="19px" viewBox="0 0 576 512" fill="#F1F3F4"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M264.5 5.2c14.9-6.9 32.1-6.9 47 0l218.6 101c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 149.8C37.4 145.8 32 137.3 32 128s5.4-17.9 13.9-21.8L264.5 5.2zM476.9 209.6l53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 277.8C37.4 273.8 32 265.3 32 256s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0l152-70.2zm-152 198.2l152-70.2 53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 405.8C37.4 401.8 32 393.3 32 384s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0z"/></svg>
-      </button>`
+    this.map = map
+    const initialValue = styleList[this.map.getStyle()!.name!].value
 
-    const select = document.createElement('select')
-    select.id = 'select-style'
-    select.title = 'Change map style'
-    select.innerHTML = `<option value="" disabled>--Select Style--${device.isFirefox ? '' : '&nbsp;&nbsp;'}</option>
-      ${chunk}`
-    select.addEventListener('contextmenu', e => e.preventDefault())
-    select.addEventListener('focus', () => { select.selectedIndex = -1 })
-    select.addEventListener('blur', () => { select.selectedIndex = -1 })
-    select.addEventListener('change', (e) => {
-      if (!(e.target instanceof HTMLSelectElement)) {
-        return
-      }
-      if (e.target.value !== this._list[map.getStyle()!.name!].value) {
-        map.setStyle(getStyleUrl(e.target.value))
-        const mapbox = useMapbox()
-        saveSettings(mapbox.value.settings)
-      }
+    this.vueApp = createApp(StyleButtonComponent, {
+      modelValue: initialValue,
+      'onUpdate:modelValue': this.handleStyleUpdate.bind(this),
     })
-    this.div.appendChild(select)
-    return this.div
+    this.vueApp.mount(this.container!)
+
+    this.container!.addEventListener('contextmenu', e => e.preventDefault())
+
+    return this.container!
   }
 
   onRemove() {
-    this._list = {}
-    while (this.div?.firstChild) {
-      this.div.removeChild(this.div.firstChild)
+    if (this.vueApp) {
+      this.vueApp.unmount()
     }
-    this.div?.parentNode?.removeChild(this.div)
+    if (this.container) {
+      this.container.remove()
+    }
+    this.map = undefined
+    this.container = undefined
   }
 }
 
