@@ -26,7 +26,7 @@ export type LngLat = Extract<LngLatLike, [number, number]>
 export type HeightCalcType = 'manual' | 'limit' | 'maximize'
 export type Interpolation = 'bilinear' | 'bicubic'
 export type MapType = 'cs1' | 'cs2' | 'cs2play' | 'unity' | 'ue' | 'ocean'
-export type StyleType = Record<'text' | 'value' | 'before' | 'grid' | 'alpha', string>
+export type StyleType = Record<'label' | 'value' | 'before' | 'grid' | 'alpha', string>
 
 export const viewModes = ['height', 'world'] as const
 export type ViewMode = typeof viewModes[number]
@@ -102,6 +102,7 @@ export const settingsSchema = z.object({
   streamDepth: z.number(),
   streamWidth: z.number(),
   littoral: z.number(),
+  riparian: z.number(),
   littArray: z.array(z.number()),
   actualSeafloor: z.boolean(),
   smoothing: z.number(),
@@ -151,4 +152,10 @@ export type Canvases = {
   osWaterWayCanvas: OffscreenCanvas
   osLittCanvas: OffscreenCanvas
   osCornerCanvas: OffscreenCanvas
+}
+
+export type OptionItem = {
+  type?: 'header' | 'divide'
+  value?: string | number
+  label?: string
 }

@@ -14,12 +14,12 @@ export const mapStyle = {
 }
 
 export const styleList: StyleList = {
-  'Mapbox Streets': { text: 'Streets', value: 'mapbox/streets-v12', before: 'pitch-outline', grid: 'black', alpha: '0.2' },
-  'Mapbox Outdoors': { text: 'Outdoors', value: 'mapbox/outdoors-v12', before: 'pitch-outline', grid: 'black', alpha: '0.2' },
-  'Mapbox Light': { text: 'Light', value: 'mapbox/light-v11', before: 'waterway', grid: 'black', alpha: '0.2' },
-  'Mapbox Dark': { text: 'Dark', value: 'mapbox/dark-v11', before: 'waterway', grid: 'gray', alpha: '0.2' },
-  'Mapbox Satellite': { text: 'Satellite', value: 'mapbox/satellite-v9', before: '', grid: 'white', alpha: '0.4' },
-  'Mapbox Satellite Streets': { text: 'Sat. Streets', value: 'mapbox/satellite-streets-v12', before: '', grid: 'white', alpha: '0.4' },
+  'Mapbox Streets': { label: 'Streets', value: 'mapbox/streets-v12', before: 'pitch-outline', grid: 'black', alpha: '0.2' },
+  'Mapbox Outdoors': { label: 'Outdoors', value: 'mapbox/outdoors-v12', before: 'pitch-outline', grid: 'black', alpha: '0.2' },
+  'Mapbox Light': { label: 'Light', value: 'mapbox/light-v11', before: 'waterway', grid: 'black', alpha: '0.2' },
+  'Mapbox Dark': { label: 'Dark', value: 'mapbox/dark-v11', before: 'waterway', grid: 'gray', alpha: '0.2' },
+  'Mapbox Satellite': { label: 'Satellite', value: 'mapbox/satellite-v9', before: '', grid: 'white', alpha: '0.4' },
+  'Mapbox Satellite Streets': { label: 'Sat. Streets', value: 'mapbox/satellite-streets-v12', before: '', grid: 'white', alpha: '0.4' },
 }
 
 const gridCs1: GridSpec = {
@@ -151,6 +151,7 @@ export const initialValue: Settings = {
   streamDepth: 0,
   streamWidth: 10,
   littoral: 160,
+  riparian: 10,
   littArray: littoralArray.sine,
   actualSeafloor: false,
   smoothing: 0,
