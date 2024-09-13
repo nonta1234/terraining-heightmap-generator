@@ -160,7 +160,7 @@ const onKeydown = (e: KeyboardEvent) => {
       @keydown.enter="onChange"
       @blur="onChange"
     />
-    <span v-if="unit !== ''" class="unit">{{ unit }}</span>
+    <span v-if="unit !== '' && !props.textHidden" class="unit">{{ unit }}</span>
     <slot />
   </div>
 </template>
