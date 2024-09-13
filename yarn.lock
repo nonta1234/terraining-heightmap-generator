@@ -1920,7 +1920,7 @@
     "@turf/invariant" "^6.5.0"
     geojson-equality "0.1.6"
 
-"@turf/boolean-intersects@6.5.0", "@turf/boolean-intersects@^6.5.0":
+"@turf/boolean-intersects@^6.5.0":
   version "6.5.0"
   resolved "https://registry.yarnpkg.com/@turf/boolean-intersects/-/boolean-intersects-6.5.0.tgz#df2b831ea31a4574af6b2fefe391f097a926b9d6"
   integrity sha512-nIxkizjRdjKCYFQMnml6cjPsDOBCThrt+nkqtSEcxkKMhAQj5OO7o2CecioNTaX8EayqwMGVKcsz27oP4mKPTw==
