@@ -1,6 +1,5 @@
 import type { FetchError } from 'ofetch'
 import * as turf from '@turf/turf'
-import booleanIntersects from '@turf/boolean-intersects'
 import { VectorTile, Point } from 'mapbox-vector-tile'
 import { getExtentInWorldCoords } from '~/utils/getExtent'
 import { createSlopeTexture, createRadialTexture } from '~/utils/createTexture'
@@ -10,14 +9,8 @@ import type { GenerateMapOption } from '~/types/types'
 import RBush from 'rbush'
 
 /**
- * The ocean and rivers/lakes are rendered with different slopes, but artifacts
- * appear at river mouths and connection points. To avoid these artifacts,
- * any polygon lines intersecting waterways will be considered connection points,
- * such as river mouths, and no slopes will be rendered at those locations.
- *
- * However, since there is only one waterway, there is only one segment where
- * rendering can be avoided. The segments on both sides cannot be determined,
- * so they will need to be edited.
+ * When drawing a slope, if a line segment from another feature overlaps,
+ * it will be treated as an estuary or a connecting part, and the slope will be skipped.
  */
 
 /** */
@@ -27,13 +20,13 @@ type T = {
   error: FetchError<any> | undefined
 }
 
-interface BBoxItem {
+interface BBoxItem extends RBush.BBox {
   minX: number
   minY: number
   maxX: number
   maxY: number
   geom: turf.Geometry
-  id: string
+  id: number
 }
 
 const isEqual = (a: Point, b: Point) => {
@@ -61,14 +54,13 @@ function decodeData(arr: Uint8ClampedArray) {
   return elevs
 }
 
-function getWaterwayTree(tile: VectorTile) {
+function getWaterLineTree(tile: VectorTile) {
   const tree = new RBush<BBoxItem>()
-  const waterways: BBoxItem[] = []
+  const waterLines: BBoxItem[] = []
 
-  if (tile.layers.waterway) {
-    let index = 0
-    for (let i = 0; i < tile.layers.waterway.length; i++) {
-      const feature = tile.layers.waterway.feature(i)
+  if (tile.layers.water) {
+    for (let i = 0; i < tile.layers.water.length; i++) {
+      const feature = tile.layers.water.feature(i)
       const geo = feature.loadGeometry()
 
       for (let m = 0; m < geo.length; m++) {
@@ -81,14 +73,13 @@ function getWaterwayTree(tile: VectorTile) {
             maxX: bbox[2],
             maxY: bbox[3],
             geom: line.geometry,
-            id: `waterway-${index}`,
+            id: (feature.properties.id ?? 0) as number,
           }
-          waterways.push(item)
-          index++
+          waterLines.push(item)
         }
       }
     }
-    tree.load(waterways)
+    tree.load(waterLines)
   }
   return tree
 }
@@ -146,7 +137,15 @@ class GetWaterMapWorker {
     return ctx
   }
 
-  private drawSlope = (src: OffscreenCanvasRenderingContext2D, dst: OffscreenCanvasRenderingContext2D, points: Point[], tree: RBush<BBoxItem>) => {
+  private drawSlope = (
+    lineSrc: OffscreenCanvasRenderingContext2D,
+    lineDst: OffscreenCanvasRenderingContext2D,
+    cornerSrc: OffscreenCanvasRenderingContext2D,
+    cornerDst: OffscreenCanvasRenderingContext2D,
+    id: number,
+    points: Point[],
+    tree: RBush<BBoxItem>,
+  ) => {
     if (!isEqual(points[0], points.at(-1)!)) {
       points.push(points[0])
     }
@@ -156,7 +155,7 @@ class GetWaterMapWorker {
         const bbox = turf.bbox(lineSegment)
 
         // narrow down waterways that may intersect by spatial index
-        const potentialWaterways = tree.search({
+        const potentialWaterLines = tree.search({
           minX: bbox[0],
           minY: bbox[1],
           maxX: bbox[2],
@@ -165,8 +164,8 @@ class GetWaterMapWorker {
 
         // perform intersection judgment for each line segment
         let shouldSkip = false
-        for (const waterway of potentialWaterways) {
-          if (booleanIntersects(lineSegment, waterway.geom)) {
+        for (const waterLine of potentialWaterLines) {
+          if (turf.booleanEqual(lineSegment.geometry, waterLine.geom) && (id !== waterLine.id)) {
             shouldSkip = true
             break
           }
@@ -174,23 +173,26 @@ class GetWaterMapWorker {
 
         // if there is no intersecting waterway, process the drawing
         if (!shouldSkip) {
+          this.drawPoint(cornerSrc, cornerDst, new Point(points[i].x, points[i].y))
+          this.drawPoint(cornerSrc, cornerDst, new Point(points[i + 1].x, points[i + 1].y))
+
           const vecX = points[i + 1].x - points[i].x
           const vecY = points[i + 1].y - points[i].y
           const length = Math.sqrt(vecX * vecX + vecY * vecY)
           const theta = Math.atan2(vecY, vecX)
           const dx = points[i].x + vecX / 2
           const dy = points[i].y + vecY / 2
-          dst.save()
-          dst.translate(dx, dy)
-          dst.rotate(theta)
-          dst.drawImage(
-            src.canvas,
+          lineDst.save()
+          lineDst.translate(dx, dy)
+          lineDst.rotate(theta)
+          lineDst.drawImage(
+            lineSrc.canvas,
             -length / 2,
-            -src.canvas.height / 2,
+            -lineSrc.canvas.height / 2,
             length,
-            src.canvas.height,
+            lineSrc.canvas.height,
           )
-          dst.restore()
+          lineDst.restore()
         }
       }
     }
@@ -311,16 +313,17 @@ class GetWaterMapWorker {
             this.waterWayCtx.rect(-2, -2, pixelsPerTile + 4, pixelsPerTile + 4)
             this.waterWayCtx.clip()
 
-            const waterways = getWaterwayTree(tile)
+            const waterLines = getWaterLineTree(tile)
 
             // draw start
             if (tile.layers.water) {
               for (let i = 0; i < tile.layers.water.length; i++) {
                 const feature = tile.layers.water.feature(i)
                 const geo = feature.asPolygons() as Point[][][]
+                const _id = (feature.properties.id ?? 0) as number
 
+                // draw water area & inner lands
                 if (feature.properties.class !== 'ocean' || includeOcean) {
-                  // draw water area & inner lands
                   for (let j = 0; j < geo.length; j++) {
                     this.waterCtx.fillStyle = '#000000'
                     const outerPath = geo[j][0]
@@ -341,9 +344,9 @@ class GetWaterMapWorker {
                       for (let n = 0; n < geo[j][m].length; n++) {
                         const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
                         path.push(point)
-                        this.drawPoint(this.littCornerCtx, this.waterSideCtx, point)
+                        // this.drawPoint(this.littCornerCtx, this.waterSideCtx, point)
                       }
-                      this.drawSlope(this.littCtx, this.waterSideCtx, path, waterways)
+                      this.drawSlope(this.littCtx, this.waterSideCtx, this.littCornerCtx, this.waterSideCtx, _id, path, waterLines)
                     }
                   }
                 } else {
@@ -354,9 +357,9 @@ class GetWaterMapWorker {
                       for (let n = 0; n < geo[j][m].length; n++) {
                         const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
                         path.push(point)
-                        this.drawPoint(this.ripaCornerCtx, this.waterSideCtx, point)
+                        // this.drawPoint(this.ripaCornerCtx, this.waterSideCtx, point)
                       }
-                      this.drawSlope(this.ripaCtx, this.waterSideCtx, path, waterways)
+                      this.drawSlope(this.ripaCtx, this.waterSideCtx, this.ripaCornerCtx, this.waterSideCtx, _id, path, waterLines)
                     }
                   }
                 }
