@@ -121,12 +121,12 @@ const onCellsChange = () => {
       <label for="map-size">Map Size&#8202;:</label>
       <button class="size-reset" @click="onSizeReset"><font-awesome-icon :icon="['fas', 'arrow-rotate-right']" class="fa-fw fa-xs" /></button>
     </div>
-    <NumberInput id="map-size" v-model="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.001" :unit="'㎞'" @change="onSizeChange" />
+    <NumberInput id="map-size" v-model="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.001" unit="㎞" @change="onSizeChange" />
     <label for="resolution">Resolution&#8202;:</label>
     <SelectMenu v-if="!mapbox.settings.worldPartition" id="resolution" v-model="mapbox.settings.resolution" class="tnum gap" :options="mapSpec[mapbox.settings.gridInfo].resolutions" />
     <NumberInput v-else id="resolution" v-model="mapbox.settings.resolution" class="wp-resolution gap" disabled />
     <label for="elev-scale">Elev. Scale&#8202;:</label>
-    <NumberInput id="elev-scale" ref="elevationScale" v-model="mapbox.settings.elevationScale" :max="100000" :min="0" :step="0.001" :disabled="esDisabled" :unit="'m'" class="elev-scale" />
+    <NumberInput id="elev-scale" ref="elevationScale" v-model="mapbox.settings.elevationScale" :max="100000" :min="0" :step="0.001" :disabled="esDisabled" unit="m" class="elev-scale" />
     <template v-if="mapbox.settings.gridInfo === 'ue'">
       <label for="world-partition" class="wp">World Partition&#8202;:</label>
       <ToggleSwitch v-model="mapbox.settings.worldPartition" :name="'world-partition'" class="wp-switch" @change="onWorldPartitionChange" />
@@ -135,7 +135,7 @@ const onCellsChange = () => {
       <NumberInput id="wp-cells" v-model="mapbox.settings.wpCells" :max="22" :min="1" :step="1" class="wp-cells-input" :disabled="!mapbox.settings.worldPartition" :text-hidden="!mapbox.settings.worldPartition" @change="onCellsChange" />
     </template>
     <label for="base-level">Base Level&#8202;:</label>
-    <NumberInput id="base-level" v-model="mapbox.settings.baseLevel" class="gap" :max="9999" :min="-9999" :step="0.1":unit="'m'" />
+    <NumberInput id="base-level" v-model="mapbox.settings.baseLevel" class="gap" :max="9999" :min="-9999" :step="0.1" unit="m" />
     <label for="adjust-level">Adjust Level&#8202;:</label>
     <ToggleSwitch v-model="mapbox.settings.adjToMin" :name="'adjust-level'" />
     <label for="height-ratio">Height Ratio&#8202;:</label>

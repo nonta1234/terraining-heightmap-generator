@@ -65,24 +65,24 @@ const toggleDisplayEffect = () => {
   <div class="controls">
     <hr>
     <label for="smooth">Smoothing&#8202;:</label>
-    <NumberInput id="smooth" v-model="mapbox.settings.smoothing" class="gap" :max="100" :min="0" :step="1" :unit="'%'" />
+    <NumberInput id="smooth" v-model="mapbox.settings.smoothing" class="gap" :max="100" :min="0" :step="1" unit="%" />
     <label for="smooth-radius">Radius&#8202;:</label>
-    <NumberInput id="smooth-radius" v-model="_smoothRadius" :max="100" :min="1" :step="1" :unit="'px'" />
+    <NumberInput id="smooth-radius" v-model="_smoothRadius" :max="100" :min="1" :step="1" unit="px" />
     <label for="smooth-threshold">Threshold&#8202;:</label>
-    <NumberInput id="smooth-threshold" v-model="mapbox.settings.smthThres" class="gap" :max="10000" :min="0" :step="10" :unit="'m'" />
+    <NumberInput id="smooth-threshold" v-model="mapbox.settings.smthThres" class="gap" :max="10000" :min="0" :step="10" unit="m" />
     <label for="smooth-fade">Fade&#8202;:</label>
-    <NumberInput id="smooth-fade" v-model="mapbox.settings.smthFade" :max="1000" :min="0" :step="10" :unit="'m'" />
+    <NumberInput id="smooth-fade" v-model="mapbox.settings.smthFade" :max="1000" :min="0" :step="10" unit="m" />
     <hr>
     <label for="sharpen">Sharpen&#8202;:</label>
-    <NumberInput id="sharpen" v-model="mapbox.settings.sharpen" class="gap" :max="200" :min="0" :step="1" :unit="'%'" />
+    <NumberInput id="sharpen" v-model="mapbox.settings.sharpen" class="gap" :max="200" :min="0" :step="1" unit="%" />
     <label for="sharpen-radius">Radius&#8202;:</label>
-    <NumberInput id="sharpen-radius" v-model="_sharpenRadius" :max="100" :min="1" :step="1" :unit="'px'" />
+    <NumberInput id="sharpen-radius" v-model="_sharpenRadius" :max="100" :min="1" :step="1" unit="px" />
     <label for="sharpen-threshold">Threshold&#8202;:</label>
-    <NumberInput id="sharpen-threshold" v-model="mapbox.settings.shrpThres" class="gap" :max="10000" :min="0" :step="10" :unit="'m'" />
+    <NumberInput id="sharpen-threshold" v-model="mapbox.settings.shrpThres" class="gap" :max="10000" :min="0" :step="10" unit="m" />
     <label for="sharpen-fade">Fade&#8202;:</label>
-    <NumberInput id="sharpen-fade" v-model="mapbox.settings.shrpFade" :max="1000" :min="0" :step="10" :unit="'m'" />
+    <NumberInput id="sharpen-fade" v-model="mapbox.settings.shrpFade" :max="1000" :min="0" :step="10" unit="m" />
     <label for="noise-value">Noise Value&#8202;:</label>
-    <NumberInput id="noise-value" v-model="mapbox.settings.noise" class="gap" :max="100" :min="0" :step="1" :unit="'m'" />
+    <NumberInput id="noise-value" v-model="mapbox.settings.noise" class="gap" :max="100" :min="0" :step="1" unit="m" />
     <label for="noise-detail">Noise Detail&#8202;:</label>
     <NumberInput id="noise-detail" v-model="mapbox.settings.noiseGrid" :max="1000" :min="1" :step="1" />
     <hr>

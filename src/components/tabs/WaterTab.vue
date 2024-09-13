@@ -16,15 +16,15 @@ const mapbox = useMapbox()
         ]"
       />
       <label for="water-depth">Water Depth&#8202;:</label>
-      <NumberInput id="water-depth" v-model="mapbox.settings.depth" :max="200" :min="0" :step="1" :unit="'m'" />
+      <NumberInput id="water-depth" v-model="mapbox.settings.depth" :max="200" :min="0" :step="1" unit="m" />
       <label for="litt-zone">Littoral Zone&#8202;:</label>
-      <NumberInput id="litt-zone" v-model="mapbox.settings.littoral" class="gap" :max="500" :min="0" :step="1" :unit="'m'" />
+      <NumberInput id="litt-zone" v-model="mapbox.settings.littoral" class="gap" :max="500" :min="0" :step="1" unit="m" />
       <label for="ripa-zone">Riparian Zone&#8202;:</label>
-      <NumberInput id="ripa-zone" v-model="mapbox.settings.riparian" :max="100" :min="0" :step="1" :unit="'m'" />
+      <NumberInput id="ripa-zone" v-model="mapbox.settings.riparian" :max="100" :min="0" :step="1" unit="m" />
       <label for="stream-depth">Stream Depth&#8202;:</label>
-      <NumberInput id="stream-depth" v-model="mapbox.settings.streamDepth" class="gap" :max="100" :min="0" :step="1" :unit="'m'" />
+      <NumberInput id="stream-depth" v-model="mapbox.settings.streamDepth" class="gap" :max="100" :min="0" :step="1" unit="m" />
       <label for="stream-width">Stream Width&#8202;:</label>
-      <NumberInput id="stream-width" v-model="mapbox.settings.streamWidth" :max="15" :min="1" :step="1" :unit="'m'" />
+      <NumberInput id="stream-width" v-model="mapbox.settings.streamWidth" :max="15" :min="1" :step="1" unit="m" />
       <label for="actual-seafloor" class="as">Use actual seafloor&#8202;:</label>
       <ToggleSwitch v-model="mapbox.settings.actualSeafloor" :name="'actual-seafloor'" class="as-switch" />
     </div>
