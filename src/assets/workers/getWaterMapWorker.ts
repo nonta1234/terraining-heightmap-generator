@@ -57,6 +57,7 @@ function decodeData(arr: Uint8ClampedArray) {
 function getWaterLineTree(tile: VectorTile) {
   const tree = new RBush<BBoxItem>()
   const waterLines: BBoxItem[] = []
+  let index = 0
 
   if (tile.layers.water) {
     for (let i = 0; i < tile.layers.water.length; i++) {
@@ -73,11 +74,12 @@ function getWaterLineTree(tile: VectorTile) {
             maxX: bbox[2],
             maxY: bbox[3],
             geom: line.geometry,
-            id: (feature.properties.id ?? 0) as number,
+            id: (feature.properties.id ?? index) as number,
           }
           waterLines.push(item)
         }
       }
+      index++
     }
     tree.load(waterLines)
   }
@@ -162,7 +164,7 @@ class GetWaterMapWorker {
           maxY: bbox[3],
         })
 
-        // perform intersection judgment for each line segment
+        // determine whether different features have the same line segment
         let shouldSkip = false
         for (const waterLine of potentialWaterLines) {
           if (turf.booleanEqual(lineSegment.geometry, waterLine.geom) && (id !== waterLine.id)) {
