@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { styleList } from '~/utils/const'
+import type { OptionItem } from '~/types/types'
+
 const mapbox = useMapbox()
 const dlButton = ref<HTMLElement>()
 const style = ref('')
@@ -12,11 +14,18 @@ const size = ref(4096)
 const sizeDisabled = ref(true)
 const sizeTextHidden = ref(true)
 const fullArea = ref(false)
-const hasUserStyle = computed(() => mapbox.value.settings.userStyleURL !== '')
 const flag = computed(() => (Number(zoomType.value === 'auto') << 1) | Number(sizeType.value === 'auto'))
 const offset = computed(() => (mapbox.value.settings.gridInfo === 'cs1' || fullArea.value) ? 0 : 0.375)
 const requests = ref(1)
 const caution = computed(() => requests.value > 1000)
+
+const mapStyleList = computed(() => {
+  const options: OptionItem[] = Object.values(styleList).map(({ value, label }) => ({ value, label }))
+  if (mapbox.value.settings.userStyleURL) {
+    options.push({ value: mapbox.value.settings.userStyleURL, label: 'User Style' })
+  }
+  return options
+})
 
 watch(flag, () => {
   zoomDisabled.value = zoomType.value === 'auto'
@@ -91,6 +100,7 @@ const update = () => {
 
 useListen('map:miModal', (value) => {
   if (value === undefined) {
+    style.value = ''
     update()
   }
 })
@@ -154,57 +164,46 @@ const download = async () => {
       <CloseButton class="close" @click="close" />
       <div class="main">
         <label for="style">Style&#8202;:</label>
-        <div>
-          <select id="style" v-model="style">
-            <option v-for="item in styleList" :key="item.value" :value="item.value">{{ item.label }}</option>
-            <option v-if="hasUserStyle" value="user">User Style</option>
-          </select>
-        </div>
+        <SelectMenu id="style" v-model="style" placeholder="Select Style" :options="mapStyleList" />
         <label for="zoom-type">Zoom Type&#8202;:</label>
-        <div>
-          <select id="zoom-type" v-model="zoomType">
-            <option value="auto">Auto</option>
-            <option value="custom">Custom</option>
-          </select>
-        </div>
+        <SelectMenu id="zoom-type" v-model="zoomType"
+          :options="[
+            { value: 'auto', label: 'Auto' },
+            { value: 'custom', label: 'Custom' },
+          ]"
+        />
         <label for="zoom-level">Zoom Level&#8202;:</label>
-        <div>
-          <NumberInput
-            id="zoom-level"
-            v-model="zoom"
-            :max="20"
-            :min="0"
-            :step="0.01"
-            :disabled="zoomDisabled"
-            :text-hidden="zoomTextHidden"
-            @change="update"
-          />
-        </div>
+        <NumberInput
+          id="zoom-level"
+          v-model="zoom"
+          :max="20"
+          :min="0"
+          :step="0.01"
+          :disabled="zoomDisabled"
+          :text-hidden="zoomTextHidden"
+          @change="update"
+        />
         <label for="size-type">Size Type&#8202;:</label>
-        <div>
-          <select id="size-type" v-model="sizeType" name="size-type">
-            <option value="auto">Auto</option>
-            <option value="custom">Custom</option>
-          </select>
-        </div>
+        <SelectMenu id="size-type" v-model="sizeType"
+          :options="[
+            { value: 'auto', label: 'Auto' },
+            { value: 'custom', label: 'Custom' },
+          ]"
+        />
         <label for="image-size">Image Size&#8202;:</label>
-        <div>
-          <NumberInput
-            id="image-size"
-            v-model="size"
-            :max="16384"
-            :min="1"
-            :step="1"
-            :disabled="sizeDisabled"
-            :text-hidden="sizeTextHidden"
-            @change="update"
-          />
-        </div>
-        <div class="unit">px</div>
+        <NumberInput
+          id="image-size"
+          v-model="size"
+          :max="16384"
+          :min="1"
+          :step="1"
+          :disabled="sizeDisabled"
+          :text-hidden="sizeTextHidden"
+          unit="px"
+          @change="update"
+        />
         <label class="full-area-label" for="full-area">Full Area (CS2)&#8202;:</label>
-        <div class="full-area-toggle">
-          <ToggleSwitch v-model="fullArea" :name="'full-area'" @change="update" />
-        </div>
+        <ToggleSwitch v-model="fullArea" class="full-area-toggle" :name="'full-area'" @change="update" />
         <label class="request">API Request Count&#8202;:</label>
         <div class="request-count">
           <div :class="{ 'caution': caution }">{{ requests }}</div>
@@ -224,6 +223,7 @@ const download = async () => {
 #customize-map-image-panel {
   position: relative;
 }
+
 h3 {
   font-size: 1rem;
   text-align: center;
@@ -232,65 +232,48 @@ h3 {
   margin-bottom: 1rem;
   line-height: 2;
 }
+
 .close {
   position: absolute;
   top: 6px;
   right: 6px;
 }
+
 .main {
   padding: 0 1rem;
   display: grid;
-  grid-template-columns: auto 7.75rem auto;
-  gap: .75rem 0;
+  grid-template-columns: auto 7.5rem;
+  gap: 1rem 2rem;
   position: relative;
-  div {
-    line-height: 2;
-    height: 2rem;
-    &:has(select) {
-      position: relative;
-      &::after {
-        position: absolute;
-        top: .8rem;
-        right: .5rem;
-        width: .625rem;
-        height: .4375rem;
-        background-color: $textAlt;
-        clip-path: polygon(0 0, 100% 0, 50% 100%);
-        content: '';
-        pointer-events: none;
-      }
-    }
-  }
+  line-height: 1.875;
 }
-label {
-  display: block;
-  line-height: 2;
-  grid-column-start: 1;
-  padding-right: 1.5rem;
-  white-space: nowrap;
-}
-.unit {
-  text-align: right;
-  padding-left: .5rem;
-}
+
 .full-area-label {
   grid-column: 1 / 3;
   grid-row: 6 / 7;
   z-index: 1;
 }
+
 .full-area-toggle {
   grid-column: 2 / 3;
   grid-row: 6 / 7;
   z-index: 2;
 }
-:deep(.toggle-switch) {
-  margin: .25rem 0 .25rem auto;
+
+:deep(.input-wrapper) {
+  @include common-input;
 }
+
+:deep(.toggle-switch) {
+  margin: auto 0 auto auto;
+}
+
 .request {
   grid-column: 1 / 3;
   grid-row: 7 / 8;
   z-index: 1;
 }
+
 .request-count {
   grid-column: 2 / 3;
   grid-row: 7 / 8;
@@ -298,7 +281,18 @@ label {
   padding-right: .25rem;
   text-align: right;
 }
-button, select, input {
+
+.caution {
+  color: #FFA500;
+}
+
+footer {
+  display: flex;
+  justify-content: right;
+  padding: 1.5rem 1rem 1rem;
+}
+
+.button {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -306,52 +300,6 @@ button, select, input {
   outline: none;
   overflow: hidden;
   display: block;
-}
-select {
-  width: 100%;
-  border-radius: .25rem;
-  color: $textColor;
-  padding-left: .5rem;
-  height: 2rem;
-  line-height: 2;
-  background-color: $inputBg;
-  font-size: 1rem;
-  cursor: pointer;
-  flex-shrink: 0;
-  &:active, &:focus {
-    background-color: $inputBgF;
-  }
-}
-option {
-  background: $optionTagColor;
-}
-input {
-  width: 100%;
-  color: $textColor;
-  padding: 0 .25rem;
-  background-color: $inputBg;
-  border-radius: .25rem;
-  line-height: 2;
-  height: 2rem;
-  &:active, &:focus {
-    background-color: $inputBgF;
-  }
-}
-input[input] {
-  color: #FFA500;
-}
-input:disabled {
-  color: $textDisabled;
-}
-.caution {
-  color: #FFA500;
-}
-footer {
-  display: flex;
-  justify-content: right;
-  padding: 1.5rem 1rem 1rem;
-}
-.button {
   height: 2rem;
   border-radius: 1rem;
   padding: 0 1rem 0 .625rem;
@@ -361,6 +309,7 @@ footer {
   color: $textColor;
   flex-shrink: 0;
 }
+
 .download {
   font-weight: 700;
   background-color: rgba(255, 255, 255, .1);
@@ -385,11 +334,13 @@ footer {
     line-height: 2;
   }
 }
+
 .downloading {
   svg {
     animation: rotateY 2s linear infinite;
   }
 }
+
 @keyframes rotateY {
   to {
     transform: rotateY(-1turn);
