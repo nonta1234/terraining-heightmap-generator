@@ -346,7 +346,6 @@ class GetWaterMapWorker {
                       for (let n = 0; n < geo[j][m].length; n++) {
                         const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
                         path.push(point)
-                        // this.drawPoint(this.littCornerCtx, this.waterSideCtx, point)
                       }
                       this.drawSlope(this.littCtx, this.waterSideCtx, this.littCornerCtx, this.waterSideCtx, _id, path, waterLines)
                     }
@@ -359,7 +358,6 @@ class GetWaterMapWorker {
                       for (let n = 0; n < geo[j][m].length; n++) {
                         const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
                         path.push(point)
-                        // this.drawPoint(this.ripaCornerCtx, this.waterSideCtx, point)
                       }
                       this.drawSlope(this.ripaCtx, this.waterSideCtx, this.ripaCornerCtx, this.waterSideCtx, _id, path, waterLines)
                     }
