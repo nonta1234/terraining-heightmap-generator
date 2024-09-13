@@ -12,6 +12,7 @@ const isDownloading = ref(false)
 const total = ref(0)
 const progress = ref(0)
 const progressMsg = computed(() => (isDownloading.value ? 'Downloading elevation data. ' : '') + `(${progress.value} / ${total.value})`)
+const isOverflow = computed(() => previewData.value.max - previewData.value.min > mapbox.value.settings.elevationScale)
 
 const scaleXY = computed(() => mapbox.value.settings.size * 100000 / (mapbox.value.settings.resolution - 1))
 const scaleZ = computed(() => mapbox.value.settings.elevationScale * 100 / 512)
@@ -126,7 +127,7 @@ onMounted(async () => {
     <div class="normalize">
       <label class="normalize-label" for="normalize-preview">Normalize&#8202;:&nbsp;&nbsp;</label>
       <ToggleSwitch v-model="mapbox.settings.normalizePreview" :name="'normalize-preview'" @change="onNormalizeChange" />
-      <div class="min-max">
+      <div :class="['min-max', { 'overflow': isOverflow }]">
         <div class="min">Min&#8202;: {{ previewData.min.toFixed(1) }}&#8201;m</div>
         <div class="max">Max&#8202;: {{ previewData.max.toFixed(1) }}&#8201;m</div>
       </div>
@@ -194,6 +195,10 @@ onMounted(async () => {
   display: flex;
   width: 100%;
   margin-bottom: .5rem;
+}
+
+.overflow {
+  color: #FFA500;
 }
 
 .min, .max {
