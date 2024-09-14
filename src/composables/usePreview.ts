@@ -1,7 +1,7 @@
-import wasm, { Heightmap } from '~~/heightmap_lib/pkg'
+import wasm, { Heightmap, type InitOutput } from '~~/heightmap_lib/pkg'
 
 type T = {
-  instance: any | undefined
+  instance: InitOutput | undefined
   controller: Heightmap | undefined
   previewMap: Float32Array | undefined
   length: number
@@ -29,37 +29,40 @@ export const usePreview = () => {
   }
 
   const setMapData = (previewData: Ref<T>) => (heightmap: Float32Array, oceanMap: Float32Array, waterMap: Float32Array, waterWayMap: Float32Array) => {
+    if (!(previewData.value.instance && previewData.value.controller)) {
+      throw new Error('Preview: Initialization required.')
+    }
     if (!(heightmap.length === waterMap.length && waterMap.length === waterWayMap.length)) {
-      throw new Error('All data must be the same size.')
+      throw new Error('Preview: All data must be the same size.')
     }
 
     previewData.value.length = heightmap.length
-    previewData.value.controller?.allocate_map_buffer(previewData.value.length)
+    previewData.value.controller!.allocate_map_buffer(previewData.value.length)
 
     const heightmapData = new Float32Array(
-      previewData.value.instance.memory.buffer,
-      previewData.value.controller?.pointer_to_heightmap,
+      previewData.value.instance!.memory.buffer,
+      previewData.value.controller!.pointer_to_heightmap,
       previewData.value.length,
     )
     heightmapData.set(heightmap)
 
     const oceanMapData = new Float32Array(
-      previewData.value.instance.memory.buffer,
-      previewData.value.controller?.pointer_to_oceanmap,
+      previewData.value.instance!.memory.buffer,
+      previewData.value.controller!.pointer_to_oceanmap,
       previewData.value.length,
     )
     oceanMapData.set(oceanMap)
 
     const waterMapData = new Float32Array(
-      previewData.value.instance.memory.buffer,
-      previewData.value.controller?.pointer_to_watermap,
+      previewData.value.instance!.memory.buffer,
+      previewData.value.controller!.pointer_to_watermap,
       previewData.value.length,
     )
     waterMapData.set(waterMap)
 
     const waterWayMapData = new Float32Array(
-      previewData.value.instance.memory.buffer,
-      previewData.value.controller?.pointer_to_waterwaymap,
+      previewData.value.instance!.memory.buffer,
+      previewData.value.controller!.pointer_to_waterwaymap,
       previewData.value.length,
     )
     waterWayMapData.set(waterWayMap)
@@ -74,15 +77,15 @@ export const usePreview = () => {
   const generate = (previewData: Ref<T>) => async () => {
     if (previewData.value.hasData) {
       const resultData = new Float32Array(
-        previewData.value.instance.memory.buffer,
-        previewData.value.controller?.pointer_to_result,
+        previewData.value.instance!.memory.buffer,
+        previewData.value.controller!.pointer_to_result,
         previewData.value.length,
       )
       const { settings } = useMapbox().value
       if (settings.actualSeafloor) {
-        previewData.value.controller?.combine_heightmaps(settings.depth, settings.streamDepth)
+        previewData.value.controller!.combine_heightmaps(settings.depth, settings.streamDepth)
       } else {
-        previewData.value.controller?.combine_heightmaps_with_littoral(settings.depth, settings.streamDepth)
+        previewData.value.controller!.combine_heightmaps_with_littoral(settings.depth, settings.streamDepth)
       }
       const { min, max } = getMinMaxHeight(resultData, 100)
       previewData.value.min = min
