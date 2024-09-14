@@ -231,6 +231,7 @@ h3 {
   height: 2rem;
   margin-bottom: 1rem;
   line-height: 2;
+  padding-right: 6px;
 }
 
 .close {
@@ -312,15 +313,15 @@ footer {
 
 .download {
   font-weight: 700;
-  background-color: rgba(255, 255, 255, .1);
+  background-color: rgba(255, 255, 255, .2);
   cursor: pointer;
   display: flex;
   perspective: 100px;
-  @include shadow-2;
+  @include shadow-1;
   &:hover, &:focus {
     color: aquamarine;
     background-color: rgba(0, 206, 209, .35);
-    @include shadow-3;
+    @include shadow-2;
   }
   svg {
     display: inline-block;
