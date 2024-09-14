@@ -2,7 +2,7 @@ import mapboxgl, { Map, type GeoJSONSource } from 'mapbox-gl'
 import * as turf from '@turf/turf'
 import type { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
 import { extentGrid } from '~/utils/extentGrid'
-import type { Mapbox, Grid, LngLat, GridPositions } from '~/types/types'
+import type { Mapbox, Grid, LngLat, GridPositions, GridSpec } from '~/types/types'
 
 export const getGridAngle = (mapbox?: Ref<Mapbox>) => {
   const _mapbox = mapbox || useMapbox()
@@ -13,62 +13,62 @@ export const getGridAngle = (mapbox?: Ref<Mapbox>) => {
 
 // -> Figure 1
 
-const getPlayArea = (mapbox: Ref<Mapbox>, features: Feature<Polygon, GeoJsonProperties>[]) => {
-  const grid = mapSpec[mapbox.value.settings.gridInfo].grid.play
-  const area = grid
+const getPlayArea = (grid: GridSpec, features: Feature<Polygon, GeoJsonProperties>[]) => {
+  const play = grid.play
+  const area = grid.play
     ? turf.polygon([[
-      features[grid[0]].geometry.coordinates[0][0],
-      features[grid[1]].geometry.coordinates[0][1],
-      features[grid[2]].geometry.coordinates[0][2],
-      features[grid[3]].geometry.coordinates[0][3],
-      features[grid[0]].geometry.coordinates[0][0],
+      features[play![0]].geometry.coordinates[0][0],
+      features[play![1]].geometry.coordinates[0][1],
+      features[play![2]].geometry.coordinates[0][2],
+      features[play![3]].geometry.coordinates[0][3],
+      features[play![0]].geometry.coordinates[0][0],
     ]])
     : undefined
   return area
 }
 
-const getCenterArea = (mapbox: Ref<Mapbox>, features: Feature<Polygon, GeoJsonProperties>[]) => {
-  const grid = mapSpec[mapbox.value.settings.gridInfo].grid.center
+const getCenterArea = (grid: GridSpec, features: Feature<Polygon, GeoJsonProperties>[]) => {
+  const center = grid.center
   const area = turf.polygon([[
-    features[grid[0]].geometry.coordinates[0][0],
-    features[grid[1]].geometry.coordinates[0][1],
-    features[grid[2]].geometry.coordinates[0][2],
-    features[grid[3]].geometry.coordinates[0][3],
-    features[grid[0]].geometry.coordinates[0][0],
+    features[center[0]].geometry.coordinates[0][0],
+    features[center[1]].geometry.coordinates[0][1],
+    features[center[2]].geometry.coordinates[0][2],
+    features[center[3]].geometry.coordinates[0][3],
+    features[center[0]].geometry.coordinates[0][0],
   ]])
   return area
 }
 
-const getRotateArea = (mapbox: Ref<Mapbox>, features: Feature<Polygon, GeoJsonProperties>[]) => {
-  const grid = mapSpec[mapbox.value.settings.gridInfo].grid.rotate
+const getRotateArea = (grid: GridSpec, features: Feature<Polygon, GeoJsonProperties>[]) => {
+  const rotate = grid.rotate
   const area = turf.multiPolygon([[
     [
-      features[grid[0][0]].geometry.coordinates[0][0],
-      features[grid[0][1]].geometry.coordinates[0][1],
-      features[grid[0][2]].geometry.coordinates[0][2],
-      features[grid[0][3]].geometry.coordinates[0][3],
-      features[grid[0][0]].geometry.coordinates[0][0],
+      features[rotate[0][0]].geometry.coordinates[0][0],
+      features[rotate[0][1]].geometry.coordinates[0][1],
+      features[rotate[0][2]].geometry.coordinates[0][2],
+      features[rotate[0][3]].geometry.coordinates[0][3],
+      features[rotate[0][0]].geometry.coordinates[0][0],
     ],
     [
-      features[grid[1][0]].geometry.coordinates[0][0],
-      features[grid[1][1]].geometry.coordinates[0][1],
-      features[grid[1][2]].geometry.coordinates[0][2],
-      features[grid[1][3]].geometry.coordinates[0][3],
-      features[grid[1][0]].geometry.coordinates[0][0],
+      features[rotate[1][0]].geometry.coordinates[0][0],
+      features[rotate[1][1]].geometry.coordinates[0][1],
+      features[rotate[1][2]].geometry.coordinates[0][2],
+      features[rotate[1][3]].geometry.coordinates[0][3],
+      features[rotate[1][0]].geometry.coordinates[0][0],
     ],
     [
-      features[grid[2][0]].geometry.coordinates[0][0],
-      features[grid[2][1]].geometry.coordinates[0][1],
-      features[grid[2][2]].geometry.coordinates[0][2],
-      features[grid[2][3]].geometry.coordinates[0][3],
-      features[grid[2][0]].geometry.coordinates[0][0],
+      features[rotate[2][0]].geometry.coordinates[0][0],
+      features[rotate[2][1]].geometry.coordinates[0][1],
+      features[rotate[2][2]].geometry.coordinates[0][2],
+      features[rotate[2][3]].geometry.coordinates[0][3],
+      features[rotate[2][0]].geometry.coordinates[0][0],
     ],
     [
-      features[grid[3][0]].geometry.coordinates[0][0],
-      features[grid[3][1]].geometry.coordinates[0][1],
-      features[grid[3][2]].geometry.coordinates[0][2],
-      features[grid[3][3]].geometry.coordinates[0][3],
-      features[grid[3][0]].geometry.coordinates[0][0],
+      features[rotate[3][0]].geometry.coordinates[0][0],
+      features[rotate[3][1]].geometry.coordinates[0][1],
+      features[rotate[3][2]].geometry.coordinates[0][2],
+      features[rotate[3][3]].geometry.coordinates[0][3],
+      features[rotate[3][0]].geometry.coordinates[0][0],
     ],
   ]])
   return area
@@ -125,8 +125,7 @@ export const getPoint = (grid: Grid) => {
   return { gridCorner, playAreaCorner }
 }
 
-export const getGrid = (mapbox: Ref<Mapbox>, lng: number, lat: number, size: number, angle: number) => {
-  const grid = mapSpec[mapbox.value.settings.gridInfo].grid
+export const getGrid = (grid: GridSpec, lng: number, lat: number, size: number, angle: number) => {
   const { minX, minY, maxX, maxY } = getExtent(lng, lat, size)
 
   const gridArea = extentGrid(
@@ -138,9 +137,9 @@ export const getGrid = (mapbox: Ref<Mapbox>, lng: number, lat: number, size: num
     turf.transformRotate(gridArea, angle, { pivot: [lng, lat], mutate: true })
   }
 
-  const playArea = getPlayArea(mapbox, gridArea.features)
-  const centerArea = getCenterArea(mapbox, gridArea.features)
-  const rotateArea = getRotateArea(mapbox, gridArea.features)
+  const playArea = getPlayArea(grid, gridArea.features)
+  const centerArea = getCenterArea(grid, gridArea.features)
+  const rotateArea = getRotateArea(grid, gridArea.features)
 
   const sideLines = turf.multiLineString([
     [getPosition(gridArea.features[grid.side[0]], 'bottomleft'),
@@ -179,8 +178,9 @@ export const setGrid = (mapbox: Ref<Mapbox>, lnglat: LngLat, panTo: boolean) => 
   mapbox.value.isUpdating = true
   mapbox.value.settings.lng = _lng
   mapbox.value.settings.lat = _lat
+  const gridSpec = mapSpec[mapbox.value.settings.gridInfo].grid
 
-  mapbox.value.grid = getGrid(mapbox, _lng, _lat, mapbox.value.settings.size, mapbox.value.settings.angle);
+  mapbox.value.grid = getGrid(gridSpec, _lng, _lat, mapbox.value.settings.size, mapbox.value.settings.angle);
 
   (mapbox.value.map?.getSource('grid') as GeoJSONSource).setData(mapbox.value.grid.gridArea)
   if (mapbox.value.grid.playArea) {
@@ -215,8 +215,10 @@ export const createMapInstance = () => {
     zoom: mapbox.value.settings.zoom,
   })
 
+  const gridSpec = mapSpec[mapbox.value.settings.gridInfo].grid
+
   mapbox.value.grid = getGrid(
-    mapbox,
+    gridSpec,
     mapbox.value.settings.lng,
     mapbox.value.settings.lat,
     mapbox.value.settings.size,
