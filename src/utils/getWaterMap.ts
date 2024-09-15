@@ -43,7 +43,8 @@ const getWaterMapData = (mapType: MapType, settings: Settings, includeOcean: boo
 }
 
 /**
- * Get heightmap in Float32Array. Also returns ImageBitmap for debugging.
+ * Get heightmap in Float32Array. Also returns ImageBitmap for debugging.\
+ * The returned image size is increased by 200px to account for edge processing and consistency with the heightmap.
  * @param mapType default 'cs1'
  * @param isDebug default false
  * @return Promise\<Float32Array, ImageBitmap\>

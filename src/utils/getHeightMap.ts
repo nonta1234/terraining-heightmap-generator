@@ -38,7 +38,8 @@ const getHeightmapData = (mapType: MapType, settings: Settings, isDebug: boolean
 }
 
 /**
- * Get heightmap in Float32Array. Also returns ImageBitmap for debugging.
+ * Get heightmap in Float32Array. Also returns ImageBitmap for debugging.\
+ * The returned image size is increased by 200px to account for edge processing.
  * @param mapType default 'cs1'
  * @param isDebug default false
  * @param resolution for preview
