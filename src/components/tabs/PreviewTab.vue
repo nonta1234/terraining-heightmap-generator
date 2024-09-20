@@ -161,9 +161,9 @@ const onPreview = async () => {
       mapbox.value.settings.angle,
     )
     const corners = getPoint(grid)
-    console.log(`Preview - Download: ${(t1 - t0).toFixed(0)}ms`, `Processing: ${(t2 - t1).toFixed(0)}ms`, `Total: ${(t2 - t0).toFixed(0)}ms`)
+    console.log(`Preview - Download: ${(t1 - t0).toFixed(0)}ms  Processing: ${(t2 - t1).toFixed(0)}ms  Total: ${(t2 - t0).toFixed(0)}ms`)
     console.table(corners.gridCorner)
-    console.table(corners.playAreaCorner)
+    if (corners.playAreaCorner) console.table(corners.playAreaCorner)
     saveSettings(mapbox.value.settings)
   } catch (e) {
     console.error('Failed to generate preview data.:', e)
