@@ -10,9 +10,19 @@ const previewCanvas = ref<HTMLCanvasElement>()
 const previewBox = ref<HTMLElement>()
 const { initialize, previewData, setMapData, generate } = usePreview()
 const isDownloading = ref(false)
+const isProcessing = ref(false)
 const total = ref(0)
 const progress = ref(0)
-const progressMsg = computed(() => isDownloading.value ? `Downloading elevation data. ${progress.value} / ${total.value}` : '')
+const progressMsg = computed(() => {
+  let msg = ''
+  if (isProcessing.value) {
+    msg = 'Generating elevation data.'
+  } else if (isDownloading.value) {
+    msg = `Downloading elevation data. ${progress.value} / ${total.value}`
+  }
+  return msg
+})
+
 const isOverflow = computed(() => previewData.value.max - previewData.value.min > mapbox.value.settings.elevationScale)
 const effectInstance = ref<InitOutput>()
 
@@ -69,6 +79,7 @@ const onNormalizeChange = async () => {
 
 const onPreview = async () => {
   const t0 = window.performance.now()
+  let t1 = 0
   if (!isMtTokenValid()) {
     alert('MapTiler API key required.')
     return
@@ -93,9 +104,16 @@ const onPreview = async () => {
         getWaterMap(mapbox.value.settings.gridInfo, false, debugMode.value, res),
       ])
 
+      t1 = window.performance.now()
+      isProcessing.value = true
+      await nextTick()
+      await new Promise(resolve => setTimeout(resolve, 30))
       const mixedHeightmap = mixArray(heightmap, oceanMap)
-      const blurredMap = gaussianBlur(effectInstance.value, mixedHeightmap, smoothRadius, mapbox.value.settings.smoothing / 100)
-      const sharpenMap = unsharpMask(effectInstance.value, mixedHeightmap, mapbox.value.settings.sharpen / 100, sharpenRadius)
+
+      const [blurredMap, sharpenMap] = await Promise.all([
+        gaussianBlur(effectInstance.value, mixedHeightmap, smoothRadius, mapbox.value.settings.smoothing / 100),
+        unsharpMask(effectInstance.value, mixedHeightmap, mapbox.value.settings.sharpen / 100, sharpenRadius),
+      ])
 
       setMapData(mixedHeightmap, blurredMap, sharpenMap, waterMap, waterWayMap)
 
@@ -110,8 +128,15 @@ const onPreview = async () => {
         getWaterMap(mapbox.value.settings.gridInfo, true, debugMode.value, res),
       ])
 
-      const blurredMap = gaussianBlur(effectInstance.value, heightmap, smoothRadius, mapbox.value.settings.smoothing / 100)
-      const sharpenMap = unsharpMask(effectInstance.value, heightmap, mapbox.value.settings.sharpen / 100, sharpenRadius)
+      t1 = window.performance.now()
+      isProcessing.value = true
+      await nextTick()
+      await new Promise(resolve => setTimeout(resolve, 30))
+
+      const [blurredMap, sharpenMap] = await Promise.all([
+        gaussianBlur(effectInstance.value, heightmap, smoothRadius, mapbox.value.settings.smoothing / 100),
+        unsharpMask(effectInstance.value, heightmap, mapbox.value.settings.sharpen / 100, sharpenRadius),
+      ])
 
       setMapData(heightmap, blurredMap, sharpenMap, waterMap, waterWayMap)
 
@@ -123,12 +148,25 @@ const onPreview = async () => {
     }
 
     await render(mapbox.value.settings.normalizePreview)
-    const t1 = window.performance.now()
-    console.log(`${(t1 - t0).toFixed(1)} ms`)
+
+    const t2 = window.performance.now()
+    const grid = getGrid(
+      mapSpec[mapbox.value.settings.gridInfo].grid,
+      mapbox.value.settings.lng,
+      mapbox.value.settings.lat,
+      mapbox.value.settings.size,
+      mapbox.value.settings.angle,
+    )
+    const corners = getPoint(grid)
+    console.log(`Preview - Download: ${(t1 - t0).toFixed(0)}ms`, `Processing: ${(t2 - t1).toFixed(0)}ms`, `Total: ${(t2 - t0).toFixed(0)}ms`)
+    console.table(corners.gridCorner)
+    console.table(corners.playAreaCorner)
+    saveSettings(mapbox.value.settings)
   } catch (e) {
     console.error('Failed to generate preview data.:', e)
   } finally {
     isDownloading.value = false
+    isProcessing.value = false
     total.value = 0
     progress.value = 0
   }
@@ -162,7 +200,7 @@ onMounted(async () => {
     </div>
     <slot />
     <footer class="footer">
-      <div class="message">{{ progressMsg }}</div>
+      <div class="message"><span v-if="isProcessing || isDownloading">{{ progressMsg }}</span></div>
       <button class="preview-btn" @click="onPreview">Preview</button>
     </footer>
   </div>
