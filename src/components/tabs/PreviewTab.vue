@@ -7,6 +7,7 @@ const mapbox = useMapbox()
 const { isMobile } = useDevice()
 const decimal = isMobile ? 1 : 4
 const previewCanvas = ref<HTMLCanvasElement>()
+const gl = ref<WebGL2RenderingContext | null>()
 const previewBox = ref<HTMLElement>()
 const { initialize, previewData, setMapData, generate } = usePreview()
 const isDownloading = ref(false)
@@ -70,7 +71,9 @@ const render = async (normalize: boolean) => {
   const min = normalize ? previewData.value.min : mapbox.value.settings.baseLevel
   const max = normalize ? previewData.value.max : mapbox.value.settings.elevationScale + mapbox.value.settings.baseLevel
   const scale = normalize ? 1 : mapbox.value.settings.vertScale
-  renderCanvas(previewCanvas.value!, previewData.value.previewMap!, min, max, scale)
+  if (previewCanvas.value && gl.value) {
+    renderCanvas(previewCanvas.value, gl.value, previewData.value.previewMap!, min, max, scale)
+  }
 }
 
 const onNormalizeChange = async () => {
@@ -175,6 +178,10 @@ const onPreview = async () => {
 onMounted(async () => {
   await initialize()
   effectInstance.value = await effectWasm()
+  gl.value = previewCanvas.value?.getContext('webgl2', {
+    alpha: false,
+    antialias: false,
+  })
 })
 </script>
 

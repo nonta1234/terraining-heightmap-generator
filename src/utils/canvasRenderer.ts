@@ -2,16 +2,12 @@
 import { AnimationLoop, Model } from '@luma.gl/engine'
 import { Buffer, clear, Texture2D } from '@luma.gl/webgl'
 
-export const renderCanvas = (canvas: HTMLCanvasElement, data: Float32Array, min: number, max: number, scale: number) => {
-  const gl = canvas.getContext('webgl2', {
-    alpha: false,
-    antialias: false,
-  }) as WebGL2RenderingContext
+export const renderCanvas = (canvas: HTMLCanvasElement, gl: WebGL2RenderingContext, data: Float32Array, min: number, max: number, scale: number) => {
   const size = Math.sqrt(data.length)
   const textureScale = size / (size - 200)
 
-  canvas.width = size - 200
-  canvas.height = size - 200
+  gl.canvas.width = size - 200
+  gl.canvas.height = size - 200
 
   const texture = new Texture2D(gl, {
     data: data,
