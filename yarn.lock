@@ -3495,7 +3495,7 @@
   resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.4.38.tgz#552a6770098bfd556fa3e2c686c9d3b4f4cd94c2"
   integrity sha512-q0xCiLkuWWQLzVrecPb0RMsNWyxICOjPrcrwxTUEHb1fsnvni4dcuyG7RT/Ie7VPTvnjzIaWzRMUBsrqNj/hhw==
 
-"@xmldom/xmldom@^0.8.10":
+"@xmldom/xmldom@0.8.10":
   version "0.8.10"
   resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.10.tgz#a1337ca426aa61cef9fe15b5b28e340a72f6fa99"
   integrity sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==
