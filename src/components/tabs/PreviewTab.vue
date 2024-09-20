@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { isMtTokenValid } from '~/utils/isTokenValid'
 import type { Canvases } from '~/types/types'
+import effectWasm, { type InitOutput } from '~~/effects_lib/pkg'
 
 const mapbox = useMapbox()
 const { isMobile } = useDevice()
@@ -11,8 +12,9 @@ const { initialize, previewData, setMapData, generate } = usePreview()
 const isDownloading = ref(false)
 const total = ref(0)
 const progress = ref(0)
-const progressMsg = computed(() => (isDownloading.value ? 'Downloading elevation data. ' : '') + `(${progress.value} / ${total.value})`)
+const progressMsg = computed(() => isDownloading.value ? `Downloading elevation data. ${progress.value} / ${total.value}` : '')
 const isOverflow = computed(() => previewData.value.max - previewData.value.min > mapbox.value.settings.elevationScale)
+const effectInstance = ref<InitOutput>()
 
 const scaleXY = computed(() => mapbox.value.settings.size * 100000 / (mapbox.value.settings.resolution - 1))
 const scaleZ = computed(() => mapbox.value.settings.elevationScale * 100 / 512)
@@ -66,6 +68,7 @@ const onNormalizeChange = async () => {
 }
 
 const onPreview = async () => {
+  const t0 = window.performance.now()
   if (!isMtTokenValid()) {
     alert('MapTiler API key required.')
     return
@@ -76,18 +79,28 @@ const onPreview = async () => {
   }
 
   try {
-    const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
-    isDownloading.value = true
     const { debugMode } = useDebug()
+    isDownloading.value = true
     const res = mapbox.value.settings.originalPreview ? mapbox.value.settings.resolution : Math.min(getResolution(), mapbox.value.settings.resolution)
+    const resScale = res / mapbox.value.settings.resolution
+    const smoothRadius = mapbox.value.settings.smoothRadius * resScale
+    const sharpenRadius = mapbox.value.settings.sharpenRadius * resScale
+
     if (mapbox.value.settings.actualSeafloor) {
       const [{ heightmap }, { heightmap: oceanMap }, { waterMap, waterWayMap, waterMapImage, waterWayMapImage }] = await Promise.all([
         getHeightmap(mapbox.value.settings.gridInfo, debugMode.value, res),
         getHeightmap('ocean', false, res),
         getWaterMap(mapbox.value.settings.gridInfo, false, debugMode.value, res),
       ])
-      setMapData(heightmap, oceanMap, waterMap, waterWayMap)
+
+      const mixedHeightmap = mixArray(heightmap, oceanMap)
+      const blurredMap = gaussianBlur(effectInstance.value, mixedHeightmap, smoothRadius, mapbox.value.settings.smoothing / 100)
+      const sharpenMap = unsharpMask(effectInstance.value, mixedHeightmap, mapbox.value.settings.sharpen / 100, sharpenRadius)
+
+      setMapData(mixedHeightmap, blurredMap, sharpenMap, waterMap, waterWayMap)
+
       if (debugMode.value) {
+        const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
         setImageBitmap(osWaterCanvas, waterMapImage!)
         setImageBitmap(osWaterWayCanvas, waterWayMapImage!)
       }
@@ -96,16 +109,24 @@ const onPreview = async () => {
         getHeightmap(mapbox.value.settings.gridInfo, debugMode.value, res),
         getWaterMap(mapbox.value.settings.gridInfo, true, debugMode.value, res),
       ])
-      const oceanMap = new Float32Array(res * res)
-      setMapData(heightmap, oceanMap, waterMap, waterWayMap)
+
+      const blurredMap = gaussianBlur(effectInstance.value, heightmap, smoothRadius, mapbox.value.settings.smoothing / 100)
+      const sharpenMap = unsharpMask(effectInstance.value, heightmap, mapbox.value.settings.sharpen / 100, sharpenRadius)
+
+      setMapData(heightmap, blurredMap, sharpenMap, waterMap, waterWayMap)
+
       if (debugMode.value) {
+        const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
         setImageBitmap(osWaterCanvas, waterMapImage!)
         setImageBitmap(osWaterWayCanvas, waterWayMapImage!)
       }
     }
+
     await render(mapbox.value.settings.normalizePreview)
-  } catch {
-    console.error('Failed to generate preview data.')
+    const t1 = window.performance.now()
+    console.log(`${(t1 - t0).toFixed(1)} ms`)
+  } catch (e) {
+    console.error('Failed to generate preview data.:', e)
   } finally {
     isDownloading.value = false
     total.value = 0
@@ -115,6 +136,7 @@ const onPreview = async () => {
 
 onMounted(async () => {
   await initialize()
+  effectInstance.value = await effectWasm()
 })
 </script>
 
@@ -140,7 +162,7 @@ onMounted(async () => {
     </div>
     <slot />
     <footer class="footer">
-      <div :class="['message', { 'visibility': !isDownloading }]">{{ progressMsg }}</div>
+      <div class="message">{{ progressMsg }}</div>
       <button class="preview-btn" @click="onPreview">Preview</button>
     </footer>
   </div>
@@ -223,14 +245,16 @@ onMounted(async () => {
 }
 
 .message {
+  width: 100%;
   color: $textAlt;
 }
 
 .visibility {
-  visibility: hidden;
+  display: none;
 }
 
 .preview-btn {
+  flex-shrink: 0;
   @include common-button;
 }
 </style>
