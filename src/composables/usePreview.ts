@@ -28,7 +28,13 @@ export const usePreview = () => {
     previewData.value.controller = new Heightmap()
   }
 
-  const setMapData = (previewData: Ref<T>) => (heightmap: Float32Array, oceanMap: Float32Array, waterMap: Float32Array, waterWayMap: Float32Array) => {
+  const setMapData = (previewData: Ref<T>) => (
+    heightmap: Float32Array,
+    blurredMap: Float32Array,
+    sharpenMap: Float32Array,
+    waterMap: Float32Array,
+    waterWayMap: Float32Array,
+  ) => {
     if (!(previewData.value.instance && previewData.value.controller)) {
       throw new Error('Preview: Initialization required.')
     }
@@ -46,12 +52,19 @@ export const usePreview = () => {
     )
     heightmapData.set(heightmap)
 
-    const oceanMapData = new Float32Array(
+    const blurredMapData = new Float32Array(
       previewData.value.instance!.memory.buffer,
-      previewData.value.controller!.pointer_to_oceanmap,
+      previewData.value.controller!.pointer_to_blurredmap,
       previewData.value.length,
     )
-    oceanMapData.set(oceanMap)
+    blurredMapData.set(blurredMap)
+
+    const sharpenMapData = new Float32Array(
+      previewData.value.instance!.memory.buffer,
+      previewData.value.controller!.pointer_to_sharpenmap,
+      previewData.value.length,
+    )
+    sharpenMapData.set(sharpenMap)
 
     const waterMapData = new Float32Array(
       previewData.value.instance!.memory.buffer,
@@ -76,17 +89,20 @@ export const usePreview = () => {
    */
   const generate = (previewData: Ref<T>) => async () => {
     if (previewData.value.hasData) {
+      const { settings } = useMapbox().value
+      previewData.value.controller!.combine_heightmaps(
+        settings.depth,
+        settings.streamDepth,
+        settings.smthThres,
+        settings.smthFade,
+        settings.shrpThres,
+        settings.shrpFade,
+      )
       const resultData = new Float32Array(
         previewData.value.instance!.memory.buffer,
         previewData.value.controller!.pointer_to_result,
         previewData.value.length,
       )
-      const { settings } = useMapbox().value
-      if (settings.actualSeafloor) {
-        previewData.value.controller!.combine_heightmaps(settings.depth, settings.streamDepth)
-      } else {
-        previewData.value.controller!.combine_heightmaps_with_littoral(settings.depth, settings.streamDepth)
-      }
       const { min, max } = getMinMaxHeight(resultData, 100)
       previewData.value.min = min
       previewData.value.max = max
