@@ -8,48 +8,33 @@ export const transposeArray = (arr: Array<number>, srcRows: number, srcCols: num
   return transposed
 }
 
-export const remToPx = (rem: number) => {
-  const fontSize = getComputedStyle(document.documentElement).fontSize
-  return rem * parseFloat(fontSize)
+export const extractArray = (array: Float32Array, startX: number, startY: number, cropSize: number) => {
+  const imageSize = Math.sqrt(array.length)
+  const result = new Float32Array(cropSize * cropSize)
+  for (let y = 0; y < cropSize; y++) {
+    const originalStartIndex = (startY + y) * imageSize + startX
+    const cropStartIndex = y * cropSize
+    result.set(array.subarray(originalStartIndex, originalStartIndex + cropSize), cropStartIndex)
+  }
+  return result
 }
 
 /**
- * Converts a feet and inches string to meters.
- * @param feetString A string in feet and inches format (e.g., "16'3\"")
- * @returns The equivalent value in meters
+ * This is for blending heightmaps and oceanmaps.\
+ * In Oceanmap, 0m is defined as land, so the 0m area in the heightmap is replaced by oceanmap.\
+ * For heightmaps below 0m, areas below sea level are also considered.
+ * @param heightmap
+ * @param oceanmap
+ * @returns Float32Array
  */
-function feetToMeters(feetString: string): number {
-  const match = feetString.match(/(\d+)'(\d+)"/)
-  if (match) {
-    const feet = parseInt(match[1], 10)
-    const inches = parseInt(match[2], 10)
-    const meters = (feet * 0.3048) + (inches * 0.0254)
-    return meters
-  } else {
-    return 5
-  }
-}
+export const mixArray = (heightmap: Float32Array, oceanmap: Float32Array) => {
+  const length = heightmap.length
+  const result = new Float32Array(length)
 
-/**
-* Determines if the value is in meters or feet and converts to meters if in feet.
-* @param value A number (meters) or a string (feet and inches)
-* @returns The value in meters
-*/
-export const convertToMeters = (value: string | number) => {
-  if (typeof value === 'number') {
-    // Return the value as-is if it's already in meters
-    return value
-  } else if (typeof value === 'string') {
-    // Convert feet and inches to meters if the value is a string
-    try {
-      return feetToMeters(value)
-    } catch (error) {
-      console.error((error as Error).message)
-      return 5 // Return default value if an error occurs
-    }
-  } else {
-    throw new Error('Invalid value type')
+  for (let i = 0; i < length; i++) {
+    result[i] = heightmap[i] === 0 ? oceanmap[i] : heightmap[i]
   }
+  return result
 }
 
 export const adjustElevation = (maxHeight: number) => {
