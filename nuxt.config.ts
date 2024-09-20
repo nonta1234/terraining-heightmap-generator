@@ -87,13 +87,13 @@ export default defineNuxtConfig({
       nodePolyfills({
         protocolImports: true,
       }),
-      wasmpack(['./png_lib', './heightmap_lib']),
+      wasmpack(['./png_lib', './heightmap_lib', './effects_lib']),
     ],
     worker: {
       format: 'es',
       plugins: () => [
-        wasm(), // Worker内でもWasmをサポート
-        topLevelAwait(), // Worker内でのtop-level awaitをサポート
+        wasm(),
+        topLevelAwait(),
       ],
     },
     optimizeDeps: {
