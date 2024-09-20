@@ -54,19 +54,39 @@ function decodeData(arr: Uint8ClampedArray) {
   return elevs
 }
 
-function getWaterLineTree(tile: VectorTile) {
-  const tree = new RBush<BBoxItem>()
+function getWaterTree(tile: VectorTile) {
+  const polygonTree = new RBush<BBoxItem>()
+  const lineTree = new RBush<BBoxItem>()
+  const waterPolygons: BBoxItem[] = []
   const waterLines: BBoxItem[] = []
-  let index = 0
 
   if (tile.layers.water) {
     for (let i = 0; i < tile.layers.water.length; i++) {
       const feature = tile.layers.water.feature(i)
-      const geo = feature.loadGeometry()
+      const polygonGeo = feature.asPolygons() as Point[][][]
+      const lineGeo = feature.loadGeometry()
+      const polygonArray = polygonGeo.map(polygon => polygon.map(line => line.map(point => [point.x, point.y] as turf.helpers.Position)))
 
-      for (let m = 0; m < geo.length; m++) {
-        for (let n = 0; n < geo[m].length - 1; n++) {
-          const line = turf.lineString([[geo[m][n].x, geo[m][n].y], [geo[m][n + 1].x, geo[m][n + 1].y]])
+      for (let m = 0; m < polygonGeo.length; m++) {
+        for (let n = 0; n < polygonGeo[m].length; n++) {
+          const polygon = turf.polygon([polygonArray[m][n]])
+          const bbox = turf.bbox(polygon)
+          const item: BBoxItem = {
+            minX: bbox[0],
+            minY: bbox[1],
+            maxX: bbox[2],
+            maxY: bbox[3],
+            geom: polygon.geometry,
+            id: (feature.properties.id ?? 0) as number,
+          }
+          waterPolygons.push(item)
+        }
+      }
+
+      let index = 0
+      for (let m = 0; m < lineGeo.length; m++) {
+        for (let n = 0; n < lineGeo[m].length - 1; n++) {
+          const line = turf.lineString([[lineGeo[m][n].x, lineGeo[m][n].y], [lineGeo[m][n + 1].x, lineGeo[m][n + 1].y]])
           const bbox = turf.bbox(line)
           const item: BBoxItem = {
             minX: bbox[0],
@@ -81,9 +101,11 @@ function getWaterLineTree(tile: VectorTile) {
       }
       index++
     }
-    tree.load(waterLines)
+
+    polygonTree.load(waterPolygons)
+    lineTree.load(waterLines)
   }
-  return tree
+  return { polygonTree, lineTree }
 }
 
 class GetWaterMapWorker {
@@ -146,7 +168,7 @@ class GetWaterMapWorker {
     cornerDst: OffscreenCanvasRenderingContext2D,
     id: number,
     points: Point[],
-    tree: RBush<BBoxItem>,
+    tree: { polygonTree: RBush<BBoxItem>, lineTree: RBush<BBoxItem> },
   ) => {
     if (!isEqual(points[0], points.at(-1)!)) {
       points.push(points[0])
@@ -156,24 +178,36 @@ class GetWaterMapWorker {
         const lineSegment = turf.lineString([[points[i].x, points[i].y], [points[i + 1].x, points[i + 1].y]])
         const bbox = turf.bbox(lineSegment)
 
-        // narrow down waterways that may intersect by spatial index
-        const potentialWaterLines = tree.search({
+        const potentialPolygons = tree.polygonTree.search({
+          minX: bbox[0],
+          minY: bbox[1],
+          maxX: bbox[2],
+          maxY: bbox[3],
+        })
+        const potentialLines = tree.lineTree.search({
           minX: bbox[0],
           minY: bbox[1],
           maxX: bbox[2],
           maxY: bbox[3],
         })
 
-        // determine whether different features have the same line segment
+        // Skip if the line segment is included in another Polygon or is the same as a line segment in another Polygon.
         let shouldSkip = false
-        for (const waterLine of potentialWaterLines) {
-          if (turf.booleanEqual(lineSegment.geometry, waterLine.geom) && (id !== waterLine.id)) {
+        for (const waterPolygon of potentialPolygons) {
+          if (turf.booleanContains(waterPolygon.geom, lineSegment.geometry) && (id !== waterPolygon.id)) {
             shouldSkip = true
             break
           }
         }
+        if (!shouldSkip) {
+          for (const waterLine of potentialLines) {
+            if (turf.booleanEqual(lineSegment.geometry, waterLine.geom) && (id !== waterLine.id)) {
+              shouldSkip = true
+              break
+            }
+          }
+        }
 
-        // if there is no intersecting waterway, process the drawing
         if (!shouldSkip) {
           this.drawPoint(cornerSrc, cornerDst, new Point(points[i].x, points[i].y))
           this.drawPoint(cornerSrc, cornerDst, new Point(points[i + 1].x, points[i + 1].y))
@@ -315,7 +349,7 @@ class GetWaterMapWorker {
             this.waterWayCtx.rect(-2, -2, pixelsPerTile + 4, pixelsPerTile + 4)
             this.waterWayCtx.clip()
 
-            const waterLines = getWaterLineTree(tile)
+            const waterTree = getWaterTree(tile)
 
             // draw start
             if (tile.layers.water) {
@@ -347,7 +381,7 @@ class GetWaterMapWorker {
                         const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
                         path.push(point)
                       }
-                      this.drawSlope(this.littCtx, this.waterSideCtx, this.littCornerCtx, this.waterSideCtx, _id, path, waterLines)
+                      this.drawSlope(this.littCtx, this.waterSideCtx, this.littCornerCtx, this.waterSideCtx, _id, path, waterTree)
                     }
                   }
                 } else {
@@ -359,7 +393,7 @@ class GetWaterMapWorker {
                         const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
                         path.push(point)
                       }
-                      this.drawSlope(this.ripaCtx, this.waterSideCtx, this.ripaCornerCtx, this.waterSideCtx, _id, path, waterLines)
+                      this.drawSlope(this.ripaCtx, this.waterSideCtx, this.ripaCornerCtx, this.waterSideCtx, _id, path, waterTree)
                     }
                   }
                 }
