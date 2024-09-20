@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "wasm:png": "wasm-pack build png_lib --target web",
-    "wasm:height": "wasm-pack build heightmap_lib --target web"
+    "wasm:height": "wasm-pack build heightmap_lib --target web",
+    "wasm:effects": "wasm-pack build effects_lib --target web"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
@@ -29,7 +30,7 @@
     "@types/overlayscrollbars": "^1.12.3",
     "@types/pngjs": "^6.0.5",
     "@types/rbush": "^3.0.4",
-    "@xmldom/xmldom": "^0.8.10",
+    "@xmldom/xmldom": "0.8.10",
     "canvg": "^4.0.2",
     "eslint": "^9.7.0",
     "geojson2osm": "^0.0.7",
