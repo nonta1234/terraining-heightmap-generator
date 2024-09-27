@@ -38,6 +38,10 @@ useListen('tile:progress', () => {
   progress.value += 1
 })
 
+const sleep = async (time: number) => {
+  await new Promise(resolve => setTimeout(resolve, time))
+}
+
 const getResolution = () => {
   const rect = previewBox.value?.getBoundingClientRect()
   let res = Math.floor(rect!.width * window.devicePixelRatio)
@@ -110,15 +114,21 @@ const onPreview = async () => {
       t1 = window.performance.now()
       isProcessing.value = true
       await nextTick()
-      await new Promise(resolve => setTimeout(resolve, 30))
+      await sleep(30)
       const mixedHeightmap = mixArray(heightmap, oceanMap)
 
       const [blurredMap, sharpenMap] = await Promise.all([
         gaussianBlur(effectInstance.value, mixedHeightmap, smoothRadius, mapbox.value.settings.smoothing / 100),
         unsharpMask(effectInstance.value, mixedHeightmap, mapbox.value.settings.sharpen / 100, sharpenRadius),
       ])
+      const nSharpenMap = await noise(
+        effectInstance.value,
+        sharpenMap,
+        mapbox.value.settings.noise,
+        mapbox.value.settings.noiseRange / 100,
+      )
 
-      setMapData(mixedHeightmap, blurredMap, sharpenMap, waterMap, waterWayMap)
+      setMapData(mixedHeightmap, blurredMap, nSharpenMap, waterMap, waterWayMap)
 
       if (debugMode.value) {
         const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
@@ -134,14 +144,20 @@ const onPreview = async () => {
       t1 = window.performance.now()
       isProcessing.value = true
       await nextTick()
-      await new Promise(resolve => setTimeout(resolve, 30))
+      await sleep(30)
 
       const [blurredMap, sharpenMap] = await Promise.all([
         gaussianBlur(effectInstance.value, heightmap, smoothRadius, mapbox.value.settings.smoothing / 100),
         unsharpMask(effectInstance.value, heightmap, mapbox.value.settings.sharpen / 100, sharpenRadius),
       ])
+      const nSharpenMap = await noise(
+        effectInstance.value,
+        sharpenMap,
+        mapbox.value.settings.noise,
+        mapbox.value.settings.noiseRange / 100,
+      )
 
-      setMapData(heightmap, blurredMap, sharpenMap, waterMap, waterWayMap)
+      setMapData(heightmap, blurredMap, nSharpenMap, waterMap, waterWayMap)
 
       if (debugMode.value) {
         const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
