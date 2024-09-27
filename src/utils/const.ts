@@ -169,6 +169,7 @@ export const initialValue: Settings = {
   interpolation: 'bicubic',
   noise: 0,
   noiseGrid: 10,
+  noiseRange: 0,
   displayEffectArea: false,
   applyEffectAmount: false,
   normalizePreview: false,

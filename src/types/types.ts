@@ -120,6 +120,7 @@ export const settingsSchema = z.object({
   interpolation: interpolationSchema,
   noise: z.number(),
   noiseGrid: z.number(),
+  noiseRange: z.number(),
   displayEffectArea: z.boolean(),
   applyEffectAmount: z.boolean(),
   normalizePreview: z.boolean(),
