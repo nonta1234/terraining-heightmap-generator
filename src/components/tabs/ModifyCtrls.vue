@@ -78,10 +78,10 @@ const toggleDisplayEffect = () => {
     <NumberInput id="sharpen-threshold" v-model="mapbox.settings.shrpThres" class="gap" :max="10000" :min="-10000" :step="10" unit="m" />
     <label for="sharpen-fade">Fade&#8202;:</label>
     <NumberInput id="sharpen-fade" v-model="mapbox.settings.shrpFade" :max="1000" :min="0" :step="10" unit="m" />
-    <label for="noise-value">Noise Value&#8202;:</label>
-    <NumberInput id="noise-value" v-model="mapbox.settings.noise" class="gap" :max="100" :min="0" :step="1" unit="m" />
-    <label for="noise-detail">Noise Detail&#8202;:</label>
-    <NumberInput id="noise-detail" v-model="mapbox.settings.noiseGrid" :max="1000" :min="1" :step="1" />
+    <label for="noise-value">Noise&#8202;:</label>
+    <NumberInput id="noise-value" v-model="mapbox.settings.noise" class="gap" :max="1000" :min="0" :step="1" unit="m" />
+    <label for="noise-range">Range&#8202;:</label>
+    <NumberInput id="noise-range" v-model="mapbox.settings.noiseRange" :max="100" :min="0" :step="1" unit="%" />
     <hr>
     <label class="reflect-label" for="reflect">Reflect the effect amount on the map&#8202;:</label>
     <ToggleSwitch v-model="mapbox.settings.applyEffectAmount" :name="'reflect'" @change="toggleDisplayEffect" />
@@ -115,7 +115,6 @@ const toggleDisplayEffect = () => {
 
 hr {
   background-color: $borderColor;
-  margin: .125rem 0;
   height: 2px;
   border: none;
   grid-column: 1 / 5;
