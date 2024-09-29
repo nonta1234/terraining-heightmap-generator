@@ -30,7 +30,7 @@ watch([ratio, vScale], () => {
 
 const onMapTypeChange = async () => {
   await nextTick()
-  if (mapbox.value.settings.gridInfo !== 'cs1' && mapbox.value.settings.accessToken === '') {
+  if (mapbox.value.settings.gridInfo !== 'cs1' && mapbox.value.settings.accessTokenMT === '') {
     alert(needToken(mapbox.value.settings.gridInfo))
   }
   if (mapbox.value.settings.gridInfo !== 'ue') {
