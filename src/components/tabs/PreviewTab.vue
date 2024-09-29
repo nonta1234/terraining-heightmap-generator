@@ -100,6 +100,7 @@ const onPreview = async () => {
     const { debugMode } = useDebug()
     isDownloading.value = true
     const res = mapbox.value.settings.originalPreview ? mapbox.value.settings.resolution : Math.min(getResolution(), mapbox.value.settings.resolution)
+    const pixelDistance = mapbox.value.settings.size / res
     const resScale = res / mapbox.value.settings.resolution
     const smoothRadius = mapbox.value.settings.smoothRadius * resScale
     const sharpenRadius = mapbox.value.settings.sharpenRadius * resScale
@@ -121,14 +122,17 @@ const onPreview = async () => {
         gaussianBlur(effectInstance.value, mixedHeightmap, smoothRadius, mapbox.value.settings.smoothing / 100),
         unsharpMask(effectInstance.value, mixedHeightmap, mapbox.value.settings.sharpen / 100, sharpenRadius),
       ])
-      const nSharpenMap = await noise(
-        effectInstance.value,
-        sharpenMap,
-        mapbox.value.settings.noise,
-        mapbox.value.settings.noiseRange / 100,
-      )
+      const noisedMap = (mapbox.value.settings.noise !== 0 || mapbox.value.settings.noiseRange !== 0)
+        ? await noise(
+          effectInstance.value,
+          sharpenMap,
+          mapbox.value.settings.noise,
+          mapbox.value.settings.noiseRange / 100,
+          pixelDistance,
+        )
+        : new Float32Array(heightmap.length)
 
-      setMapData(mixedHeightmap, blurredMap, nSharpenMap, waterMap, waterWayMap)
+      setMapData(heightmap, blurredMap, sharpenMap, noisedMap, waterMap, waterWayMap)
 
       if (debugMode.value) {
         const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
@@ -150,14 +154,17 @@ const onPreview = async () => {
         gaussianBlur(effectInstance.value, heightmap, smoothRadius, mapbox.value.settings.smoothing / 100),
         unsharpMask(effectInstance.value, heightmap, mapbox.value.settings.sharpen / 100, sharpenRadius),
       ])
-      const nSharpenMap = await noise(
-        effectInstance.value,
-        sharpenMap,
-        mapbox.value.settings.noise,
-        mapbox.value.settings.noiseRange / 100,
-      )
+      const noisedMap = (mapbox.value.settings.noise !== 0 || mapbox.value.settings.noiseRange !== 0)
+        ? await noise(
+          effectInstance.value,
+          sharpenMap,
+          mapbox.value.settings.noise,
+          mapbox.value.settings.noiseRange / 100,
+          pixelDistance,
+        )
+        : new Float32Array(heightmap.length)
 
-      setMapData(heightmap, blurredMap, nSharpenMap, waterMap, waterWayMap)
+      setMapData(heightmap, blurredMap, sharpenMap, noisedMap, waterMap, waterWayMap)
 
       if (debugMode.value) {
         const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
