@@ -32,6 +32,7 @@ export const usePreview = () => {
     heightmap: Float32Array,
     blurredMap: Float32Array,
     sharpenMap: Float32Array,
+    noisedMap: Float32Array,
     waterMap: Float32Array,
     waterWayMap: Float32Array,
   ) => {
@@ -65,6 +66,13 @@ export const usePreview = () => {
       previewData.value.length,
     )
     sharpenMapData.set(sharpenMap)
+
+    const noisedMapData = new Float32Array(
+      previewData.value.instance!.memory.buffer,
+      previewData.value.controller!.pointer_to_noisedmap,
+      previewData.value.length,
+    )
+    noisedMapData.set(noisedMap)
 
     const waterMapData = new Float32Array(
       previewData.value.instance!.memory.buffer,
