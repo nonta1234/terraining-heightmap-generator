@@ -77,7 +77,7 @@ export const unsharpMask = (instance: InitOutput | undefined, data: Float32Array
   })
 }
 
-export const noise = (instance: InitOutput | undefined, data: Float32Array, amount: number, range: number): Promise<Float32Array> => {
+export const noise = (instance: InitOutput | undefined, data: Float32Array, amount: number, range: number, pixelDistance: number): Promise<Float32Array> => {
   return new Promise((resolve, reject) => {
     if (!instance) {
       return reject(new Error('noise: Initialization required.'))
@@ -95,7 +95,7 @@ export const noise = (instance: InitOutput | undefined, data: Float32Array, amou
       )
       input.set(data)
 
-      gen_noise(inputPtr, outputPtr, data.length, amount, range)
+      gen_noise(inputPtr, outputPtr, data.length, amount, range, pixelDistance)
 
       const output = new Float32Array(
         instance.memory.buffer,
