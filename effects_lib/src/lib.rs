@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
+use std::sync::{Arc, Mutex};
 use rustfft::{num_complex::Complex, FftPlanner};
-use rand::Rng;
+use rand::{rngs::SmallRng, Rng, SeedableRng};
+use rayon::prelude::*;
 // use web_sys::console;
 
 #[wasm_bindgen]
@@ -34,25 +36,32 @@ pub fn gaussian_blur(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, r
     let fft = planner.plan_fft_forward(length);
     let ifft = planner.plan_fft_inverse(length);
 
-    let mut input_complex = vec![Complex::new(0.0, 0.0); length];
-    for i in 0..length {
-        input_complex[i] = Complex::new(input_slice[i], 0.0);
-    }
+    let mut input_complex: Vec<Complex<f32>> = (0..length)
+        .into_par_iter()
+        .map(|i| Complex::new(input_slice[i], 0.0))
+        .collect();
     fft.process(&mut input_complex);
 
     let mut kernel = generate_gaussian_kernel(size, radius);
     fft.process(&mut kernel);
 
-    for i in 0..length {
-        input_complex[i] *= kernel[i];
-    }
+    input_complex.par_iter_mut()
+        .zip(kernel.par_iter())
+        .for_each(|(i, &k)| {
+            *i *= k;
+        });
+
     ifft.process(&mut input_complex);
     ifft_shift_2d(&mut input_complex, size);
 
-    for i in 0..length {
-        let blurred = input_complex[i].re / (length as f32);
-        output_slice[i] = (1.0 - blend_factor) * input_slice[i] + blend_factor * blurred;
-    }
+    let len = length as f32; 
+
+    output_slice.par_iter_mut()
+        .enumerate()
+        .for_each(|(i, output)| {
+            let blurred = input_complex[i].re / len;
+            *output = (1.0 - blend_factor) * input_slice[i] + blend_factor * blurred;
+        });
     // debug_print_data("Output", output_ptr, size, size);
 }
 
@@ -62,63 +71,82 @@ pub fn unsharp_mask(input_ptr: *mut f32, blurred_ptr: *mut f32, output_ptr: *mut
     let blurred_slice = unsafe { std::slice::from_raw_parts(blurred_ptr, length) };
     let output_slice = unsafe { std::slice::from_raw_parts_mut(output_ptr, length) };
 
-    for i in 0..length {
-        let original = input_slice[i];
-        let blurred = blurred_slice[i];
-        let difference = original - blurred;
-        let sharpened = original + amount * difference;
-        output_slice[i] = sharpened;
-    }
+    output_slice.par_iter_mut()
+        .enumerate()
+        .for_each(|(i, output)| {
+            let original = input_slice[i];
+            let blurred = blurred_slice[i];
+            let difference = original - blurred;
+            let sharpened = original + amount * difference;
+            *output = sharpened;
+        });
 }
 
 #[wasm_bindgen]
-pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f32, range: f32) {
+pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f32, range: f32, pixel_distance: f32) {
     let size = (length as f32).sqrt() as usize;
     let input_slice = unsafe { std::slice::from_raw_parts(input_ptr, length) };
     let output_slice = unsafe { std::slice::from_raw_parts_mut(output_ptr, length) };
-
-    let mut rng = rand::thread_rng();
+    // let mut rng = rand::thread_rng();
+    let rng = Arc::new(Mutex::new(SmallRng::from_entropy()));
 
     if range == 1.0 {
-        for i in 0..length {
-            output_slice[i] = input_slice[i] + rng.gen_range(-1.0, 1.0) * amount;
-        }
+        output_slice.par_iter_mut()
+            .for_each(|output_value| {
+                let mut thread_rng = rng.lock().unwrap();
+                *output_value = thread_rng.gen_range(0.0, 1.0) * amount;
+            });
+    } else if range == 0.0 {
+        output_slice.par_iter_mut()
+            .for_each(|output_value| {
+                *output_value = 0.0;
+            });
     } else {
+        let tri = calculate_tri(&input_slice, size);
+        let tri_calc = calculate_tri_limited_range(&input_slice, size, 100);
+
+        let mut sorted_tri = tri_calc.clone();
+        sorted_tri.par_sort_by(|a, b| a.partial_cmp(b).unwrap());
+        let index = ((1.0 - range) * (sorted_tri.len() as f32)).round() as usize;
+        let index_value = sorted_tri[index];
+
+        let mut mask: Vec<Complex<f32>> = tri
+            .par_iter()
+            .map(|&v| if v >= index_value { Complex::new(1.0, 0.0) } else { Complex::new(0.0, 0.0) })
+            .collect();
+
+        // blur mask
         let mut planner = FftPlanner::new();
         let fft = planner.plan_fft_forward(length);
         let ifft = planner.plan_fft_inverse(length);
 
-        let mut input_complex = vec![Complex::new(0.0, 0.0); length];
-        for i in 0..length {
-            input_complex[i] = Complex::new(input_slice[i], 0.0);
-        }
-        fft.process(&mut input_complex);
-        fft_shift_2d(&mut input_complex, size);
+        fft.process(&mut mask);
 
-        let kernel = generate_high_pass_kernel(size, range);
-        let mut highpass_complex = vec![Complex::new(0.0, 0.0); length];
+        // Blur so that the slope of the noise boundary does not exceed 45 degrees.
+        let mut kernel = generate_gaussian_kernel(size, (amount / pixel_distance).max(1.0));
+        fft.process(&mut kernel);
 
-        for i in 0..length {
-            highpass_complex[i] = input_complex[i] * kernel[i];
-        }
-        ifft_shift_2d(&mut highpass_complex, size);
-        ifft.process(&mut highpass_complex);
+        mask.par_iter_mut()
+            .zip(kernel.par_iter())
+            .for_each(|(m, &k)| {
+                *m *= k;
+            });
 
-        let mut highpass_data = vec![0f32; length];
+        ifft.process(&mut mask);
+        ifft_shift_2d(&mut mask, size);
 
-        for i in 0..length {
-            let value = highpass_complex[i].re / (length as f32);
-            highpass_data[i] = value;
-        }
+        let len = length as f32;
 
-        let alpha = binary_mapping(highpass_data, 0.5);
-
-        for i in 0..length {
-            output_slice[i] = input_slice[i] + rng.gen_range(-1.0, 1.0) * amount * alpha[i];
-        }
+        output_slice.par_iter_mut()
+            .zip(mask.par_iter())
+            .for_each(|(output_value, &mask)| {
+                let mut thread_rng = rng.lock().unwrap();
+                *output_value = thread_rng.gen_range(0.0, 1.0) * amount * (mask.re / len);
+            });
     }
 }
 
+/*
 fn fft_shift_2d(data: &mut [Complex<f32>], size: usize) {
     let mid = size / 2;
     let cor = size % 2;
@@ -136,6 +164,7 @@ fn fft_shift_2d(data: &mut [Complex<f32>], size: usize) {
         }
     }
 }
+*/
 
 fn ifft_shift_2d(data: &mut [Complex<f32>], size: usize) {
     let mid = size / 2;
@@ -170,72 +199,79 @@ fn generate_gaussian_kernel(size: usize, radius: f32) -> Vec<Complex<f32>> {
     }
 
     let sum: f32 = kernel.iter().map(|c| c.re).sum();
-    for i in 0..length {
-        kernel[i] /= Complex::new(sum, 0.0);
-    }
+
+    kernel.par_iter_mut().for_each(|k| {
+        *k /= Complex::new(sum, 0.0);
+    });
 
     kernel
 }
 
-fn generate_high_pass_kernel(size: usize, cutoff: f32) -> Vec<Complex<f32>> {
-    let length = size * size;
-    let mut kernel = vec![Complex::new(0.0, 0.0); length];
-    let center = size / 2;
-    let max_freq = (size as f32) / 2.0;
-    let octaves = max_freq.log2();
-    let freq = 2f32.powf(cutoff * octaves);
-    let radius = (freq / max_freq) * (center as f32);
+// Calculation of Terrain Ruggedness Index considering edge parts
+fn calculate_tri(dem: &[f32], size: usize) -> Vec<f32> {
+    let mut tri = vec![0.0; dem.len()];
 
-    if radius <= 1.0 {
-        kernel[center * size + center] = Complex::new(1.0, 0.0);
-        return kernel;
-    }
+    tri.par_iter_mut().enumerate().for_each(|(i, tri_value)| {
+        let row = i / size;
+        let col = i % size;
+        let mut sum = 0.0;
+        let mut count = 0;
 
-    for y in 0..size {
-        let dy = (y as i32 - center as i32) as f32;
-        for x in 0..size {
-            let dx = (x as i32 - center as i32) as f32;
-            let distance = (dx * dx + dy * dy).sqrt();
+        for dy in -1..=1 {
+            for dx in -1..=1 {
+                if dx == 0 && dy == 0 {
+                    continue;
+                }
 
-            let value = if distance <= radius {
-                0.0
-            } else {
-                1.0
-            };
+                let neighbor_row = row as i32 + dy;
+                let neighbor_col = col as i32 + dx;
 
-            kernel[y * size + x] = Complex::new(value, 0.0);
+                if neighbor_row >= 0 && neighbor_row < size as i32 &&
+                   neighbor_col >= 0 && neighbor_col < size as i32 {
+                    let neighbor_idx = (neighbor_row * size as i32 + neighbor_col) as usize;
+                    let elevation_diff = (dem[i] - dem[neighbor_idx]).abs();
+                    sum += elevation_diff;
+                    count += 1;
+                }
+            }
         }
-    }
 
-    let sum: f32 = kernel.iter().map(|c| c.re).sum();
-    for i in 0..length {
-        kernel[i] /= Complex::new(sum, 0.0);
-    }
+        *tri_value = sum / count as f32;
+    });
 
-    kernel
+    tri
 }
 
-fn binary_mapping(data: Vec<f32>, threshold: f32) -> Vec<f32> {
-    let min_val = data.iter().cloned().fold(f32::INFINITY, f32::min);
-    let max_val = data.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
+fn calculate_tri_limited_range(dem: &[f32], size: usize, padding: usize) -> Vec<f32> {
+    let limited_size = size - 2 * padding;
+    let mut tri = vec![0.0; limited_size * limited_size];
 
-    if (max_val - min_val).abs() < f32::EPSILON {
-        return vec![if data[0] > threshold { 1.0 } else { 0.0 }; data.len()];
-    }
+    tri.par_iter_mut().enumerate().for_each(|(i, tri_value)| {
+        let limited_row = i / limited_size;
+        let limited_col = i % limited_size;
+        let row = limited_row + padding;
+        let col = limited_col + padding;
+        let center_idx = row * size + col;
+        let mut sum = 0.0;
 
-    let normalized_data: Vec<f32> = data.iter().map(|&val| {
-        (val - min_val) / (max_val - min_val)
-    }).collect();
+        for dy in -1..=1 {
+            for dx in -1..=1 {
+                if dx == 0 && dy == 0 {
+                    continue;
+                }
 
-    let binary_data: Vec<f32> = normalized_data.iter().map(|&val| {
-        if val > threshold {
-            1.0
-        } else {
-            0.0
+                let neighbor_row = row as i32 + dy;
+                let neighbor_col = col as i32 + dx;
+                let neighbor_idx = (neighbor_row * size as i32 + neighbor_col) as usize;
+                let elevation_diff = (dem[center_idx] - dem[neighbor_idx]).abs();
+                sum += elevation_diff;
+            }
         }
-    }).collect();
 
-    binary_data
+        *tri_value = sum / 8.0; // 8は常に有効な近傍セルの数
+    });
+
+    tri
 }
 
 /*
