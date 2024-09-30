@@ -268,7 +268,7 @@ fn calculate_tri_limited_range(dem: &[f32], size: usize, padding: usize) -> Vec<
             }
         }
 
-        *tri_value = sum / 8.0; // 8は常に有効な近傍セルの数
+        *tri_value = sum / 8.0;
     });
 
     tri
