@@ -132,7 +132,7 @@ const onPreview = async () => {
         )
         : new Float32Array(heightmap.length)
 
-      setMapData(heightmap, blurredMap, sharpenMap, noisedMap, waterMap, waterWayMap)
+      setMapData(mixedHeightmap, blurredMap, sharpenMap, noisedMap, waterMap, waterWayMap)
 
       if (debugMode.value) {
         const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
