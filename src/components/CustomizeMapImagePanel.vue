@@ -41,32 +41,32 @@ watch(flag, () => {
 })
 
 const getZoom = (size: number) => {
-  const { x0, x1 } = getExtentInWorldCoords(
+  const { topleft, bottomright } = getExtentInWorldCoords(
     mapbox.value.settings.lng,
     mapbox.value.settings.lat,
     mapbox.value.settings.size,
     offset.value,
     512,
   )
-  const side = x1 - x0
+  const side = Math.sqrt((topleft.x - bottomright.x) ** 2 + (topleft.y - bottomright.y) ** 2) / Math.SQRT2
   const zoom = Math.round(Math.log2(size / side) * 100) / 100
-  const zx0 = x0 * (2 ** zoom)
-  const zx1 = x1 * (2 ** zoom)
+  const zx0 = topleft.x * (2 ** zoom)
+  const zx1 = bottomright.x * (2 ** zoom)
   const _side = zx1 - zx0
   const cells = Math.ceil(_side / 2000) ** 2
   return { calcZoom: zoom, cells }
 }
 
 const getSize = (zoom: number) => {
-  const { x0, x1 } = getExtentInWorldCoords(
+  const { topleft, bottomright } = getExtentInWorldCoords(
     mapbox.value.settings.lng,
     mapbox.value.settings.lat,
     mapbox.value.settings.size,
     offset.value,
     512,
   )
-  const zx0 = x0 * (2 ** zoom)
-  const zx1 = x1 * (2 ** zoom)
+  const zx0 = topleft.x * (2 ** zoom)
+  const zx1 = bottomright.x * (2 ** zoom)
   const side = zx1 - zx0
   const cells = Math.ceil(side / 2000) ** 2
   return { calcSize: Math.max(Math.min(16384, Math.round(side)), 1), cells }
