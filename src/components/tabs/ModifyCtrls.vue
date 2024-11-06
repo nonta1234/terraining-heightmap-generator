@@ -80,8 +80,8 @@ const toggleDisplayEffect = () => {
     <NumberInput id="sharpen-fade" v-model="mapbox.settings.shrpFade" :max="1000" :min="0" :step="10" unit="m" />
     <label for="noise-value">Noise&#8202;:</label>
     <NumberInput id="noise-value" v-model="mapbox.settings.noise" class="gap" :max="1000" :min="0" :step="1" unit="m" />
-    <label for="noise-range">Range&#8202;:</label>
-    <NumberInput id="noise-range" v-model="mapbox.settings.noiseRange" :max="100" :min="0" :step="1" unit="%" />
+    <label for="noise-threshold">Threshold&#8202;:</label>
+    <NumberInput id="noise-threshold" v-model="mapbox.settings.noiseThres" :max="1000" :min="0" :step="1" unit="m" />
     <hr>
     <label class="reflect-label" for="reflect">Reflect the effect amount on the map&#8202;:</label>
     <ToggleSwitch v-model="mapbox.settings.applyEffectAmount" :name="'reflect'" @change="toggleDisplayEffect" />
