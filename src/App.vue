@@ -27,12 +27,13 @@ const { updateViewMode } = useViewMode()
 const vMode = String(useRoute().query.view || 'world')
 updateViewMode(vMode)
 
-onMounted(() => {
+onMounted(async () => {
   const osTileCanvas = tileCanvasRef.value!.transferControlToOffscreen()
   const osWaterCanvas = waterCanvasRef.value!.transferControlToOffscreen()
   const osWaterWayCanvas = waterWayCanvasRef.value!.transferControlToOffscreen()
   const osLittCanvas = littCanvasRef.value!.transferControlToOffscreen()
   const osCornerCanvas = cornerCanvasRef.value!.transferControlToOffscreen()
+
   useState<Canvases>('canvases', () => {
     return {
       osTileCanvas,
@@ -42,6 +43,8 @@ onMounted(() => {
       osCornerCanvas,
     }
   })
+
+  await initializeWorker()
 })
 
 useListen('map:reload', () => {
