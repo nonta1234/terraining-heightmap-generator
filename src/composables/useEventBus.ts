@@ -10,8 +10,9 @@ type ApplicationEvents = {
   'modal:pointDragged': void
   'panel:tabChange': number
   'panel:updateHeight': void
-  'tile:total': number
-  'tile:progress': void
+  'generate:total': number
+  'generate:progress': void
+  'generate:phase': string
   'debug:operate': void
 }
 
