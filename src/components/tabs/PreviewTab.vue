@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { isMtTokenValid } from '~/utils/isTokenValid'
-import type { Canvases } from '~/types/types'
-import effectWasm, { type InitOutput } from '~~/effects_lib/pkg'
+import type { Settings, Canvases, ResultType } from '~/types/types'
 
 const mapbox = useMapbox()
 const { isMobile } = useDevice()
@@ -9,38 +8,44 @@ const decimal = isMobile ? 1 : 4
 const previewCanvas = ref<HTMLCanvasElement>()
 const gl = ref<WebGL2RenderingContext | null>()
 const previewBox = ref<HTMLElement>()
-const { initialize, previewData, setMapData, generate } = usePreview()
+
+const previewData = ref<ResultType>({
+  heightmap: new Float32Array(),
+  waterMapImage: undefined,
+  waterWayMapImage: undefined,
+  min: 0,
+  max: 0,
+})
+
 const isDownloading = ref(false)
-const isProcessing = ref(false)
 const total = ref(0)
 const progress = ref(0)
+const message = ref('')
 const progressMsg = computed(() => {
-  let msg = ''
-  if (isProcessing.value) {
-    msg = 'Generating elevation data.'
-  } else if (isDownloading.value) {
-    msg = `Downloading elevation data. ${progress.value} / ${total.value}`
-  }
+  const msg = message.value ? message.value : `Downloading elevation data. ${progress.value} / ${total.value}`
   return msg
 })
 
-const isOverflow = computed(() => previewData.value.max - previewData.value.min > mapbox.value.settings.elevationScale)
-const effectInstance = ref<InitOutput>()
+const isOverflow = computed(() => (
+  previewData.value.max - previewData.value.min - mapbox.value.settings.baseLevel) * mapbox.value.settings.vertScale > mapbox.value.settings.elevationScale,
+)
 
 const scaleXY = computed(() => mapbox.value.settings.size * 100000 / (mapbox.value.settings.resolution - 1))
 const scaleZ = computed(() => mapbox.value.settings.elevationScale * 100 / 512)
 
-useListen('tile:total', (number: number) => {
+useListen('generate:total', (number: number) => {
+  message.value = ''
   total.value += number
 })
 
-useListen('tile:progress', () => {
+useListen('generate:progress', () => {
+  message.value = ''
   progress.value += 1
 })
 
-const sleep = async (time: number) => {
-  await new Promise(resolve => setTimeout(resolve, time))
-}
+useListen('generate:phase', (data: string) => {
+  message.value = data
+})
 
 const getResolution = () => {
   const rect = previewBox.value?.getBoundingClientRect()
@@ -64,9 +69,8 @@ const prevention = (e: Event) => {
   e.preventDefault()
 }
 
-const render = async (normalize: boolean) => {
-  const result = await generate()
-  if (!result) {
+const render = (normalize: boolean) => {
+  if (previewData.value.heightmap.length === 0) {
     return
   }
   if (mapbox.value.settings.adjToMin) {
@@ -76,17 +80,15 @@ const render = async (normalize: boolean) => {
   const max = normalize ? previewData.value.max : mapbox.value.settings.elevationScale + mapbox.value.settings.baseLevel
   const scale = normalize ? 1 : mapbox.value.settings.vertScale
   if (previewCanvas.value && gl.value) {
-    renderCanvas(previewCanvas.value, gl.value, previewData.value.previewMap!, min, max, scale)
+    renderCanvas(previewCanvas.value, gl.value, previewData.value.heightmap, min, max, scale)
   }
 }
 
-const onNormalizeChange = async () => {
-  await render(mapbox.value.settings.normalizePreview)
+const onNormalizeChange = () => {
+  render(mapbox.value.settings.normalizePreview)
 }
 
 const onPreview = async () => {
-  const t0 = window.performance.now()
-  let t1 = 0
   if (!isMtTokenValid()) {
     alert('MapTiler API key required.')
     return
@@ -97,85 +99,37 @@ const onPreview = async () => {
   }
 
   try {
+    const t0 = window.performance.now()
+    const worker = useWorker()
     const { debugMode } = useDebug()
+
+    previewData.value.heightmap = new Float32Array()
+    previewData.value.waterMapImage = undefined
+    previewData.value.waterWayMapImage = undefined
+    previewData.value.min = 0
+    previewData.value.max = 0
+
     isDownloading.value = true
     const res = mapbox.value.settings.originalPreview ? mapbox.value.settings.resolution : Math.min(getResolution(), mapbox.value.settings.resolution)
-    const pixelDistance = mapbox.value.settings.size / res
-    const resScale = res / mapbox.value.settings.resolution
-    const smoothRadius = mapbox.value.settings.smoothRadius * resScale
-    const sharpenRadius = mapbox.value.settings.sharpenRadius * resScale
+    const plainSettings: Settings = JSON.parse(JSON.stringify(mapbox.value.settings))
 
-    if (mapbox.value.settings.actualSeafloor) {
-      const [{ heightmap }, { heightmap: oceanMap }, { waterMap, waterWayMap, waterMapImage, waterWayMapImage }] = await Promise.all([
-        getHeightmap(mapbox.value.settings.gridInfo, debugMode.value, res),
-        getHeightmap('ocean', false, res),
-        getWaterMap(mapbox.value.settings.gridInfo, false, debugMode.value, res),
-      ])
+    previewData.value = await worker.value?.generateMap(
+      'preview',
+      plainSettings,
+      res,
+      debugMode.value,
+    ) as ResultType
 
-      t1 = window.performance.now()
-      isProcessing.value = true
-      await nextTick()
-      await sleep(30)
-      const mixedHeightmap = mixArray(heightmap, oceanMap)
-
-      const [blurredMap, sharpenMap] = await Promise.all([
-        gaussianBlur(effectInstance.value, mixedHeightmap, smoothRadius, mapbox.value.settings.smoothing / 100),
-        unsharpMask(effectInstance.value, mixedHeightmap, mapbox.value.settings.sharpen / 100, sharpenRadius),
-      ])
-      const noisedMap = (mapbox.value.settings.noise !== 0 || mapbox.value.settings.noiseRange !== 0)
-        ? await noise(
-          effectInstance.value,
-          sharpenMap,
-          mapbox.value.settings.noise,
-          mapbox.value.settings.noiseRange / 100,
-          pixelDistance,
-        )
-        : new Float32Array(heightmap.length)
-
-      setMapData(mixedHeightmap, blurredMap, sharpenMap, noisedMap, waterMap, waterWayMap)
-
-      if (debugMode.value) {
-        const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
-        setImageBitmap(osWaterCanvas, waterMapImage!)
-        setImageBitmap(osWaterWayCanvas, waterWayMapImage!)
-      }
-    } else {
-      const [{ heightmap }, { waterMap, waterWayMap, waterMapImage, waterWayMapImage }] = await Promise.all([
-        getHeightmap(mapbox.value.settings.gridInfo, debugMode.value, res),
-        getWaterMap(mapbox.value.settings.gridInfo, true, debugMode.value, res),
-      ])
-
-      t1 = window.performance.now()
-      isProcessing.value = true
-      await nextTick()
-      await sleep(30)
-
-      const [blurredMap, sharpenMap] = await Promise.all([
-        gaussianBlur(effectInstance.value, heightmap, smoothRadius, mapbox.value.settings.smoothing / 100),
-        unsharpMask(effectInstance.value, heightmap, mapbox.value.settings.sharpen / 100, sharpenRadius),
-      ])
-      const noisedMap = (mapbox.value.settings.noise !== 0 || mapbox.value.settings.noiseRange !== 0)
-        ? await noise(
-          effectInstance.value,
-          sharpenMap,
-          mapbox.value.settings.noise,
-          mapbox.value.settings.noiseRange / 100,
-          pixelDistance,
-        )
-        : new Float32Array(heightmap.length)
-
-      setMapData(heightmap, blurredMap, sharpenMap, noisedMap, waterMap, waterWayMap)
-
-      if (debugMode.value) {
-        const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
-        setImageBitmap(osWaterCanvas, waterMapImage!)
-        setImageBitmap(osWaterWayCanvas, waterWayMapImage!)
-      }
+    if (debugMode.value) {
+      const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
+      if (previewData.value.waterMapImage) setImageBitmap(osWaterCanvas, previewData.value.waterMapImage)
+      if (previewData.value.waterWayMapImage) setImageBitmap(osWaterWayCanvas, previewData.value.waterWayMapImage!)
     }
 
-    await render(mapbox.value.settings.normalizePreview)
+    render(mapbox.value.settings.normalizePreview)
 
-    const t2 = window.performance.now()
+    const t1 = window.performance.now()
+
     const grid = getGrid(
       mapSpec[mapbox.value.settings.gridInfo].grid,
       mapbox.value.settings.lng,
@@ -184,23 +138,22 @@ const onPreview = async () => {
       mapbox.value.settings.angle,
     )
     const corners = getPoint(grid)
-    console.log(`Preview - Download: ${(t1 - t0).toFixed(0)}ms  Processing: ${(t2 - t1).toFixed(0)}ms  Total: ${(t2 - t0).toFixed(0)}ms`)
-    console.table(corners.gridCorner)
-    if (corners.playAreaCorner) console.table(corners.playAreaCorner)
+    console.log(`Preview: ${(t1 - t0).toFixed(0)}ms`)
+    console.table(JSON.parse(JSON.stringify(corners.gridCorner)))
+    if (corners.playAreaCorner) console.table(JSON.parse(JSON.stringify(corners.playAreaCorner)))
     saveSettings(mapbox.value.settings)
+
+    await worker.value?.setSubWorker(0)
+    await setRequiredSubWorkers()
   } catch (e) {
     console.error('Failed to generate preview data.:', e)
   } finally {
-    isDownloading.value = false
-    isProcessing.value = false
     total.value = 0
     progress.value = 0
   }
 }
 
-onMounted(async () => {
-  await initialize()
-  effectInstance.value = await effectWasm()
+onMounted(() => {
   gl.value = previewCanvas.value?.getContext('webgl2', {
     alpha: false,
     antialias: false,
@@ -230,7 +183,7 @@ onMounted(async () => {
     </div>
     <slot />
     <footer class="footer">
-      <div class="message"><span v-if="isProcessing || isDownloading">{{ progressMsg }}</span></div>
+      <div class="message"><span v-if="isDownloading">{{ progressMsg }}</span></div>
       <button class="preview-btn" @click="onPreview">Preview</button>
     </footer>
   </div>
