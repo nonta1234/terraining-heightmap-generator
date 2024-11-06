@@ -55,10 +55,10 @@ class GetOsmMapWorker {
 
   private async handleMessage(e: MessageEvent<any>) {
     try {
-      const message = e.data
-      const {
-        settings,
-      } = message as GenerateMapOption
+      const { settings } = e.data as GenerateMapOption
+      if (!settings) {
+        throw new Error('GetOsmMapWorker: Invalid parameter')
+      }
 
       let url = ''
       let area = turf.bboxPolygon([0, 0, 0, 0])
