@@ -87,9 +87,9 @@ const getPosition = (feature: Feature<Polygon, GeoJsonProperties>, position: 'to
   ]
 }
 
-const fixLng = (position: Position): Position => {
+const fixLng = (position: Position) => {
   const _lng = ((position[0] + 540) % 360) - 180
-  return [_lng, position[1]]
+  return { Longitude: _lng, Latitude: position[1] }
 }
 
 export const getPoint = (grid: Grid) => {
@@ -105,7 +105,7 @@ export const getPoint = (grid: Grid) => {
     east: ((Math.max(bottomleft[0], topleft[0], topright[0], bottomright[0]) + 540) % 360) - 180,
     west: ((Math.min(bottomleft[0], topleft[0], topright[0], bottomright[0]) + 540) % 360) - 180,
   }
-  const gridCorner: GridPositions = { topleft: fixLng(topleft), topright: fixLng(topright), bottomleft: fixLng(bottomleft), bottomright: fixLng(bottomright), _sides: sides }
+  const gridCorner: GridPositions = { topleft: fixLng(topleft), topright: fixLng(topright), bottomleft: fixLng(bottomleft), bottomright: fixLng(bottomright), sides }
 
   let playAreaCorner: GridPositions | undefined
   if (gridIndex.play) {
@@ -119,7 +119,7 @@ export const getPoint = (grid: Grid) => {
       east: ((Math.max(pBottomleft[0], pTopleft[0], pTopright[0], pBottomright[0]) + 540) % 360) - 180,
       west: ((Math.min(pBottomleft[0], pTopleft[0], pTopright[0], pBottomright[0]) + 540) % 360) - 180,
     }
-    playAreaCorner = { topleft: fixLng(pTopleft), topright: fixLng(pTopright), bottomleft: fixLng(pBottomleft), bottomright: fixLng(pBottomright), _sides: pSides }
+    playAreaCorner = { topleft: fixLng(pTopleft), topright: fixLng(pTopright), bottomleft: fixLng(pBottomleft), bottomright: fixLng(pBottomright), sides: pSides }
   }
 
   return { gridCorner, playAreaCorner }

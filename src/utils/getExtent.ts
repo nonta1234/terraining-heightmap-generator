@@ -1,5 +1,45 @@
 import * as turf from '@turf/turf'
+import type { Extent } from '~/types/types'
 import { lng2pixel, lat2pixel, pixel2lat, pixel2lng } from '~/utils/tiles'
+
+export const rotateExtent = (extent: Extent, angle: number, centerX: number, centerY: number): Extent => {
+  const cosTheta = Math.cos(-angle * Math.PI / 180)
+  const sinTheta = Math.sin(-angle * Math.PI / 180)
+
+  const _offset = ({ x, y }: { x: number, y: number }) => {
+    return { x: x - centerX, y: y - centerY }
+  }
+
+  const _rotate = ({ x, y }: { x: number, y: number }) => {
+    return {
+      x: (x * cosTheta + y * sinTheta) + centerX,
+      y: (y * cosTheta - x * sinTheta) + centerY,
+    }
+  }
+
+  const offsetTopleft = _offset(extent.topleft)
+  const offsetTopright = _offset(extent.topright)
+  const offsetBottomleft = _offset(extent.bottomleft)
+  const offsetBottomright = _offset(extent.bottomright)
+  const offsetCX = extent.centerX - centerX
+  const offsetCY = extent.centerY - centerY
+
+  const resultTopleft = _rotate(offsetTopleft)
+  const resultTopright = _rotate(offsetTopright)
+  const resultBottomleft = _rotate(offsetBottomleft)
+  const resultBottomright = _rotate(offsetBottomright)
+  const resultCX = (offsetCX * cosTheta + offsetCY * sinTheta) + centerX
+  const resultCY = (offsetCY * cosTheta - offsetCX * sinTheta) + centerY
+
+  return {
+    topleft: resultTopleft,
+    topright: resultTopright,
+    bottomleft: resultBottomleft,
+    bottomright: resultBottomright,
+    centerX: resultCX,
+    centerY: resultCY,
+  }
+}
 
 /**
  * Returns the coordinates of each point in any km square.
@@ -59,7 +99,7 @@ export const getExtent = (lng: number, lat: number, size: number, offset = 0) =>
  * @param pixelsPerTile default 256, Mapbox Terrain-DEM v1 \@2x is 512
  * @returns World pixel coordinates
  */
-export const getExtentInWorldCoords = (lng: number, lat: number, size: number, offset = 0, pixelsPerTile = 256) => {
+export const getExtentInWorldCoords = (lng: number, lat: number, size: number, offset = 0, pixelsPerTile = 256): Extent => {
   const centerX = lng2pixel(lng, 0, pixelsPerTile)
   const centerY = lat2pixel(lat, 0, pixelsPerTile)
   const _offset = Math.min(Math.max(offset, 0), 0.5)
@@ -88,5 +128,12 @@ export const getExtentInWorldCoords = (lng: number, lat: number, size: number, o
   const y0 = centerY - halfSide + offsetPixels
   const y1 = centerY + halfSide - offsetPixels
 
-  return { x0, y0, x1, y1, centerX, centerY }
+  return {
+    topleft: { x: x0, y: y0 },
+    topright: { x: x1, y: y0 },
+    bottomleft: { x: x0, y: y1 },
+    bottomright: { x: x1, y: y1 },
+    centerX,
+    centerY,
+  }
 }

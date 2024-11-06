@@ -71,16 +71,16 @@ class GetCustomMapImage {
     const canvas = new OffscreenCanvas(0, 0)
     const ctx = canvas.getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
     const { settings, styleUrl, zoom, offset, maxImageSize, imageSize } = e.data as T
-    const { x0, y0, x1, centerX, centerY } = getExtentInWorldCoords(
+    const { topleft, topright, centerX, centerY } = getExtentInWorldCoords(
       settings.lng,
       settings.lat,
       settings.size,
       offset,
       1024,
     )
-    const zx0 = x0 * (2 ** zoom)
-    const zy0 = y0 * (2 ** zoom)
-    const zx1 = x1 * (2 ** zoom)
+    const zx0 = topleft.x * (2 ** zoom)
+    const zy0 = topleft.y * (2 ** zoom)
+    const zx1 = topright.x * (2 ** zoom)
     const centerZX = centerX * (2 ** zoom)
     const centerZY = centerY * (2 ** zoom)
     const side = zx1 - zx0
