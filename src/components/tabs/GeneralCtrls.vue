@@ -2,6 +2,7 @@
 import { mapSpec } from '~/utils/const'
 
 const mapbox = useMapbox()
+const resolution = computed(() => mapbox.value.settings.resolution)
 const esDisabled = computed(() => mapbox.value.settings.gridInfo === 'cs1')
 const maxSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 25.000) * 4)
 const minSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 1.000) / 2)
@@ -26,6 +27,10 @@ const ratio = computed({
 watch([ratio, vScale], () => {
   mapbox.value.map?.setTerrain()
   mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: ratio.value })
+})
+
+watch(resolution, async () => {
+  await setRequiredSubWorkers()
 })
 
 const onMapTypeChange = async () => {
@@ -63,6 +68,8 @@ const onMapTypeChange = async () => {
   mapbox.value.settings.resolution = mapSpec[mapbox.value.settings.gridInfo].defaultRes
   onSizeReset()
   setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
+  await setRequiredSubWorkers()
+
   saveSettings(mapbox.value.settings)
   useEvent('panel:updateHeight')
 }
@@ -88,7 +95,7 @@ const onSizeChange = () => {
 
 const onWorldPartitionChange = () => {
   if (mapbox.value.settings.worldPartition) {
-    mapbox.value.settings.resolution = (mapbox.value.settings.wpCells * 511) - (mapbox.value.settings.wpCells - 1)
+    mapbox.value.settings.resolution = mapbox.value.settings.wpCells * 510 + 1
   }
   else {
     mapbox.value.settings.resolution = mapSpec[mapbox.value.settings.gridInfo].defaultRes
@@ -131,8 +138,7 @@ const onCellsChange = () => {
       <label for="world-partition" class="wp">World Partition&#8202;:</label>
       <ToggleSwitch v-model="mapbox.settings.worldPartition" :name="'world-partition'" class="wp-switch" @change="onWorldPartitionChange" />
       <label for="wp-cells">Cells&#8202;:</label>
-      <!-- Due to watermap generation limitations, the current upper limit is 22, and will be increased to 32 in the future. -->
-      <NumberInput id="wp-cells" v-model="mapbox.settings.wpCells" :max="22" :min="1" :step="1" class="wp-cells-input" :disabled="!mapbox.settings.worldPartition" :text-hidden="!mapbox.settings.worldPartition" @change="onCellsChange" />
+      <NumberInput id="wp-cells" v-model="mapbox.settings.wpCells" :max="32" :min="1" :step="1" class="wp-cells-input" :disabled="!mapbox.settings.worldPartition" :text-hidden="!mapbox.settings.worldPartition" @change="onCellsChange" />
     </template>
     <label for="base-level">Base Level&#8202;:</label>
     <NumberInput id="base-level" v-model="mapbox.settings.baseLevel" class="gap" :max="9999" :min="-9999" :step="0.1" unit="m" />
