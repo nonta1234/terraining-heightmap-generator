@@ -83,36 +83,25 @@ pub fn unsharp_mask(input_ptr: *mut f32, blurred_ptr: *mut f32, output_ptr: *mut
 }
 
 #[wasm_bindgen]
-pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f32, range: f32, pixel_distance: f32) {
+pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f32, tri_threshold: f32, pixel_distance: f32) {
     let size = (length as f32).sqrt() as usize;
     let input_slice = unsafe { std::slice::from_raw_parts(input_ptr, length) };
     let output_slice = unsafe { std::slice::from_raw_parts_mut(output_ptr, length) };
     // let mut rng = rand::thread_rng();
     let rng = Arc::new(Mutex::new(SmallRng::from_entropy()));
 
-    if range == 1.0 {
+    if tri_threshold == 0.0 {
         output_slice.par_iter_mut()
             .for_each(|output_value| {
                 let mut thread_rng = rng.lock().unwrap();
                 *output_value = thread_rng.gen_range(0.0, 1.0) * amount;
             });
-    } else if range == 0.0 {
-        output_slice.par_iter_mut()
-            .for_each(|output_value| {
-                *output_value = 0.0;
-            });
     } else {
         let tri = calculate_tri(&input_slice, size);
-        let tri_calc = calculate_tri_limited_range(&input_slice, size, 100);
-
-        let mut sorted_tri = tri_calc.clone();
-        sorted_tri.par_sort_by(|a, b| a.partial_cmp(b).unwrap());
-        let index = ((1.0 - range) * (sorted_tri.len() as f32)).round() as usize;
-        let index_value = sorted_tri[index];
 
         let mut mask: Vec<Complex<f32>> = tri
             .par_iter()
-            .map(|&v| if v >= index_value { Complex::new(1.0, 0.0) } else { Complex::new(0.0, 0.0) })
+            .map(|&v| if v >= tri_threshold { Complex::new(1.0, 0.0) } else { Complex::new(0.0, 0.0) })
             .collect();
 
         // blur mask
@@ -242,6 +231,7 @@ fn calculate_tri(dem: &[f32], size: usize) -> Vec<f32> {
     tri
 }
 
+/*
 fn calculate_tri_limited_range(dem: &[f32], size: usize, padding: usize) -> Vec<f32> {
     let limited_size = size - 2 * padding;
     let mut tri = vec![0.0; limited_size * limited_size];
@@ -274,7 +264,6 @@ fn calculate_tri_limited_range(dem: &[f32], size: usize, padding: usize) -> Vec<
     tri
 }
 
-/*
 fn debug_print_complex(label: &str, data: &[Complex<f32>]) {
     let mut debug_message = format!("{}:\n", label);
     for (_, &value) in data.iter().enumerate().take(5) {

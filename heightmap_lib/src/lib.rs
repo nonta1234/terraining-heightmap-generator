@@ -71,6 +71,24 @@ impl Heightmap {
         self.pointer_to_result = self.result.as_ptr();
     }
 
+    pub fn clear_buffers(&mut self) {
+        self.heightmap.clear();
+        self.blurredmap.clear();
+        self.sharpenmap.clear();
+        self.noisedmap.clear();
+        self.watermap.clear();
+        self.waterwaymap.clear();
+        self.result.clear();
+
+        self.pointer_to_heightmap = std::ptr::null();
+        self.pointer_to_blurredmap = std::ptr::null();
+        self.pointer_to_sharpenmap = std::ptr::null();
+        self.pointer_to_noisedmap = std::ptr::null();
+        self.pointer_to_watermap = std::ptr::null();
+        self.pointer_to_waterwaymap = std::ptr::null();
+        self.pointer_to_result = std::ptr::null();
+    }
+
     pub fn combine_heightmaps(&mut self, water_depth: f32, stream_depth: f32, smooth_thres: f32, smooth_fade: f32, sharpen_thres: f32, sharpen_fade: f32) {
         let preprocessed_blurredmap = mix_array_with_ul(&self.heightmap, &self.blurredmap, smooth_thres, smooth_fade);
         let preprocessed_sharpenmap = mix_array_with_ll(&self.heightmap, &self.sharpenmap, sharpen_thres, sharpen_fade);
