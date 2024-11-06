@@ -61,6 +61,7 @@ export const lnglat2Pixels = (lnglat: Position, zoom: number) => {
   return [x, y]
 }
 
+/*
 export const convert2Pixels = (positions: GridPositions, zoom: number) => {
   const tl = lnglat2Pixels(positions.topleft, zoom)
   const br = lnglat2Pixels(positions.bottomright, zoom)
@@ -75,3 +76,4 @@ export const convert2Pixels = (positions: GridPositions, zoom: number) => {
     side,
   }
 }
+*/
