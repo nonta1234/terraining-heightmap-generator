@@ -7,13 +7,10 @@ const visibillityMT = ref(false)
 const inputToken = ref<HTMLInputElement>()
 const inputTokenMT = ref<HTMLInputElement>()
 const fileEl = ref<HTMLInputElement>()
-const hasToken = computed(() => isMtTokenValid())
 
-watch(hasToken, () => {
-  if (!hasToken.value) {
-    mapbox.value.settings.originalPreview = false
-  }
-})
+if (device.isMobile) {
+  mapbox.value.settings.originalPreview = false
+}
 
 const onVisibillityChange = () => {
   visibillity.value = !visibillity.value
@@ -25,12 +22,8 @@ const onVisibillityChangeMT = () => {
   inputTokenMT.value!.type = visibillityMT.value ? 'text' : 'password'
 }
 
-const onOriginalPreviewChange = async (value: boolean) => {
-  if (!isMtTokenValid() && value === true) {
-    alert('To preview at the original resolution, a MapTiler API key is required.')
-    await nextTick()
-    mapbox.value.settings.originalPreview = false
-  }
+const onOriginalPreviewChange = async () => {
+  await setRequiredSubWorkers()
 }
 
 async function importSettingsFromFile(file: File): Promise<Settings | null> {
@@ -179,7 +172,7 @@ onMounted(() => {
   <div id="config-tab">
     <div class="checkbox">
       <label class="label" for="original-preview">Preview at original resolution&#8202;:&nbsp;&nbsp;</label>
-      <ToggleSwitch v-model="mapbox.settings.originalPreview" :name="'original-preview'" :disabled="!hasToken" @change="onOriginalPreviewChange" />
+      <ToggleSwitch v-model="mapbox.settings.originalPreview" :name="'original-preview'" :disabled="device.isMobile" @change="onOriginalPreviewChange" />
     </div>
     <hr>
     <label for="token-mt" class="label">MapTiler API Key <small>(Required)</small>&#8202;:</label>
