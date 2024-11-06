@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { Map, LngLatLike } from 'mapbox-gl'
-import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolygon, MultiLineString, Position } from 'geojson'
+import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolygon, MultiLineString } from 'geojson'
 
 const heightCalcTypeSchema = z.union([
   z.literal('manual'),
@@ -58,11 +58,11 @@ export interface MapSpecs {
 }
 
 export type GridPositions = {
-  topleft: Position
-  topright: Position
-  bottomleft: Position
-  bottomright: Position
-  _sides: {
+  topleft: { Longitude: number, Latitude: number }
+  topright: { Longitude: number, Latitude: number }
+  bottomleft: { Longitude: number, Latitude: number }
+  bottomright: { Longitude: number, Latitude: number }
+  sides: {
     north: number
     south: number
     east: number
@@ -119,8 +119,7 @@ export const settingsSchema = z.object({
   elevationScale: z.number(),
   interpolation: interpolationSchema,
   noise: z.number(),
-  noiseGrid: z.number(),
-  noiseRange: z.number(),
+  noiseThres: z.number(),
   displayEffectArea: z.boolean(),
   applyEffectAmount: z.boolean(),
   normalizePreview: z.boolean(),
@@ -140,11 +139,46 @@ export interface Mapbox {
 }
 
 export type GenerateMapOption = {
-  mapType: MapType
-  settings: Settings
-  includeOcean?: boolean
-  isDebug?: boolean
+  mapType?: MapType
+  mode?: 'preview' | 'download'
+  settings?: Settings
   resolution?: number
+  isDebug?: boolean
+}
+
+export type MapOption = {
+  settings: Settings
+  mapPixels: number
+  unitSize: number
+  smoothRadius: number
+  sharpenRadius: number
+  isDebug: boolean
+}
+
+export type SingleMapOption = MapOption & {
+  rasterExtent: Extent
+  vectorExtent: Extent
+}
+
+export type MultiMapOption = MapOption & {
+  rasterExtents: Extent[]
+  vectorExtents: Extent[]
+}
+
+export interface MapData {
+  heightmap?: Float32Array
+  waterMap?: Float32Array
+  waterWayMap?: Float32Array
+  blurredMap?: Float32Array
+  sharpenMap?: Float32Array
+  noisedMap?: Float32Array
+  waterMapImage?: ImageBitmap
+  waterWayMapImage?: ImageBitmap
+}
+
+export type ProgressData = {
+  type: string
+  data?: number | string
 }
 
 export type Canvases = {
@@ -159,4 +193,21 @@ export type OptionItem = {
   type?: 'header' | 'divide'
   value?: string | number
   label?: string
+}
+
+export type Extent = {
+  topleft: { x: number, y: number }
+  topright: { x: number, y: number }
+  bottomleft: { x: number, y: number }
+  bottomright: { x: number, y: number }
+  centerX: number
+  centerY: number
+}
+
+export type ResultType = {
+  heightmap: Float32Array
+  waterMapImage?: ImageBitmap
+  waterWayMapImage?: ImageBitmap
+  min: number
+  max: number
 }
