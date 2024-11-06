@@ -32,6 +32,7 @@
     "@types/rbush": "^3.0.4",
     "@xmldom/xmldom": "0.8.10",
     "canvg": "^4.0.2",
+    "comlink": "^4.4.1",
     "eslint": "^9.7.0",
     "geojson2osm": "^0.0.7",
     "latest": "^0.2.0",
