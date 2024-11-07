@@ -189,6 +189,7 @@ export const getHeightmap = async (
     const zoom = Math.min(Math.ceil(Math.log2(mapPixels / side)), maxZoom)
     const scale = (side * (2 ** zoom)) / mapPixels
 
+
     const minX = Math.min(extent.topleft.x, extent.topright.x, extent.bottomleft.x, extent.bottomright.x)
     const maxX = Math.max(extent.topleft.x, extent.topright.x, extent.bottomleft.x, extent.bottomright.x)
 
@@ -208,6 +209,7 @@ export const getHeightmap = async (
 
     const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
     const tilePixels = tileCount * pixelsPerTile
+    const maxTileX = 2 ** zoom - 1
 
     // input padding is 220 but output padding is 200
     const resultPixels = mapPixels + _correction - 20
@@ -221,10 +223,13 @@ export const getHeightmap = async (
     // fetch tiles
     for (let y = 0; y < tileCount; y++) {
       for (let x = 0; x < tileCount; x++) {
+        const tileX = (tileX0 + x + maxTileX + 1) & maxTileX
+        const tileY = tileY0 + y
+
         if (mapType === 'ocean') {
-          tiles[y * tileCount + x] = useFetchOceanTiles(zoom, tileX0 + x, tileY0 + y, settings.accessTokenMT!)
+          tiles[y * tileCount + x] = useFetchOceanTiles(zoom, tileX, tileY, settings.accessTokenMT!)
         } else {
-          tiles[y * tileCount + x] = useFetchTerrainTiles(zoom, tileX0 + x, tileY0 + y, token, settings.useMapbox)
+          tiles[y * tileCount + x] = useFetchTerrainTiles(zoom, tileX, tileY, token, settings.useMapbox)
         }
       }
     }

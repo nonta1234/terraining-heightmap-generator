@@ -270,6 +270,7 @@ export const getWaterMap = async (
     const resultPixels = mapPixels + mapSpec[settings.gridInfo].correction - 20
 
     const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
+    const maxTileX = 2 ** zoom - 1
     const halfMapSize = resultPixels / 2
     const theta = -settings.angle * Math.PI / 180
 
@@ -319,9 +320,11 @@ export const getWaterMap = async (
     onTotal(totalTiles)
     const tiles = new Array<Promise<T>>(totalTiles)
     // fetch tiles
-    for (let i = 0; i < tileCount; i++) {
-      for (let j = 0; j < tileCount; j++) {
-        tiles[j + i * tileCount] = useFetchVectorTiles(zoom, tileX0 + j, tileY0 + i, settings.accessTokenMT!)
+    for (let y = 0; y < tileCount; y++) {
+      for (let x = 0; x < tileCount; x++) {
+        const tileX = (tileX0 + x + maxTileX + 1) & maxTileX
+        const tileY = tileY0 + y
+        tiles[y * tileCount + x] = useFetchVectorTiles(zoom, tileX, tileY, settings.accessTokenMT!)
       }
     }
     const tileList = await Promise.allSettled(tiles)
@@ -331,7 +334,7 @@ export const getWaterMap = async (
         if (tileResult.status === 'fulfilled') {
           const arrayBuffer = await tileResult.value.data?.arrayBuffer()
           if (arrayBuffer) {
-          // set position of tiles
+            // set position of tiles
             const tile = new VectorTile(new Uint8Array(arrayBuffer))
             const transX = Math.floor(index % tileCount) * pixelsPerTile
             const transY = Math.floor(index / tileCount) * pixelsPerTile
