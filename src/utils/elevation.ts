@@ -173,131 +173,131 @@ export const scaleUpBicubic = (elevations: Float32Array) => {
   return heightMap
 }
 
-export const integrateHightmapWithFeathering = (dataA: Float32Array, dataB: Float32Array, featherSize: number) => {
+export const integrateHightmapWithFeathering = (worldMap: Float32Array, heightmap: Float32Array, featherSize: number) => {
   const padding = 100
-  const fullSizeA = 16584
-  const fullSizeB = 4296
+  const worldMapSize = 16584
+  const heightmapSize = 4296
 
-  const result = new Float32Array(dataA)
+  const result = new Float32Array(worldMap)
 
-  const startX = Math.floor((fullSizeA - fullSizeB) / 2)
-  const startY = Math.floor((fullSizeA - fullSizeB) / 2)
+  const startX = Math.floor((worldMapSize - heightmapSize) / 2)
+  const startY = Math.floor((worldMapSize - heightmapSize) / 2)
 
   // core position
-  const coreStartB = padding
-  const coreEndB = fullSizeB - padding
+  const coreStart = padding
+  const coreEnd = heightmapSize - padding
 
   // 1. core
-  for (let yB = coreStartB; yB < coreEndB; yB++) {
+  for (let yB = coreStart; yB < coreEnd; yB++) {
     const yA = startY + yB
-    for (let xB = coreStartB; xB < coreEndB; xB++) {
+    for (let xB = coreStart; xB < coreEnd; xB++) {
       const xA = startX + xB
-      result[yA * fullSizeA + xA] = dataB[yB * fullSizeB + xB]
+      result[yA * worldMapSize + xA] = heightmap[yB * heightmapSize + xB]
     }
   }
 
   // 2. top
-  for (let yB = coreStartB - featherSize; yB < coreStartB; yB++) {
+  for (let yB = coreStart - featherSize; yB < coreStart; yB++) {
     const yA = startY + yB
-    for (let xB = coreStartB; xB < coreEndB; xB++) {
+    for (let xB = coreStart; xB < coreEnd; xB++) {
       const xA = startX + xB
-      const weight = (yB - (coreStartB - featherSize)) / featherSize
-      const indexB = yB * fullSizeB + xB
-      const indexA = yA * fullSizeA + xA
-      result[indexA] = dataB[indexB] * weight + result[indexA] * (1 - weight)
+      const weight = (yB - (coreStart - featherSize)) / featherSize
+      const indexB = yB * heightmapSize + xB
+      const indexA = yA * worldMapSize + xA
+      result[indexA] = heightmap[indexB] * weight + result[indexA] * (1 - weight)
     }
   }
 
   // 3. bottom
-  for (let yB = coreEndB; yB < coreEndB + featherSize; yB++) {
+  for (let yB = coreEnd; yB < coreEnd + featherSize; yB++) {
     const yA = startY + yB
-    for (let xB = coreStartB; xB < coreEndB; xB++) {
+    for (let xB = coreStart; xB < coreEnd; xB++) {
       const xA = startX + xB
-      const weight = (coreEndB + featherSize - yB) / featherSize
-      const indexB = yB * fullSizeB + xB
-      const indexA = yA * fullSizeA + xA
-      result[indexA] = dataB[indexB] * weight + result[indexA] * (1 - weight)
+      const weight = (coreEnd + featherSize - yB) / featherSize
+      const indexB = yB * heightmapSize + xB
+      const indexA = yA * worldMapSize + xA
+      result[indexA] = heightmap[indexB] * weight + result[indexA] * (1 - weight)
     }
   }
 
   // 4. left
-  for (let yB = coreStartB; yB < coreEndB; yB++) {
+  for (let yB = coreStart; yB < coreEnd; yB++) {
     const yA = startY + yB
-    for (let xB = coreStartB - featherSize; xB < coreStartB; xB++) {
+    for (let xB = coreStart - featherSize; xB < coreStart; xB++) {
       const xA = startX + xB
-      const weight = (xB - (coreStartB - featherSize)) / featherSize
-      const indexB = yB * fullSizeB + xB
-      const indexA = yA * fullSizeA + xA
-      result[indexA] = dataB[indexB] * weight + result[indexA] * (1 - weight)
+      const weight = (xB - (coreStart - featherSize)) / featherSize
+      const indexB = yB * heightmapSize + xB
+      const indexA = yA * worldMapSize + xA
+      result[indexA] = heightmap[indexB] * weight + result[indexA] * (1 - weight)
     }
   }
 
   // 5. right
-  for (let yB = coreStartB; yB < coreEndB; yB++) {
+  for (let yB = coreStart; yB < coreEnd; yB++) {
     const yA = startY + yB
-    for (let xB = coreEndB; xB < coreEndB + featherSize; xB++) {
+    for (let xB = coreEnd; xB < coreEnd + featherSize; xB++) {
       const xA = startX + xB
-      const weight = (coreEndB + featherSize - xB) / featherSize
-      const indexB = yB * fullSizeB + xB
-      const indexA = yA * fullSizeA + xA
-      result[indexA] = dataB[indexB] * weight + result[indexA] * (1 - weight)
+      const weight = (coreEnd + featherSize - xB) / featherSize
+      const indexB = yB * heightmapSize + xB
+      const indexA = yA * worldMapSize + xA
+      result[indexA] = heightmap[indexB] * weight + result[indexA] * (1 - weight)
     }
   }
 
   // 6. corner
   // top-left
-  for (let yB = coreStartB - featherSize; yB < coreStartB; yB++) {
+  for (let yB = coreStart - featherSize; yB < coreStart; yB++) {
     const yA = startY + yB
-    for (let xB = coreStartB - featherSize; xB < coreStartB; xB++) {
+    for (let xB = coreStart - featherSize; xB < coreStart; xB++) {
       const xA = startX + xB
-      const weightY = (yB - (coreStartB - featherSize)) / featherSize
-      const weightX = (xB - (coreStartB - featherSize)) / featherSize
+      const weightY = (yB - (coreStart - featherSize)) / featherSize
+      const weightX = (xB - (coreStart - featherSize)) / featherSize
       const weight = Math.min(weightX, weightY)
-      const indexB = yB * fullSizeB + xB
-      const indexA = yA * fullSizeA + xA
-      result[indexA] = dataB[indexB] * weight + result[indexA] * (1 - weight)
+      const indexB = yB * heightmapSize + xB
+      const indexA = yA * worldMapSize + xA
+      result[indexA] = heightmap[indexB] * weight + result[indexA] * (1 - weight)
     }
   }
 
   // top-right
-  for (let yB = coreStartB - featherSize; yB < coreStartB; yB++) {
+  for (let yB = coreStart - featherSize; yB < coreStart; yB++) {
     const yA = startY + yB
-    for (let xB = coreEndB; xB < coreEndB + featherSize; xB++) {
+    for (let xB = coreEnd; xB < coreEnd + featherSize; xB++) {
       const xA = startX + xB
-      const weightY = (yB - (coreStartB - featherSize)) / featherSize
-      const weightX = (coreEndB + featherSize - xB) / featherSize
+      const weightY = (yB - (coreStart - featherSize)) / featherSize
+      const weightX = (coreEnd + featherSize - xB) / featherSize
       const weight = Math.min(weightX, weightY)
-      const indexB = yB * fullSizeB + xB
-      const indexA = yA * fullSizeA + xA
-      result[indexA] = dataB[indexB] * weight + result[indexA] * (1 - weight)
+      const indexB = yB * heightmapSize + xB
+      const indexA = yA * worldMapSize + xA
+      result[indexA] = heightmap[indexB] * weight + result[indexA] * (1 - weight)
     }
   }
 
   // bottom-left
-  for (let yB = coreEndB; yB < coreEndB + featherSize; yB++) {
+  for (let yB = coreEnd; yB < coreEnd + featherSize; yB++) {
     const yA = startY + yB
-    for (let xB = coreStartB - featherSize; xB < coreStartB; xB++) {
+    for (let xB = coreStart - featherSize; xB < coreStart; xB++) {
       const xA = startX + xB
-      const weightY = (coreEndB + featherSize - yB) / featherSize
-      const weightX = (xB - (coreStartB - featherSize)) / featherSize
+      const weightY = (coreEnd + featherSize - yB) / featherSize
+      const weightX = (xB - (coreStart - featherSize)) / featherSize
       const weight = Math.min(weightX, weightY)
-      const indexB = yB * fullSizeB + xB
-      const indexA = yA * fullSizeA + xA
-      result[indexA] = dataB[indexB] * weight + result[indexA] * (1 - weight)
+      const indexB = yB * heightmapSize + xB
+      const indexA = yA * worldMapSize + xA
+      result[indexA] = heightmap[indexB] * weight + result[indexA] * (1 - weight)
     }
   }
 
   // bottom-right
-  for (let yB = coreEndB; yB < coreEndB + featherSize; yB++) {
+  for (let yB = coreEnd; yB < coreEnd + featherSize; yB++) {
     const yA = startY + yB
-    for (let xB = coreEndB; xB < coreEndB + featherSize; xB++) {
+    for (let xB = coreEnd; xB < coreEnd + featherSize; xB++) {
       const xA = startX + xB
-      const weightY = (coreEndB + featherSize - yB) / featherSize
-      const weightX = (coreEndB + featherSize - xB) / featherSize
+      const weightY = (coreEnd + featherSize - yB) / featherSize
+      const weightX = (coreEnd + featherSize - xB) / featherSize
       const weight = Math.min(weightX, weightY)
-      const indexB = yB * fullSizeB + xB
-      const indexA = yA * fullSizeA + xA
-      result[indexA] = dataB[indexB] * weight + result[indexA] * (1 - weight)
+      const indexB = yB * heightmapSize + xB
+      const indexA = yA * worldMapSize + xA
+      result[indexA] = heightmap[indexB] * weight + result[indexA] * (1 - weight)
     }
   }
 
