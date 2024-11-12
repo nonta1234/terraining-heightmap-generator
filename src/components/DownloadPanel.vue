@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import init, { encode_png } from '~~/png_lib/pkg'
-import type { OptionItem } from '~/types/types'
+import type { OptionItem, Settings, FileType } from '~/types/types'
 import { styleList } from '~/utils/const'
 
 const mapbox = useMapbox()
@@ -28,70 +27,80 @@ const mapStyleList = computed(() => {
 const getRawHeightmap = async () => {
   rawButton.value?.classList.add('downloading')
   try {
-    if (mapbox.value.settings.gridInfo === 'cs1') {
-      const { heightmap } = await getCitiesMap('cs1')
+    useEvent('message:reset')
+    useEvent('isDownload', true)
+    const worker = useWorker()
+    const plainSettings: Settings = JSON.parse(JSON.stringify(mapbox.value.settings))
+    if (mapbox.value.settings.gridInfo === 'cs2') {
+      const { heightmap, worldMap } = await worker.value?.generateMap(
+        'raw',
+        plainSettings,
+        mapbox.value.settings.resolution,
+        false,
+      ) as FileType
+
       download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, heightmap)
-    } else {
-      const { heightmap, worldMap } = await getCitiesMap('cs2')
-      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, heightmap)
+
       setTimeout(
         () => download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, worldMap),
         200,
       )
+    } else {
+      const { heightmap } = await worker.value?.generateMap(
+        'raw',
+        plainSettings,
+        mapbox.value.settings.resolution,
+        false,
+      ) as FileType
+
+      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.raw`, heightmap)
     }
     saveSettings(mapbox.value.settings)
   } catch (e: any) {
     console.log(e.message)
   } finally {
     rawButton.value?.classList.remove('downloading')
+    await setRequiredSubWorkers()
   }
 }
 
 const getPngHeightmap = async () => {
   pngButton.value?.classList.add('downloading')
   try {
-    if (mapbox.value.settings.gridInfo === 'cs1') {
-      const { heightmap } = await getCitiesMap('cs1')
-      await init()
-      const png = await encode_png(
-        { data: heightmap },
+    useEvent('message:reset')
+    useEvent('isDownload', true)
+    const worker = useWorker()
+    const plainSettings: Settings = JSON.parse(JSON.stringify(mapbox.value.settings))
+    if (mapbox.value.settings.gridInfo === 'cs2') {
+      const { heightmap, worldMap } = await worker.value?.generateMap(
+        'png',
+        plainSettings,
         mapbox.value.settings.resolution,
-        mapbox.value.settings.resolution,
-        'Grayscale',
-        'Sixteen',
-        'Default',
-      )
-      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, png.data)
-    } else {
-      const { heightmap, worldMap } = await getCitiesMap('cs2')
-      await init()
-      const heightmapPng = await encode_png(
-        { data: heightmap },
-        mapbox.value.settings.resolution,
-        mapbox.value.settings.resolution,
-        'Grayscale',
-        'Sixteen',
-        'Default',
-      )
-      const worldMapPng = await encode_png(
-        { data: worldMap },
-        mapbox.value.settings.resolution,
-        mapbox.value.settings.resolution,
-        'Grayscale',
-        'Sixteen',
-        'Default',
-      )
-      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, heightmapPng.data)
+        false,
+      ) as FileType
+
+      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, heightmap)
+
       setTimeout(
-        () => download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, worldMapPng.data),
+        () => download(`worldmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, worldMap),
         200,
       )
+    } else {
+      const { heightmap } = await worker.value?.generateMap(
+        'png',
+        plainSettings,
+        mapbox.value.settings.resolution,
+        false,
+      ) as FileType
+
+      download(`heightmap_${mapbox.value.settings.lng}_${mapbox.value.settings.lat}_${mapbox.value.settings.size}.png`, heightmap)
     }
     saveSettings(mapbox.value.settings)
   } catch (e: any) {
     console.log(e.message)
   } finally {
     pngButton.value?.classList.remove('downloading')
+    await setRequiredSubWorkers()
   }
 }
 
