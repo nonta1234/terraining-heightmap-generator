@@ -12,11 +12,10 @@ const mapCanvas = ref<HTMLElement>()
 type GridState = 'none' | 'isMove' | 'isRotate' | 'isResize'
 let gridState: GridState = 'none'
 let prevAngle = 0
+let animationFrameId: number | null = null
 
 const maxSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 50.000) * 4)
 const minSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 1.000) / 2)
-
-const { $throttle } = useNuxtApp()
 
 onMounted(() => {
   createMapInstance()
@@ -271,7 +270,13 @@ onMounted(() => {
   }
 
   function onMove(e: any) {
-    $throttle(setGrid(mapbox, [e.lngLat.lng, e.lngLat.lat], false), 1000 / 60)
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId)
+    }
+    animationFrameId = requestAnimationFrame(() => {
+      setGrid(mapbox, [e.lngLat.lng, e.lngLat.lat], false)
+      animationFrameId = null
+    })
   }
 
   function onUp(e: any) {
@@ -290,6 +295,9 @@ onMounted(() => {
   }
 
   function onRotate(e: any) {
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId)
+    }
     const rotate = () => {
       const point1 = [mapbox.value.settings.lng, mapbox.value.settings.lat]
       const point2 = [e.lngLat.lng, e.lngLat.lat]
@@ -300,7 +308,10 @@ onMounted(() => {
       mapbox.value.settings.angle = getGridAngle(mapbox)
       prevAngle = currentAngle
     }
-    $throttle(rotate(), 1000 / 60)
+    animationFrameId = requestAnimationFrame(() => {
+      rotate()
+      animationFrameId = null
+    })
   }
 
   function onRotateEnd() {
@@ -345,6 +356,9 @@ onMounted(() => {
   }
 
   function onResize(e: any) {
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId)
+    }
     const resize = () => {
       let distance = turf.pointToLineDistance([e.lngLat.lng, e.lngLat.lat], lineString, { units: 'kilometers' })
       if (distance < minSize.value) { distance = minSize.value }
@@ -357,7 +371,10 @@ onMounted(() => {
       setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
       useEvent('map:changeMapSize', mapbox.value.settings.size)
     }
-    $throttle(resize(), 1000 / 60)
+    animationFrameId = requestAnimationFrame(() => {
+      resize()
+      animationFrameId = null
+    })
   }
 
   function onResizeEnd() {
