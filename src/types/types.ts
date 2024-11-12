@@ -206,8 +206,14 @@ export type Extent = {
 
 export type ResultType = {
   heightmap: Float32Array
+  worldMap?: Float32Array
   waterMapImage?: ImageBitmap
   waterWayMapImage?: ImageBitmap
   min: number
   max: number
+}
+
+export type FileType = {
+  heightmap: Blob | Uint8Array
+  worldMap?: Blob | Uint8Array
 }
