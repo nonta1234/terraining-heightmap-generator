@@ -22,7 +22,7 @@ const total = ref(0)
 const progress = ref(0)
 const message = ref('')
 const progressMsg = computed(() => {
-  const msg = message.value ? message.value : `Downloading elevation data. ${progress.value} / ${total.value}`
+  const msg = message.value ? message.value : `Downloading elevation data: ${progress.value} / ${total.value}`
   return msg
 })
 
@@ -33,17 +33,26 @@ const isOverflow = computed(() => (
 const scaleXY = computed(() => mapbox.value.settings.size * 100000 / (mapbox.value.settings.resolution - 1))
 const scaleZ = computed(() => mapbox.value.settings.elevationScale * 100 / 512)
 
-useListen('generate:total', (number: number) => {
+useListen('isDownload', (value: boolean) => {
+  isDownloading.value = value
+})
+
+useListen('message:reset', () => {
+  total.value = 0
+  progress.value = 0
+})
+
+useListen('message:total', (number: number) => {
   message.value = ''
   total.value += number
 })
 
-useListen('generate:progress', () => {
+useListen('message:progress', () => {
   message.value = ''
   progress.value += 1
 })
 
-useListen('generate:phase', (data: string) => {
+useListen('message:phase', (data: string) => {
   message.value = data
 })
 
@@ -108,10 +117,13 @@ const onPreview = async () => {
     previewData.value.waterWayMapImage = undefined
     previewData.value.min = 0
     previewData.value.max = 0
+    total.value = 0
+    progress.value = 0
 
-    isDownloading.value = true
     const res = mapbox.value.settings.originalPreview ? mapbox.value.settings.resolution : Math.min(getResolution(), mapbox.value.settings.resolution)
     const plainSettings: Settings = JSON.parse(JSON.stringify(mapbox.value.settings))
+
+    isDownloading.value = true
 
     previewData.value = await worker.value?.generateMap(
       'preview',
@@ -120,15 +132,15 @@ const onPreview = async () => {
       debugMode.value,
     ) as ResultType
 
+    render(mapbox.value.settings.normalizePreview)
+
+    const t1 = window.performance.now()
+
     if (debugMode.value) {
       const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
       if (previewData.value.waterMapImage) setImageBitmap(osWaterCanvas, previewData.value.waterMapImage)
       if (previewData.value.waterWayMapImage) setImageBitmap(osWaterWayCanvas, previewData.value.waterWayMapImage!)
     }
-
-    render(mapbox.value.settings.normalizePreview)
-
-    const t1 = window.performance.now()
 
     const grid = getGrid(
       mapSpec[mapbox.value.settings.gridInfo].grid,
@@ -147,9 +159,6 @@ const onPreview = async () => {
     await setRequiredSubWorkers()
   } catch (e) {
     console.error('Failed to generate preview data.:', e)
-  } finally {
-    total.value = 0
-    progress.value = 0
   }
 }
 

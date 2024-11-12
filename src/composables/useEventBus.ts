@@ -10,9 +10,11 @@ type ApplicationEvents = {
   'modal:pointDragged': void
   'panel:tabChange': number
   'panel:updateHeight': void
-  'generate:total': number
-  'generate:progress': void
-  'generate:phase': string
+  'isDownload': boolean
+  'message:total': number
+  'message:progress': void
+  'message:phase': string
+  'message:reset': void
   'debug:operate': void
 }
 

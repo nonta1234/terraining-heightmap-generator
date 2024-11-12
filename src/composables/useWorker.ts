@@ -11,15 +11,15 @@ export const initializeWorker = async () => {
       const progressCallback = (data: ProgressData) => {
         switch (data.type) {
           case 'total':
-            useEvent('generate:total', data.data as number)
+            useEvent('message:total', data.data as number)
             break
 
           case 'progress':
-            useEvent('generate:progress')
+            useEvent('message:progress')
             break
 
           case 'phase':
-            useEvent('generate:phase', data.data?.toString() || '')
+            useEvent('message:phase', data.data?.toString() || '')
             break
         }
       }
