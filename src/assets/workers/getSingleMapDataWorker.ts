@@ -1,5 +1,5 @@
 import * as Comlink from 'comlink'
-import type { SingleMapOption, MapData, ProgressData, ResultType } from '~/types/types'
+import type { SingleMapOption, MapOption, MapData, ProgressData, ResultType } from '~/types/types'
 import { mixArray, getMinMaxHeight } from '~/utils/elevation'
 import { getHeightmap } from '~/utils/getHeightmap'
 import { getWaterMap } from '~/utils/getWaterMap'
@@ -137,7 +137,7 @@ class GetSingleMapDataWorker {
     }
   }
 
-  public async applyEffects(option: SingleMapOption) {
+  public async applyEffects(option: MapOption) {
     if (!this.effectInstance) throw new Error('GetSingleMapDataWorker: Effect instance not initialized.')
     if (!this.mapData?.heightmap) throw new Error('GetSingleMapDataWorker: Heightmap not generated.')
 
@@ -153,7 +153,7 @@ class GetSingleMapDataWorker {
     Object.assign(this.mapData, { blurredMap, sharpenMap, noisedMap })
   }
 
-  public combine(option: SingleMapOption): ResultType {
+  public combine(option: MapOption, getMinMax: boolean): ResultType {
     if (!this.heightmapController || !this.heightmapInstance) {
       throw new Error('GetSingleMapDataWorker: Initialization required.')
     }
@@ -163,7 +163,7 @@ class GetSingleMapDataWorker {
 
     this.setMapDataToController()
 
-    const { settings } = option as SingleMapOption
+    const { settings } = option
 
     this.heightmapController.combine_heightmaps(
       settings.depth,
@@ -180,7 +180,7 @@ class GetSingleMapDataWorker {
       this.mapData.heightmap.length,
     )
 
-    const { min, max } = getMinMaxHeight(combinedData, 100)
+    const { min, max } = getMinMax ? getMinMaxHeight(combinedData, 100) : { min: 0, max: 0 }
     const resultData = new Float32Array(combinedData.length)
     resultData.set(combinedData)
 
