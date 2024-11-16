@@ -5,7 +5,7 @@ import { getMinMaxHeight, mergeTiles, extractArray, splitTile, scaleUpBicubic, i
 import { getExtentInWorldCoords, rotateExtent } from '~/utils/getExtent'
 import type { GetSingleMapDataWorkerType } from '~/assets/workers/getSingleMapDataWorker'
 import GetSingleMapDataWorker from '~/assets/workers/getSingleMapDataWorker.ts?worker'
-import initPng, { encode_png } from '~~/png_lib/pkg'
+import initPng, { encode_png } from '~~/wasm/png_lib/pkg'
 
 class GetCitiesMapWorker {
   private subWorkers: Comlink.Remote<GetSingleMapDataWorkerType>[]
@@ -383,6 +383,7 @@ class GetCitiesMapWorker {
           asyncExtractArray(data.heightmap, 100, 100, 16384),
         ])
 
+        // reduction processing
         const wordMapData = new Float32Array(16777216)
 
         for (let y = 0; y < 4096; y++) {

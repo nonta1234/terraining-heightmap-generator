@@ -1,6 +1,6 @@
 import type { MapType, Settings, Extent } from '~/types/types'
 import { decode as decode_webp } from '@jsquash/webp'
-import initPng, { decode_png } from '~~/png_lib/pkg'
+import initPng, { decode_png } from '~~/wasm/png_lib/pkg'
 import { decodeElevation } from '~/utils/elevation'
 import { useFetchTerrainTiles } from '~/composables/useFetchTiles'
 import { mapSpec } from '~/utils/const'
@@ -282,11 +282,11 @@ export const getHeightmap = async (
       }
       await processTiles(tileList)
     }
-
+    console.time('Bicubic')
     const result = settings.interpolation === 'bicubic'
       ? getHeightMapBicubic(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
       : getHeightMapBilinear(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
-
+    console.timeEnd('Bicubic')
     return result
   } catch (error) {
     console.error('An error occurred in getHeightMap:', error)

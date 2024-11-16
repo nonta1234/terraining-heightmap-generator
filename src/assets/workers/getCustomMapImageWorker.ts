@@ -7,7 +7,7 @@ import { pixel2lng, pixel2lat } from '~/utils/tiles'
 import type { Settings } from '~/types/types'
 import { getExtentInWorldCoords } from '~/utils/getExtent'
 import logoUrl from '~/assets/svg/mapboxgl-ctrl-logo.svg'
-import initPng, { encode_png } from '~~/png_lib/pkg'
+import initPng, { encode_png } from '~~/wasm/png_lib/pkg'
 
 type T = {
   settings: Settings

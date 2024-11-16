@@ -4,8 +4,8 @@ import { mixArray, getMinMaxHeight } from '~/utils/elevation'
 import { getHeightmap } from '~/utils/getHeightmap'
 import { getWaterMap } from '~/utils/getWaterMap'
 import { gaussianBlur, unsharpMask, noise } from '~/utils/effects'
-import effectWasm, { type InitOutput as effectInitOutput } from '~~/effects_lib/pkg'
-import heightmapWasm, { Heightmap, type InitOutput as heightmapInitOutput } from '~~/heightmap_lib/pkg'
+import effectWasm, { type InitOutput as effectInitOutput } from '~~/wasm/effects_lib/pkg'
+import heightmapWasm, { Heightmap, type InitOutput as heightmapInitOutput } from '~~/wasm/heightmap_lib/pkg'
 
 class GetSingleMapDataWorker {
   private effectInstance?: effectInitOutput

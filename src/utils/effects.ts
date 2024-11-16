@@ -1,4 +1,4 @@
-import { allocate_memory, free_memory, gaussian_blur, unsharp_mask, noise as gen_noise, type InitOutput } from '~~/effects_lib/pkg'
+import { allocate_memory, free_memory, gaussian_blur, unsharp_mask, noise as gen_noise, type InitOutput } from '~~/wasm/effects_lib/pkg'
 
 export const gaussianBlur = (instance: InitOutput | undefined, data: Float32Array, radius: number, blend: number): Promise<Float32Array> => {
   return new Promise((resolve, reject) => {

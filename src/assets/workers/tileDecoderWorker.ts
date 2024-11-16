@@ -1,6 +1,6 @@
 import * as Comlink from 'comlink'
 import { decode as decode_webp } from '@jsquash/webp'
-import initPng, { decode_png } from '~~/png_lib/pkg'
+import initPng, { decode_png } from '~~/wasm/png_lib/pkg'
 import { decodeElevation } from '~/utils/elevation'
 import type { MapType } from '~/types/types'
 

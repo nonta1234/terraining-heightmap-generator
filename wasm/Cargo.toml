@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+    "effects_lib",
+    "heightmap_lib",
+    "png_lib",
+    "tiles_lib",
+]

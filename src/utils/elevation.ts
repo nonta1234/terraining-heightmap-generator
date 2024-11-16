@@ -28,6 +28,7 @@ export const mixArray = (heightmap: Float32Array, oceanmap: Float32Array) => {
 }
 
 export const splitTile = (data: Float32Array, overlap: number) => {
+  console.time('splitTile')
   const size = Math.sqrt(data.length)
   const correction = size % 2
   const halfSize = Math.floor(size / 2)
@@ -51,13 +52,50 @@ export const splitTile = (data: Float32Array, overlap: number) => {
   copyTile(topright, offset, 0)
   copyTile(bottomleft, 0, offset)
   copyTile(bottomright, offset, offset)
-
+  console.timeEnd('splitTile')
   return {
     topleft,
     topright,
     bottomleft,
     bottomright,
   }
+}
+
+export const extractTile = (data: Float32Array, overlap: number, tile: number) => {
+  console.time('splitTile')
+  const size = Math.sqrt(data.length)
+  const correction = size % 2
+  const halfSize = Math.floor(size / 2)
+  const tileSize = halfSize + overlap + correction
+  const offset = halfSize - overlap
+
+  const result = new Float32Array(tileSize * tileSize)
+
+  function copyTile(dst: Float32Array, startX: number, startY: number) {
+    for (let y = 0; y < tileSize; y++) {
+      const srcStart = (startY + y) * size + startX
+      const dstStart = y * tileSize
+      dst.set(data.subarray(srcStart, srcStart + tileSize), dstStart)
+    }
+  }
+
+  switch (tile) {
+    case 0:
+      copyTile(result, 0, 0)
+      break
+    case 1:
+      copyTile(result, offset, 0)
+      break
+    case 2:
+      copyTile(result, 0, offset)
+      break
+    case 3:
+      copyTile(result, offset, offset)
+      break
+  }
+
+  console.timeEnd('splitTile')
+  return result
 }
 
 export const mergeTiles = (
@@ -99,6 +137,7 @@ export const mergeTiles = (
  * @returns Float32Array
  */
 export const scaleUpBicubic = (elevations: Float32Array) => {
+  console.time('scaleUpBicubic')
   const originalSize = 4096
   const padding = 100
   const fullSize = originalSize + 2 * padding
@@ -112,8 +151,8 @@ export const scaleUpBicubic = (elevations: Float32Array) => {
   const c = 1 / 3
   const coeff = cubicBCcoefficient(b, c)
 
-  for (let y = 0; y < newSize; y++) {
-    for (let x = 0; x < newSize; x++) {
+  for (let y = 0; y < outputSize; y++) {
+    for (let x = 0; x < outputSize; x++) {
       const posX = x / scale
       const posY = y / scale
 
@@ -170,10 +209,12 @@ export const scaleUpBicubic = (elevations: Float32Array) => {
     return y
   }
 
+  console.timeEnd('scaleUpBicubic')
   return heightMap
 }
 
 export const integrateHightmapWithFeathering = (worldMap: Float32Array, heightmap: Float32Array, featherSize: number) => {
+  console.time('integrateHightmap')
   const padding = 100
   const worldMapSize = 16584
   const heightmapSize = 4296
@@ -300,7 +341,7 @@ export const integrateHightmapWithFeathering = (worldMap: Float32Array, heightma
       result[indexA] = heightmap[indexB] * weight + result[indexA] * (1 - weight)
     }
   }
-
+  console.timeEnd('integrateHightmap')
   return result
 }
 

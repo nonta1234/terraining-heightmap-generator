@@ -9,9 +9,10 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "wasm:png": "wasm-pack build png_lib --target web",
-    "wasm:height": "wasm-pack build heightmap_lib --target web",
-    "wasm:effects": "wasm-pack build effects_lib --target web"
+    "wasm:png": "wasm-pack build wasm/png_lib --target web",
+    "wasm:height": "wasm-pack build wasm/heightmap_lib --target web",
+    "wasm:effects": "wasm-pack build wasm/effects_lib --target web",
+    "wasm:tiles": "wasm-pack build wasm/tiles_lib --target web"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.4.0",

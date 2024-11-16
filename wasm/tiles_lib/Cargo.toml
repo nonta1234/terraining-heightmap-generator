@@ -1,0 +1,15 @@
+[package]
+name = "tiles_lib"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "s"
+
+[dependencies]
+wasm-bindgen = "0.2.95"
