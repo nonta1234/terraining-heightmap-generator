@@ -1,5 +1,4 @@
 import type { Position } from 'geojson'
-import type { GridPositions } from '~/types/types'
 
 export const lng2tile = (lng: number, zoom: number) => {
   return Math.floor((lng + 180) / 360 * (2 ** zoom))
