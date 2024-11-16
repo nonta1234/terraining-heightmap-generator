@@ -17,34 +17,6 @@ pub fn free_memory(ptr: *mut f32, size: usize) {
 }
 
 #[wasm_bindgen]
-pub fn extract_tile(
-    input_ptr: *const f32,
-    output_ptr: *mut f32,
-    input_size: usize,
-    output_size: usize,
-    offset: usize,
-    tile: usize,
-) {
-    let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size * input_size) };
-    let output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size * output_size) };
-
-    let (start_x, start_y) = match tile {
-        0 => (0, 0),
-        1 => (offset, 0),
-        2 => (0, offset),
-        3 => (offset, offset),
-        _ => return,
-    };
-
-    for y in 0..output_size {
-        let src_start = (start_y + y) * input_size + start_x;
-        let dst_start = y * output_size;
-        output[dst_start..dst_start + output_size]
-            .copy_from_slice(&input[src_start..src_start + output_size]);
-    }
-}
-
-#[wasm_bindgen]
 pub fn scale_up_bicubic(input_ptr: *const f32, output_ptr: *mut f32) {
     const ORIGINAL_SIZE: usize = 4096;
     const PADDING: usize = 100;
