@@ -20,17 +20,13 @@ pub fn free_memory(ptr: *mut f32, size: usize) {
 pub fn extract_tile(
     input_ptr: *const f32,
     output_ptr: *mut f32,
-    size: usize,
-    overlap: usize,
+    input_size: usize,
+    output_size: usize,
+    offset: usize,
     tile: usize,
 ) {
-    let correction = size % 2;
-    let half_size = size / 2;
-    let tile_size = half_size + overlap + correction;
-    let offset = half_size - overlap;
-
-    let input = unsafe { std::slice::from_raw_parts(input_ptr, size * size) };
-    let output = unsafe { std::slice::from_raw_parts_mut(output_ptr, tile_size * tile_size) };
+    let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size * input_size) };
+    let output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size * output_size) };
 
     let (start_x, start_y) = match tile {
         0 => (0, 0),
@@ -40,11 +36,11 @@ pub fn extract_tile(
         _ => return,
     };
 
-    for y in 0..tile_size {
-        let src_start = (start_y + y) * size + start_x;
-        let dst_start = y * tile_size;
-        output[dst_start..dst_start + tile_size]
-            .copy_from_slice(&input[src_start..src_start + tile_size]);
+    for y in 0..output_size {
+        let src_start = (start_y + y) * input_size + start_x;
+        let dst_start = y * output_size;
+        output[dst_start..dst_start + output_size]
+            .copy_from_slice(&input[src_start..src_start + output_size]);
     }
 }
 
@@ -52,6 +48,7 @@ pub fn extract_tile(
 pub fn scale_up_bicubic(input_ptr: *const f32, output_ptr: *mut f32) {
     const ORIGINAL_SIZE: usize = 4096;
     const PADDING: usize = 100;
+    const SCALED_PADDING: usize = 75;
     const FULL_SIZE: usize = ORIGINAL_SIZE + 2 * PADDING;
     const SCALE: usize = 4;
     const NEW_SIZE: usize = ORIGINAL_SIZE * SCALE;
@@ -66,14 +63,14 @@ pub fn scale_up_bicubic(input_ptr: *const f32, output_ptr: *mut f32) {
     let output = unsafe { std::slice::from_raw_parts_mut(output_ptr, OUTPUT_SIZE * OUTPUT_SIZE) };
 
     for y in 0..OUTPUT_SIZE {
+        let pos_y = y as f32 / SCALE as f32;
+        let y0 = pos_y.floor() as usize + SCALED_PADDING;
+        let ty = pos_y - pos_y.floor();
+
         for x in 0..OUTPUT_SIZE {
             let pos_x = x as f32 / SCALE as f32;
-            let pos_y = y as f32 / SCALE as f32;
-
-            let x0 = pos_x.floor() as usize + PADDING;
-            let y0 = pos_y.floor() as usize + PADDING;
+            let x0 = pos_x.floor() as usize + SCALED_PADDING;
             let tx = pos_x - pos_x.floor();
-            let ty = pos_y - pos_y.floor();
 
             let fx = [
                 cubic_func(1.0 + tx, &coeff),
@@ -111,7 +108,7 @@ pub fn scale_up_bicubic(input_ptr: *const f32, output_ptr: *mut f32) {
                 fy[3] * input[(y0 + 2) * FULL_SIZE + (x0 + 2)],
             ];
 
-            output[(y + PADDING) * OUTPUT_SIZE + (x + PADDING)] = 
+            output[y * OUTPUT_SIZE + x] = 
                 fx[0] * tmp_vals[0] + fx[1] * tmp_vals[1] + 
                 fx[2] * tmp_vals[2] + fx[3] * tmp_vals[3];
         }

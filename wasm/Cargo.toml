@@ -1,8 +1,12 @@
 [workspace]
-
 members = [
     "effects_lib",
     "heightmap_lib",
     "png_lib",
     "tiles_lib",
 ]
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "s"
