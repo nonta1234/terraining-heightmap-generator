@@ -22,15 +22,11 @@ pub fn free_memory(ptr: *mut f32, size: usize) {
 }
 
 #[wasm_bindgen]
-pub fn gaussian_blur(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, radius: f32, blend_factor: f32) {
-    // console_error_panic_hook::set_once();
-    // debug_log(&format!("Starting gaussian_blur: length={}, radius={}, blend_factor={}", length, radius, blend_factor));
+pub fn gaussian_blur(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, radius: f32, blend_factor: f32, threshold: f32, fade: f32) {
     let size = (length as f32).sqrt() as usize;
 
     let input_slice = unsafe { std::slice::from_raw_parts(input_ptr, length) };
     let output_slice = unsafe { std::slice::from_raw_parts_mut(output_ptr, length) };
-
-    // debug_print_data("Input", input_ptr, size, size);
 
     let mut planner = FftPlanner::new();
     let fft = planner.plan_fft_forward(length);
@@ -60,13 +56,13 @@ pub fn gaussian_blur(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, r
         .enumerate()
         .for_each(|(i, output)| {
             let blurred = input_complex[i].re / len;
-            *output = (1.0 - blend_factor) * input_slice[i] + blend_factor * blurred;
+            let elevation_alpha = get_ul_alpha(input_slice[i], threshold, fade);
+            *output = (1.0 - blend_factor * elevation_alpha) * input_slice[i] + blend_factor * elevation_alpha * blurred;
         });
-    // debug_print_data("Output", output_ptr, size, size);
 }
 
 #[wasm_bindgen]
-pub fn unsharp_mask(input_ptr: *mut f32, blurred_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f32) {
+pub fn unsharp_mask(input_ptr: *mut f32, blurred_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f32, threshold: f32, fade: f32) {
     let input_slice = unsafe { std::slice::from_raw_parts(input_ptr, length) };
     let blurred_slice = unsafe { std::slice::from_raw_parts(blurred_ptr, length) };
     let output_slice = unsafe { std::slice::from_raw_parts_mut(output_ptr, length) };
@@ -77,24 +73,26 @@ pub fn unsharp_mask(input_ptr: *mut f32, blurred_ptr: *mut f32, output_ptr: *mut
             let original = input_slice[i];
             let blurred = blurred_slice[i];
             let difference = original - blurred;
+            let elevation_alpha = get_ll_alpha(input_slice[i], threshold, fade);
             let sharpened = original + amount * difference;
-            *output = sharpened;
+            *output = (1.0 - elevation_alpha) * input_slice[i] + elevation_alpha * sharpened;
         });
 }
 
 #[wasm_bindgen]
-pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f32, tri_threshold: f32, pixel_distance: f32) {
+pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f32, tri_threshold: f32, pixel_distance: f32, threshold: f32, fade: f32) {
     let size = (length as f32).sqrt() as usize;
     let input_slice = unsafe { std::slice::from_raw_parts(input_ptr, length) };
     let output_slice = unsafe { std::slice::from_raw_parts_mut(output_ptr, length) };
-    // let mut rng = rand::thread_rng();
     let rng = Arc::new(Mutex::new(SmallRng::from_entropy()));
 
     if tri_threshold == 0.0 {
         output_slice.par_iter_mut()
-            .for_each(|output_value| {
+            .enumerate()
+            .for_each(|(i, output_value)| {
+                let elevation_alpha = get_ll_alpha(input_slice[i], threshold, fade);
                 let mut thread_rng = rng.lock().unwrap();
-                *output_value = thread_rng.gen_range(0.0, 1.0) * amount;
+                *output_value = thread_rng.gen_range(0.0, 1.0) * amount * elevation_alpha;
             });
     } else {
         let tri = calculate_tri(&input_slice, size);
@@ -127,10 +125,11 @@ pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f
         let len = length as f32;
 
         output_slice.par_iter_mut()
-            .zip(mask.par_iter())
-            .for_each(|(output_value, &mask)| {
+            .enumerate()
+            .for_each(|(i, output_value)| {
+                let elevation_alpha = get_ll_alpha(input_slice[i], threshold, fade);
                 let mut thread_rng = rng.lock().unwrap();
-                *output_value = thread_rng.gen_range(0.0, 1.0) * amount * (mask.re / len);
+                *output_value = thread_rng.gen_range(0.0, 1.0) * amount * (mask[i].re / len) * elevation_alpha;
             });
     }
 }
@@ -229,6 +228,36 @@ fn calculate_tri(dem: &[f32], size: usize) -> Vec<f32> {
     });
 
     tri
+}
+
+fn get_ll_alpha(value: f32, threshold: f32, fade: f32) -> f32 {
+    let lower = threshold;
+    let upper = threshold + fade;
+
+    if value >= upper {
+        return 1.0;
+    }
+
+    if value <= lower {
+        return 0.0;
+    }
+
+    (value - lower) / fade
+}
+
+fn get_ul_alpha(value: f32, threshold: f32, fade: f32) -> f32 {
+    let lower = threshold - fade;
+    let upper = threshold;
+
+    if value >= upper {
+        return 0.0;
+    }
+
+    if value <= lower {
+        return 1.0;
+    }
+
+    (upper - value) / fade
 }
 
 /*
