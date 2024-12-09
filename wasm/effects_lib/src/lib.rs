@@ -3,7 +3,6 @@ use std::sync::{Arc, Mutex};
 use rustfft::{num_complex::Complex, FftPlanner};
 use rand::{rngs::SmallRng, Rng, SeedableRng};
 use rayon::prelude::*;
-// use web_sys::console;
 
 #[wasm_bindgen]
 pub fn allocate_memory(length: usize) -> *mut f32 {
@@ -259,97 +258,3 @@ fn get_ul_alpha(value: f32, threshold: f32, fade: f32) -> f32 {
 
     (upper - value) / fade
 }
-
-/*
-fn calculate_tri_limited_range(dem: &[f32], size: usize, padding: usize) -> Vec<f32> {
-    let limited_size = size - 2 * padding;
-    let mut tri = vec![0.0; limited_size * limited_size];
-
-    tri.par_iter_mut().enumerate().for_each(|(i, tri_value)| {
-        let limited_row = i / limited_size;
-        let limited_col = i % limited_size;
-        let row = limited_row + padding;
-        let col = limited_col + padding;
-        let center_idx = row * size + col;
-        let mut sum = 0.0;
-
-        for dy in -1..=1 {
-            for dx in -1..=1 {
-                if dx == 0 && dy == 0 {
-                    continue;
-                }
-
-                let neighbor_row = row as i32 + dy;
-                let neighbor_col = col as i32 + dx;
-                let neighbor_idx = (neighbor_row * size as i32 + neighbor_col) as usize;
-                let elevation_diff = (dem[center_idx] - dem[neighbor_idx]).abs();
-                sum += elevation_diff;
-            }
-        }
-
-        *tri_value = sum / 8.0;
-    });
-
-    tri
-}
-
-fn debug_print_complex(label: &str, data: &[Complex<f32>]) {
-    let mut debug_message = format!("{}:\n", label);
-    for (_, &value) in data.iter().enumerate().take(5) {
-        debug_message.push_str(&format!("{:.2e}+{:.2e}i ", value.re, value.im));
-    }
-    debug_message.push_str("...\n");
-    let sum = data.iter().fold(Complex::new(0.0, 0.0), |acc, &x| acc + x);
-    let max = data.iter().fold(0.0f32, |acc, &x| acc.max(x.norm()));
-    debug_message.push_str(&format!("Sum: {:.2e}+{:.2e}i\n", sum.re, sum.im));
-    debug_message.push_str(&format!("Max magnitude: {:.2e}\n", max));
-    debug_log(&debug_message);
-}
-
-fn debug_print_kernel(label: &str, kernel: &[f32]) {
-    let mut debug_message = format!("{}:\n", label);
-    for (i, &value) in kernel.iter().enumerate().take(10) {
-        debug_message.push_str(&format!("{:.4e} ", value));
-        if (i + 1) % 5 == 0 {
-            debug_message.push('\n');
-        }
-    }
-    debug_message.push_str("...\n");
-    debug_message.push_str(&format!("Kernel length: {}\n", kernel.len()));
-    debug_message.push_str(&format!("Sum: {:.4e}\n", kernel.iter().sum::<f32>()));
-    debug_log(&debug_message);
-}
-
-fn debug_print_data(label: &str, ptr: *const f32, width: usize, height: usize) {
-    let mut debug_message = format!("{}:\n", label);
-    unsafe {
-        let slice = std::slice::from_raw_parts(ptr, width * height);
-        let mut non_zero_count = 0;
-        let mut sum = 0.0;
-        for y in 0..height {
-            for x in 0..width {
-                let value = slice[y * width + x];
-                if value != 0.0 {
-                    non_zero_count += 1;
-                }
-                sum += value;
-                if x < 5 && y < 5 {
-                    debug_message.push_str(&format!("{:.2e} ", value));
-                }
-            }
-            if y < 5 {
-                debug_message.push('\n');
-            }
-        }
-        debug_message.push_str("...\n");
-        debug_message.push_str(&format!("Non-zero values: {}\n", non_zero_count));
-        debug_message.push_str(&format!("Sum: {:.2e}\n", sum));
-        debug_message.push_str(&format!("Average: {:.2e}\n", sum / (width * height) as f32));
-    }
-    debug_log(&debug_message);
-}
-
-fn debug_log(message: &str) {
-    console::log_1(&JsValue::from_str(message));
-}
-*/
