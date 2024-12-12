@@ -152,6 +152,7 @@ export type MapOption = {
   unitSize: number
   smoothRadius: number
   sharpenRadius: number
+  division: number
   isDebug: boolean
 }
 

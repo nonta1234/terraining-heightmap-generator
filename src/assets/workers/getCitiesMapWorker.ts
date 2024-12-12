@@ -1,59 +1,105 @@
 import * as Comlink from 'comlink'
 import type { SingleMapOption, MultiMapOption, Settings, Extent, ProgressData, ResultType, FileType } from '~/types/types'
+import type { MapProcessWorkerType } from '~/assets/workers/mapProcessWorker'
 import { mapSpec } from '~/utils/const'
-import { getMinMaxHeight, mergeTiles, extractArray, splitTile, scaleUpBicubic, integrateHightmapWithFeathering } from '~/utils/elevation'
+import { getMinMaxHeight } from '~/utils/elevation'
+import { mergeTiles } from '~/utils/tileProcess'
 import { getExtentInWorldCoords, rotateExtent } from '~/utils/getExtent'
-import type { GetSingleMapDataWorkerType } from '~/assets/workers/getSingleMapDataWorker'
-import GetSingleMapDataWorker from '~/assets/workers/getSingleMapDataWorker.ts?worker'
 import initPng, { encode_png } from '~~/wasm/png_lib/pkg'
+import { WorkerPool } from '~/utils/workerPool'
+import MapProcessWorker from '~/assets/workers/mapProcessWorker.ts?worker'
+
+type SubWorker = {
+  remote: Comlink.Remote<MapProcessWorkerType>
+  worker: Worker
+}
 
 class GetCitiesMapWorker {
-  private subWorkers: Comlink.Remote<GetSingleMapDataWorkerType>[]
   private progressCallback: ((data: ProgressData) => void) | undefined
-  private isSetSubWorker: boolean
-
-  constructor() {
-    this.subWorkers = []
-    this.isSetSubWorker = false
-  }
+  private workerPool: WorkerPool<SubWorker> | undefined
+  private resolution: number = 0
 
   public setCallback(progressCallback: (data: ProgressData) => void) {
     this.progressCallback = progressCallback
   }
 
-  public async setSubWorker(workerCount: number) {
-    if (this.isSetSubWorker) return
-    this.isSetSubWorker = true
-
+  private validateCallback() {
     if (!this.progressCallback) {
-      throw new Error('GetCitiesMapWorker: Setting a callback function is required.')
+      throw new Error('MapProcessWorker: Setting a callback function is required.')
     }
-    const count = Math.min(workerCount, 6)
+  }
 
-    if (this.subWorkers.length > count) {
-      for (let i = count; i < this.subWorkers.length; i++) {
-        await this.subWorkers[i].terminate()
-      }
-      this.subWorkers.length = count
-      this.isSetSubWorker = false
-    } else {
-      while (this.subWorkers.length < count) {
-        try {
-          const subWorker = Comlink.wrap<GetSingleMapDataWorkerType>(new GetSingleMapDataWorker())
-          await subWorker.initialize(this.progressCallback)
-          this.subWorkers.push(subWorker)
-        } catch (error: any) {
-          for (const worker of this.subWorkers) {
-            await worker.terminate()
-          }
-          this.subWorkers = []
-          throw new Error(`GetCitiesMapWorker: Initialization of sub worker failed: ${error.message}`)
-        } finally {
-          this.isSetSubWorker = false
-        }
-      }
-      this.isSetSubWorker = false
+  private validateArrayElements(array: any[], errorMessage: string) {
+    for (let i = 0; i < array.length; i++) {
+      if (!array[i]) throw new Error(errorMessage)
     }
+  }
+
+  private async setSubWorker(workerCount = navigator.hardwareConcurrency || 4) {
+    if (this.workerPool) {
+      await this.releaseWorkerPool()
+    }
+
+    const subWorkers: SubWorker[] = []
+    this.workerPool = undefined
+
+    try {
+      const initPromises = Array.from({ length: workerCount }, async (_, i) => {
+        const worker = new MapProcessWorker()
+        const remote = Comlink.wrap<MapProcessWorkerType>(worker)
+
+        await remote.initialize(i, Comlink.proxy(this.progressCallback!))
+
+        subWorkers.push({ remote, worker })
+      })
+
+      await Promise.all(initPromises)
+
+      this.workerPool = new WorkerPool(subWorkers)
+
+      if (!this.workerPool) {
+        throw new Error('MapProcessWorker: Failed to create worker pool.')
+      }
+    } catch (error: any) {
+      console.error('Error during worker initialization:', error)
+
+      await Promise.all(subWorkers.map(({ remote, worker }) => {
+        remote[Comlink.releaseProxy]()
+        worker.terminate()
+      }))
+
+      this.workerPool = undefined
+
+      throw new Error(`MapProcessWorker: Failed to create worker pool. ${error.message}`)
+    }
+  }
+
+  private async replaceWorker(oldWorker: SubWorker) {
+    // delete used workers
+    oldWorker.remote[Comlink.releaseProxy]()
+    oldWorker.worker.terminate()
+    // create a new worker
+    const newWorker = new MapProcessWorker()
+    const newRemote = Comlink.wrap<MapProcessWorkerType>(newWorker)
+    const index = (this.workerPool?.getQueueSize() || 0) + (this.workerPool?.getWaitingSize() || 0)
+    console.log(index)
+    await newRemote.initialize(index - 1, Comlink.proxy(this.progressCallback!))
+
+    this.workerPool?.addWorker({ remote: newRemote, worker: newWorker })
+  }
+
+  private async releaseWorkerPool() {
+    const list = this.workerPool?.getQueueList()
+
+    if (list) {
+      await Promise.all(
+        list.map(({ remote, worker }) => {
+          remote[Comlink.releaseProxy]()
+          worker.terminate()
+        }),
+      )
+    }
+    this.workerPool = undefined
   }
 
   private getExtent(settings: Settings, size: number, offset: number, pixelsPerTile: number) {
@@ -62,212 +108,222 @@ class GetCitiesMapWorker {
     return extent
   }
 
-  private async setMapData(worker: Comlink.Remote<GetSingleMapDataWorkerType>, heightmap: Float32Array, waterMap: Float32Array, waterWayMap: Float32Array) {
-    await worker.setMapData(
-      Comlink.transfer(heightmap, [heightmap.buffer]),
-      Comlink.transfer(waterMap, [waterMap.buffer]),
-      Comlink.transfer(waterWayMap, [waterWayMap.buffer]),
-    )
+  private getDivisionCount(resolution: number) {
+    return Math.min(Math.ceil(resolution / 4000), 4)
   }
 
   private async generateSingleMap(option: SingleMapOption): Promise<ResultType> {
-    if (this.subWorkers.length < 1) {
-      await this.setSubWorker(1)
-    }
+    const subWWorker = await this.workerPool?.getWorker()
+    const data = await subWWorker?.remote.getMapData(option)
 
-    await this.subWorkers[0].generateMap(option)
-    this.progressCallback!({ type: 'phase', data: `Processing effects` })
-    await this.subWorkers[0].applyEffects(option)
-    this.progressCallback!({ type: 'phase', data: `Combining map data` })
-    const result = await this.subWorkers[0].combine(option, true)
-    return result
-  }
+    const heightmaps = [data?.heightmap, data?.waterMap, data?.waterWayMap]
 
-  private async generateMultiMap(option: SingleMapOption): Promise<ResultType> {
-    if (this.subWorkers.length < 5) {
-      await this.setSubWorker(5)
-    }
+    this.validateArrayElements(heightmaps, 'generateSingleMap: Error when getting heightmap data')
 
-    await this.subWorkers[4].generateMap(option)
+    const tileMaps: (Float32Array[] | undefined)[] = option.division > 1
+      ? await Promise.all(
+        heightmaps.map(async (map) => {
+          const subWWorker = await this.workerPool?.getWorker()
+          if (!subWWorker || !map) return undefined
+          const tileMap = await subWWorker.remote.splitTile(Comlink.transfer(map, [map.buffer]), option.division, 100)
+          this.workerPool?.releaseWorker(subWWorker)
+          return tileMap
+        }),
+      )
+      : [[data!.heightmap], [data!.waterMap], [data!.waterWayMap]]
 
-    this.progressCallback!({ type: 'phase', data: `Preparing to process by splitting` })
-    const { heightmap, waterMap, waterWayMap } = await this.subWorkers[4].getMapData()
+    this.validateArrayElements(tileMaps, 'generateSingleMap: Error when split tiles')
 
-    const { topleft: h_topleft, topright: h_topright, bottomleft: h_bottomleft, bottomright: h_bottomright } = splitTile(heightmap, 100)
-    const { topleft: w_topleft, topright: w_topright, bottomleft: w_bottomleft, bottomright: w_bottomright } = splitTile(waterMap, 100)
-    const { topleft: ww_topleft, topright: ww_topright, bottomleft: ww_bottomleft, bottomright: ww_bottomright } = splitTile(waterWayMap, 100)
+    const { rasterExtent, vectorExtent, ...mapOption } = option
 
-    await Promise.all([
-      this.setMapData(this.subWorkers[0], h_topleft, w_topleft, ww_topleft),
-      this.setMapData(this.subWorkers[1], h_topright, w_topright, ww_topright),
-      this.setMapData(this.subWorkers[2], h_bottomleft, w_bottomleft, ww_bottomleft),
-      this.setMapData(this.subWorkers[3], h_bottomright, w_bottomright, ww_bottomright),
-    ])
+    const combinedMaps = await Promise.all(
+      tileMaps[0]!.map(async (map, index) => {
+        const subWorker = await this.workerPool?.getWorker()
+        if (!subWorker || !map) return undefined
 
-    const results: { heightmap: Float32Array, min: number, max: number }[] = Array(4).fill(null).map(() => ({
-      heightmap: new Float32Array(),
-      min: 0,
-      max: 0,
-    }))
+        const tileMap = await subWorker.remote.applyEffects(Comlink.transfer(map!, [map!.buffer]), mapOption)
+        const noiseMap = tileMap!.noiseMap ? Comlink.transfer(tileMap!.noiseMap, [tileMap!.noiseMap!.buffer]) : undefined
+        const combinedMap = await subWorker.remote.combineMap(
+          Comlink.transfer(tileMap!.effectedMap, [tileMap!.effectedMap.buffer]),
+          noiseMap,
+          Comlink.transfer(tileMaps[1]![index], [tileMaps[1]![index].buffer]),
+          Comlink.transfer(tileMaps[2]![index], [tileMaps[2]![index].buffer]),
+          mapOption,
+          true,
+        )
 
-    await Promise.all([0, 1, 2, 3].map(async (index) => {
-      this.progressCallback!({ type: 'phase', data: `Processing effects (#${index})` })
-      await this.subWorkers[index].applyEffects(option)
-      this.progressCallback!({ type: 'phase', data: `Combining map data (#${index})` })
-      const result = await this.subWorkers[index].combine(option, true)
-      this.progressCallback!({ type: 'phase', data: `Tile combining completed (#${index})` })
+        await this.replaceWorker(subWorker)
 
-      results[index] = {
-        heightmap: result.heightmap,
-        min: result.min,
-        max: result.max,
-      }
-    }))
-
-    const resultHeightmap = mergeTiles(
-      results[0].heightmap,
-      results[1].heightmap,
-      results[2].heightmap,
-      results[3].heightmap,
-      mapSpec[option.settings.gridInfo].correction,
-      100,
+        return combinedMap
+      }),
     )
 
+    for (let i = 0; i < combinedMaps.length; i++) {
+      if (!combinedMaps[i]?.result) throw new Error('generateSingleMap: Error when combine maps')
+    }
+
+    const resultMapData = option.division > 1
+      ? (() => {
+          this.progressCallback!({ type: 'phase', data: 'Merging map tiles' })
+
+          const results: Float32Array[] = combinedMaps.map(item => item!.result)
+
+          const mergedMap = mergeTiles(results, option.mapPixels - 20 + mapSpec[option.settings.gridInfo].correction, 100)
+          const min = Math.min(...combinedMaps.map(item => item!.min))
+          const max = Math.max(...combinedMaps.map(item => item!.max))
+
+          return {
+            heightmap: mergedMap!,
+            min,
+            max,
+          }
+        })()
+      : {
+          heightmap: combinedMaps[0]!.result!,
+          min: combinedMaps[0]!.min,
+          max: combinedMaps[0]!.max,
+        }
+
+    const resultHeightmap = await subWWorker!.remote.extractMap(
+      Comlink.transfer(resultMapData.heightmap, [resultMapData.heightmap.buffer]),
+      100,
+      100,
+      this.resolution,
+    )
+
+    this.workerPool?.releaseWorker(subWWorker!)
+
     return {
-      heightmap: resultHeightmap,
-      min: Math.min(results[0].min, results[1].min, results[2].min, results[3].min),
-      max: Math.max(results[0].max, results[1].max, results[2].max, results[3].max),
+      heightmap: resultHeightmap!,
+      waterMapImage: data?.waterMapImage,
+      waterWayMapImage: data?.waterWayMapImage,
+      min: resultMapData.min,
+      max: resultMapData.max,
     }
   }
 
   private async generateCS2Map(option: MultiMapOption): Promise<ResultType> {
-    if (this.subWorkers.length < 6) {
-      await this.setSubWorker(6)
-    }
-
     const singleMapOptions: SingleMapOption[] = []
     const unitSizes = [option.unitSize, option.unitSize / 4]
 
     for (let i = 0; i < option.rasterExtents.length; i++) {
       singleMapOptions.push({
         settings: option.settings,
-        mapPixels: option.mapPixels,
+        mapPixels: option.mapPixels,  // resolution compatible with split processing
         unitSize: unitSizes[i],
         smoothRadius: option.smoothRadius,
         sharpenRadius: option.sharpenRadius,
+        division: option.division,
         isDebug: option.isDebug,
         rasterExtent: option.rasterExtents[i],
         vectorExtent: option.vectorExtents[i],
       })
     }
 
-    await Promise.all([
-      this.subWorkers[4].generateMap(singleMapOptions[0]),
-      this.subWorkers[5].generateMap(singleMapOptions[1]),
+    const division = option.division
+
+    const worker1 = await this.workerPool?.getWorker()
+    const worker2 = await this.workerPool?.getWorker()
+
+    const [worldMapData, heightmapData] = await Promise.all([
+      worker1!.remote.getMapData(singleMapOptions[0]),   // the generated size is a multiple of 12 plus 200px
+      worker2!.remote.getMapData(singleMapOptions[1]),
     ])
 
-    this.progressCallback!({ type: 'phase', data: `Preparing to process by splitting` })
+    const worldMaps = [worldMapData?.heightmap, worldMapData?.waterMap, worldMapData?.waterWayMap]
+    const heightmaps = [heightmapData?.heightmap, heightmapData?.waterMap, heightmapData?.waterWayMap]
 
-    const [
-      { heightmap, waterMap, waterWayMap },
-      { heightmap: h_heightmap, waterMap: h_waterMap, waterWayMap: h_waterWayMap },
-    ] = await Promise.all([
-      this.subWorkers[4].getMapData(),
-      this.subWorkers[5].getMapData(),
-    ])
+    this.validateArrayElements(worldMaps, 'generateCS2Map: Error when getting world map data')
+    this.validateArrayElements(heightmaps, 'generateCS2Map: Error when getting heightmap data')
 
-    function asyncScaleUpBicubic(data: Float32Array): Promise<Float32Array> {
-      return new Promise((resolve) => {
-        const result = scaleUpBicubic(data)
-        resolve(result)
-      })
-    }
+    const tmpMaps = await Promise.all(
+      worldMaps.map(async (map, index) => {
+        const subWorker = await this.workerPool?.getWorker()
+        if (!subWorker || !map) return undefined
 
-    const [su_heightmap, su_waterMap, su_waterWayMap] = await Promise.all([
-      asyncScaleUpBicubic(heightmap),
-      asyncScaleUpBicubic(waterMap),
-      asyncScaleUpBicubic(waterWayMap),
-    ])
+        const scaleUpedWorldMap = await subWorker.remote.scaleUpBicubic(Comlink.transfer(map, [map.buffer]))
+        const blendedMap = await subWorker.remote.blendMapsWithFeathering(
+          Comlink.transfer(scaleUpedWorldMap!, [scaleUpedWorldMap!.buffer]),
+          Comlink.transfer(heightmaps[index]!, [heightmaps[index]!.buffer]),
+          100,
+        )
 
-    function asyncIntegrateHightmapWithFeathering(
-      worldMap: Float32Array,
-      heightmap: Float32Array,
-      featherSize: number,
-    ): Promise<Float32Array> {
-      return new Promise((resolve) => {
-        const result = integrateHightmapWithFeathering(worldMap, heightmap, featherSize)
-        resolve(result)
-      })
-    }
-
-    const [tmp_heightmap, tmp_waterMap, tmp_waterWayMap] = await Promise.all([
-      asyncIntegrateHightmapWithFeathering(su_heightmap, h_heightmap, 100),
-      asyncIntegrateHightmapWithFeathering(su_waterMap, h_waterMap, 100),
-      asyncIntegrateHightmapWithFeathering(su_waterWayMap, h_waterWayMap, 100),
-    ])
-
-    function asyncSplitTile(data: Float32Array, overlap: number): Promise<{
-      topleft: Float32Array
-      topright: Float32Array
-      bottomleft: Float32Array
-      bottomright: Float32Array
-    }> {
-      return new Promise((resolve) => {
-        const result = splitTile(data, overlap)
-        resolve(result)
-      })
-    }
-
-    const [
-      { topleft: tl_heightmap, topright: tr_heightmap, bottomleft: bl_heightmap, bottomright: br_heightmap },
-      { topleft: tl_waterMap, topright: tr_waterMap, bottomleft: bl_waterMap, bottomright: br_waterMap },
-      { topleft: tl_waterWayMap, topright: tr_waterWayMap, bottomleft: bl_waterWayMap, bottomright: br_waterWayMap },
-    ] = await Promise.all([
-      asyncSplitTile(tmp_heightmap, 100),
-      asyncSplitTile(tmp_waterMap, 100),
-      asyncSplitTile(tmp_waterWayMap, 100),
-    ])
-
-    await Promise.all([
-      this.setMapData(this.subWorkers[0], tl_heightmap, tl_waterMap, tl_waterWayMap),
-      this.setMapData(this.subWorkers[1], tr_heightmap, tr_waterMap, tr_waterWayMap),
-      this.setMapData(this.subWorkers[2], bl_heightmap, bl_waterMap, bl_waterWayMap),
-      this.setMapData(this.subWorkers[3], br_heightmap, br_waterMap, br_waterWayMap),
-    ])
-
-    const results: { heightmap: Float32Array, min: number, max: number }[] = Array(4).fill(null).map(() => ({
-      heightmap: new Float32Array(),
-      min: 0,
-      max: 0,
-    }))
-
-    await Promise.all([0, 1, 2, 3].map(async (index) => {
-      this.progressCallback!({ type: 'phase', data: `Processing effects (#${index})` })
-      await this.subWorkers[index].applyEffects(option)
-      this.progressCallback!({ type: 'phase', data: `Combining map data (#${index})` })
-      const result = await this.subWorkers[index].combine(option, false)
-      this.progressCallback!({ type: 'phase', data: `Tile combining completed (#${index})` })
-
-      results[index] = {
-        heightmap: result.heightmap,
-        min: result.min,
-        max: result.max,
-      }
-    }))
-
-    const resultHeightmap = mergeTiles(
-      results[0].heightmap,
-      results[1].heightmap,
-      results[2].heightmap,
-      results[3].heightmap,
-      mapSpec[option.settings.gridInfo].correction,
-      100,
+        this.workerPool?.releaseWorker(subWorker)
+        return blendedMap
+      }),
     )
 
+    this.validateArrayElements(tmpMaps, 'generateCS2Map: Error when processing tiles')
+
+    const tileMaps = await Promise.all(
+      tmpMaps.map(async (map) => {
+        const subWorker = await this.workerPool?.getWorker()
+        if (!subWorker || !map) return undefined
+        const tileMap = await subWorker.remote.splitTile(Comlink.transfer(map, [map.buffer]), division, 100)
+        this.workerPool?.releaseWorker(subWorker)
+        return tileMap
+      }),
+    )
+
+    this.validateArrayElements(tileMaps, 'generateCS2Map: Error when split tiles')
+
+    const { rasterExtents, vectorExtents, ...mapOption } = option
+
+    const combinedMaps = await Promise.all(
+      tileMaps[0]!.map(async (map, index) => {
+        const subWorker = await this.workerPool?.getWorker()
+        if (!subWorker || !map) return undefined
+
+        const tileMap = await subWorker.remote.applyEffects(Comlink.transfer(map!, [map!.buffer]), mapOption)
+        const noiseMap = tileMap!.noiseMap ? Comlink.transfer(tileMap!.noiseMap, [tileMap!.noiseMap!.buffer]) : undefined
+        const combinedMap = await subWorker.remote.combineMap(
+          Comlink.transfer(tileMap!.effectedMap, [tileMap!.effectedMap.buffer]),
+          noiseMap,
+          Comlink.transfer(tileMaps[1]![index], [tileMaps[1]![index].buffer]),
+          Comlink.transfer(tileMaps[2]![index], [tileMaps[2]![index].buffer]),
+          mapOption,
+          false,
+        )
+
+        this.replaceWorker(subWorker)
+
+        return combinedMap
+      }),
+    )
+
+    for (let i = 0; i < combinedMaps.length; i++) {
+      if (!combinedMaps[i]?.result) throw new Error('generateCS2Map: Error when combine maps')
+    }
+
+    this.progressCallback!({ type: 'phase', data: 'Merging map tiles' })
+
+    const results: Float32Array[] = combinedMaps.map(item => item!.result)
+
+    const mergedMap = mergeTiles(results, 16584, 100)
+    const mergedMaps = [mergedMap, new Float32Array(mergedMap)]
+
+    const [resultHeightmap, tmpWorldMap] = await Promise.all([
+      worker1?.remote.extractMap(Comlink.transfer(mergedMaps[0], [mergedMaps[0].buffer]), 6244, 6244, 4096),
+      worker2?.remote.extractMap(Comlink.transfer(mergedMaps[1], [mergedMaps[1].buffer]), 100, 100, 16384),
+    ])
+
+    this.workerPool?.releaseWorker(worker1!)
+    this.workerPool?.releaseWorker(worker2!)
+
+    const resultWorldMap = scaleDownWorldMap(tmpWorldMap!)
+
+    const [h_minmax, w_minmax] = await Promise.all([
+      getMinMaxHeight(resultHeightmap!),
+      getMinMaxHeight(resultWorldMap),
+    ])
+
     return {
-      heightmap: resultHeightmap,
-      min: 0,
-      max: 0,
+      heightmap: resultHeightmap!,
+      worldMap: resultWorldMap,
+      waterMapImage: worldMapData?.waterMapImage,
+      waterWayMapImage: worldMapData?.waterWayMapImage,
+      min: Math.min(h_minmax.min, w_minmax.min),
+      max: Math.max(h_minmax.max, w_minmax.max),
     }
   }
 
@@ -276,7 +332,7 @@ class GetCitiesMapWorker {
     const elevationRange = data.max - data.min
     const unitScale = settings.elevationScale / 65535
 
-    let scaleFactor = 1
+    let scaleFactor: number
     if (settings.type === 'limit') {
       scaleFactor = elevationRange * settings.vertScale > settings.elevationScale ? settings.elevationScale / elevationRange : settings.vertScale
     } else if (settings.type === 'maximize') {
@@ -299,9 +355,8 @@ class GetCitiesMapWorker {
 
     const resultMap = new Uint8Array(clampedArrayMap)
 
-
     if (mode === 'png') {
-      this.progressCallback!({ type: 'phase', data: `Encoding data` })
+      this.progressCallback!({ type: 'phase', data: 'Encoding to PNG data' })
 
       const png = await encode_png(
         { data: resultMap },
@@ -319,148 +374,89 @@ class GetCitiesMapWorker {
   }
 
   public async generateMap(mode: 'preview' | 'raw' | 'png', settings: Settings, resolution: number, isDebug: boolean): Promise<FileType | ResultType> {
+    this.validateCallback()
+    await this.setSubWorker()
+
     try {
-      if (!this.progressCallback) {
-        throw new Error('GetCitiesMapWorker: Setting a callback function is required.')
-      }
+      this.resolution = resolution
       const rasterPixels = 512
       const vectorPixels = 4096
-      const padding = 110
+      const padding = 110           // considering edges, it is set larger than 100
       const offset4cs2play = 0.375
 
       const rasterExtents: Extent[] = []
       const vectorExtents: Extent[] = []
 
       const resScale = resolution / settings.resolution
-      const smoothRadius = settings.smoothRadius * resScale
-      const sharpenRadius = settings.sharpenRadius * resScale
+      const smoothRadius = settings.smoothRadius * resScale / ((mode === 'preview' && settings.gridInfo === 'cs2') ? 4 : 1)
+      const sharpenRadius = settings.sharpenRadius * resScale / ((mode === 'preview' && settings.gridInfo === 'cs2') ? 4 : 1)
 
       const _mapPixels = resolution - mapSpec[settings.gridInfo].correction
       const unitSize = settings.size / _mapPixels
-      const tmpMapPixels = Math.ceil((_mapPixels + padding * 2) / 4) * 4
+      const tmpMapPixels = _mapPixels + padding * 2
       const tmpMapSize = tmpMapPixels * unitSize
 
-      const result: ResultType = {
-        heightmap: new Float32Array(),
-        worldMap: new Float32Array(),
-        waterMapImage: undefined,
-        waterWayMapImage: undefined,
-        min: 0,
-        max: 0,
-      }
+      const result = (mode !== 'preview' && settings.gridInfo === 'cs2')
+        ? await (async () => {
+          // worldMap
+          rasterExtents.push(this.getExtent(settings, tmpMapSize, 0, rasterPixels))
+          vectorExtents.push(this.getExtent(settings, tmpMapSize, 0, vectorPixels))
+          // heightmap
+          rasterExtents.push(this.getExtent(settings, tmpMapSize, offset4cs2play, rasterPixels))
+          vectorExtents.push(this.getExtent(settings, tmpMapSize, offset4cs2play, vectorPixels))
 
-      // calculate extent
-      if (mode !== 'preview' && settings.gridInfo === 'cs2') {
-        // worldMap
-        rasterExtents.push(this.getExtent(settings, tmpMapSize, 0, rasterPixels))
-        vectorExtents.push(this.getExtent(settings, tmpMapSize, 0, vectorPixels))
-        // heightmap
-        rasterExtents.push(this.getExtent(settings, tmpMapSize, offset4cs2play, rasterPixels))
-        vectorExtents.push(this.getExtent(settings, tmpMapSize, offset4cs2play, vectorPixels))
-
-        const option: MultiMapOption = {
-          settings,
-          rasterExtents: rasterExtents,
-          vectorExtents: vectorExtents,
-          mapPixels: tmpMapPixels,
-          unitSize,
-          smoothRadius,
-          sharpenRadius,
-          isDebug: isDebug!,
-        }
-
-        const data = await this.generateCS2Map(option)
-
-        function asyncExtractArray(array: Float32Array, startX: number, startY: number, cropSize: number): Promise<Float32Array> {
-          return new Promise((resolve) => {
-            const result = extractArray(array, startX, startY, cropSize)
-            resolve(result)
-          })
-        }
-
-        const [heightmapData, tmpWorldMapData] = await Promise.all([
-          asyncExtractArray(data.heightmap, 6244, 6244, 4096),
-          asyncExtractArray(data.heightmap, 100, 100, 16384),
-        ])
-
-        // reduction processing
-        const wordMapData = new Float32Array(16777216)
-
-        for (let y = 0; y < 4096; y++) {
-          for (let x = 0; x < 4096; x++) {
-            const index = (y * 4) * 16384 + (x * 4)
-            wordMapData[y * 4096 + x] = (
-              tmpWorldMapData[index + 16385]
-              + tmpWorldMapData[index + 16386]
-              + tmpWorldMapData[index + 32769]
-              + tmpWorldMapData[index + 32770]
-            ) / 4
+          const option: MultiMapOption = {
+            settings,
+            rasterExtents: rasterExtents,
+            vectorExtents: vectorExtents,
+            mapPixels: tmpMapPixels,
+            unitSize,
+            smoothRadius,
+            sharpenRadius,
+            division: 4,
+            isDebug: isDebug!,
           }
-        }
 
-        function asyncGetMinMaxHeight(map: Float32Array, padding: number): Promise<{ min: number, max: number }> {
-          return new Promise((resolve) => {
-            const result = getMinMaxHeight(map, padding)
-            resolve(result)
-          })
-        }
+          return await this.generateCS2Map(option)
+        })()
+        : await (async () => {
+          rasterExtents.push(this.getExtent(settings, tmpMapSize, 0, rasterPixels))
+          vectorExtents.push(this.getExtent(settings, tmpMapSize, 0, vectorPixels))
 
-        const [{ min: h_min, max: h_max }, { min: w_min, max: w_max }] = await Promise.all([
-          asyncGetMinMaxHeight(heightmapData, 0),
-          asyncGetMinMaxHeight(wordMapData, 0),
-        ])
+          const division = this.getDivisionCount(resolution)
 
-        Object.assign(result, {
-          heightmap: heightmapData,
-          worldMap: wordMapData,
-          waterMapImage: data.waterMapImage,
-          waterWayMapImage: data.waterWayMapImage,
-          min: Math.min(h_min, w_min),
-          max: Math.max(h_max, w_max),
-        })
-      } else {
-        rasterExtents.push(this.getExtent(settings, tmpMapSize, 0, rasterPixels))
-        vectorExtents.push(this.getExtent(settings, tmpMapSize, 0, vectorPixels))
+          const option: SingleMapOption = {
+            settings,
+            rasterExtent: rasterExtents[0],
+            vectorExtent: vectorExtents[0],
+            mapPixels: tmpMapPixels,
+            unitSize,
+            smoothRadius,
+            sharpenRadius,
+            division,
+            isDebug: isDebug!,
+          }
 
-        const option: SingleMapOption = {
-          settings,
-          rasterExtent: rasterExtents[0],
-          vectorExtent: vectorExtents[0],
-          mapPixels: tmpMapPixels,
-          unitSize,
-          smoothRadius,
-          sharpenRadius,
-          isDebug: isDebug!,
-        }
+          return await this.generateSingleMap(option)
+        })()
 
-        const data = resolution > 8192
-          ? await this.generateMultiMap(option)
-          : await this.generateSingleMap(option)
-
-        const extractData = extractArray(data.heightmap, 100, 100, resolution)
-
-        Object.assign(result, {
-          heightmap: extractData,
-          waterMapImage: data.waterMapImage,
-          waterWayMapImage: data.waterWayMapImage,
-          min: data.min,
-          max: data.max,
-        })
-      }
+      await this.releaseWorkerPool()
 
       // output png
       if (mode === 'png') {
         await initPng()
 
         if (settings.gridInfo === 'cs2') {
-          const h_png = await this.encode(mode, result, settings, resolution)
-          const w_png = await this.encode(mode, result, settings, resolution, 'worldMap')
+          const pngs: any[] = await Promise.all([
+            this.encode(mode, result, settings, resolution),
+            this.encode(mode, result, settings, resolution, 'worldMap'),
+          ])
 
           this.progressCallback!({ type: 'phase', data: `Completed` })
 
           return {
-            heightmap: h_png.data as Blob,
-            worldMap: w_png.data as Blob,
+            heightmap: pngs[0].data as Blob,
+            worldMap: pngs[1].data as Blob,
           }
         } else {
           const png = await this.encode(mode, result, settings, resolution)
@@ -474,17 +470,19 @@ class GetCitiesMapWorker {
       // output raw
       if (mode === 'raw') {
         if (settings.gridInfo === 'cs2') {
-          const h_raw: Uint8Array = await this.encode(mode, result, settings, resolution)
-          const w_raw: Uint8Array = await this.encode(mode, result, settings, resolution, 'worldMap')
+          const raws: Uint8Array[] = await Promise.all([
+            this.encode(mode, result, settings, resolution),
+            this.encode(mode, result, settings, resolution, 'worldMap'),
+          ])
 
           this.progressCallback!({ type: 'phase', data: `Completed` })
 
           return Comlink.transfer(
             {
-              heightmap: h_raw,
-              worldMap: w_raw,
+              heightmap: raws[0],
+              worldMap: raws[1],
             },
-            [w_raw.buffer, h_raw.buffer],
+            [raws[0].buffer, raws[1].buffer],
           )
         } else {
           const h_raw: Uint8Array = await this.encode(mode, result, settings, resolution)
@@ -514,7 +512,6 @@ class GetCitiesMapWorker {
       return Comlink.transfer(
         {
           heightmap: result.heightmap,
-          worldMap: result.worldMap,
           waterMapImage: result.waterMapImage,
           waterWayMapImage: result.waterWayMapImage,
           min: result.min,
@@ -523,7 +520,12 @@ class GetCitiesMapWorker {
         transferables,
       )
     } catch (error: any) {
+      this.progressCallback!({ type: 'phase', data: 'Failed to generate map data' })
       throw new Error(`GetCitiesMapWorker: ${error.message}`)
+    } finally {
+      if (this.workerPool) {
+        await this.releaseWorkerPool()
+      }
     }
   }
 }
