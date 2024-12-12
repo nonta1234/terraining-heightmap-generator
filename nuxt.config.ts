@@ -87,7 +87,7 @@ export default defineNuxtConfig({
       nodePolyfills({
         protocolImports: true,
       }),
-      wasmpack(['./wasm/png_lib', './wasm/heightmap_lib', './wasm/effects_lib']),
+      wasmpack(['./wasm/png_lib', './wasm/effects_lib', './wasm/tiles_lib']),
     ],
     worker: {
       format: 'es',
