@@ -2,7 +2,6 @@
 import { mapSpec } from '~/utils/const'
 
 const mapbox = useMapbox()
-const resolution = computed(() => mapbox.value.settings.resolution)
 const esDisabled = computed(() => mapbox.value.settings.gridInfo === 'cs1')
 const maxSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 25.000) * 4)
 const minSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 1.000) / 2)
@@ -27,10 +26,6 @@ const ratio = computed({
 watch([ratio, vScale], () => {
   mapbox.value.map?.setTerrain()
   mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: ratio.value })
-})
-
-watch(resolution, async () => {
-  await setRequiredSubWorkers()
 })
 
 const onMapTypeChange = async () => {
@@ -68,7 +63,6 @@ const onMapTypeChange = async () => {
   mapbox.value.settings.resolution = mapSpec[mapbox.value.settings.gridInfo].defaultRes
   onSizeReset()
   setGrid(mapbox, [mapbox.value.settings.lng, mapbox.value.settings.lat], false)
-  await setRequiredSubWorkers()
 
   saveSettings(mapbox.value.settings)
   useEvent('panel:updateHeight')

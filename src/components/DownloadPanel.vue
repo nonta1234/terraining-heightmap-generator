@@ -60,7 +60,7 @@ const getRawHeightmap = async () => {
     console.log(e.message)
   } finally {
     rawButton.value?.classList.remove('downloading')
-    await setRequiredSubWorkers()
+    setTimeout(() => useEvent('isDownload', false), 3000)
   }
 }
 
@@ -100,7 +100,7 @@ const getPngHeightmap = async () => {
     console.log(e.message)
   } finally {
     pngButton.value?.classList.remove('downloading')
-    await setRequiredSubWorkers()
+    setTimeout(() => useEvent('isDownload', false), 3000)
   }
 }
 
