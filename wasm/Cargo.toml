@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+members = [
+    "effects_lib",
+    "png_lib",
+    "tiles_lib",
+]
+
+[profile.release]
+panic = 'abort'
+lto = true
+codegen-units = 1
+opt-level = "s"
