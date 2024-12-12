@@ -45,6 +45,9 @@ onMounted(async () => {
   })
 
   await initializeWorker()
+
+  const { accessTokenMT } = useMapbox().value.settings
+  if (!accessTokenMT) alert('Version 2 now requires a MapTiler API key.')
 })
 
 useListen('map:reload', () => {
