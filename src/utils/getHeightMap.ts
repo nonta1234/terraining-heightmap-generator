@@ -181,7 +181,7 @@ export const getHeightmap = async (
   onTotal: (total: number) => void,
   onProgress: () => void,
 ) => {
-  const decoder = new TileDecoder()
+  let decoder: TileDecoder | undefined
   try {
     const side = Math.sqrt((extent.topright.x - extent.bottomleft.x) ** 2 + (extent.topright.y - extent.bottomleft.y) ** 2) / Math.SQRT2
     const _correction = mapSpec[settings.gridInfo].correction
@@ -236,6 +236,7 @@ export const getHeightmap = async (
     const tileList = await Promise.allSettled(tiles)
 
     if (totalTiles > 30) {
+      decoder = new TileDecoder()
       await decoder.processTiles(
         tileList,
         settings,
@@ -282,16 +283,16 @@ export const getHeightmap = async (
       }
       await processTiles(tileList)
     }
-    console.time('Bicubic')
+
     const result = settings.interpolation === 'bicubic'
       ? getHeightMapBicubic(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
       : getHeightMapBilinear(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
-    console.timeEnd('Bicubic')
+
     return result
   } catch (error) {
     console.error('An error occurred in getHeightMap:', error)
     throw error
   } finally {
-    await decoder.terminate()
+    await decoder?.terminate()
   }
 }
