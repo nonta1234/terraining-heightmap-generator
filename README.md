@@ -5,15 +5,15 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/nonta1234/terraining-heightmap-generator/badge)](https://www.codefactor.io/repository/github/nonta1234/terraining-heightmap-generator)
 [![Made with Nuxt3](https://img.shields.io/badge/Nuxt_3-%2318181B?logo=nuxt.js)](https://nuxt.com)
 
-*This repository is a Nuxt3 reworking of sysoppl/Cities-Skylines-heightmap-generator.*
+*This repository is based on and further developed from sysoppl/Cities-Skylines-heightmap-generator.*
 
-**An online heightmap generator for "Cities: Skylines".**  
+**An online heightmap generator for Cities: Skylines, Unity, and Unreal Engine.**  
 **https://terraining.ateliernonta.com**
 
 <br>
 
 > [!IMPORTANT]
-> Currently, my site has thousands of users each month. Considering the number of API requests needed to generate heightmaps for CS2, I am significantly exceeding the free tier limits of Mapbox. Therefore, I kindly ask for your continued cooperation in avoiding costs by inputting your Mapbox token.
+> Since version 2, we have utilized MapTiler's functionality, and a MapTiler API key has become mandatory. While it is possible to optionally get elevation data from Mapbox, a MapTiler API key is still required in that case. I appreciate your understanding.
 
 <br>
 
@@ -21,8 +21,9 @@
 
 ## Features
 
-- Easily get the heightmap for CS1 and CS2.
-- Choose a square area on the map between 8.64&#8202;km and 69.12&#8202;km for CS1 and between 28.672&#8202;km and 229.376&#8202;km for CS2.
+- Preview feature.
+- Easily get the heightmap for CS1, CS2, Unity and Unreal Engine.
+- Choose a square area on the map between 8.64&#8202;km and 69.12&#8202;km for CS1, between 28.672&#8202;km and 229.376&#8202;km for CS2, and between 0.5&#8202;km and 100&#8202;km for Unity and UE.
 - Easily rotate the selected square area.
 - Download the heightmap, map images, and OSM data. For CS2, you can get both the heightmap and the world map.
 
@@ -35,25 +36,64 @@
 ## Setting panel
 
 - **Lng & Lat**&#8202;: Adjust your geographic coordinates by modifying these values.
-- **Min & Max Height**&#8202;: Click the refresh button at the bottom to retrieve current area's minimum and maximum elevations. Please note that slight variations in values may occur due to interpolation based on map size.
 - **Zoom Level**&#8202;: Set the zoom level of the map.
 - **Grid Angle**&#8202;: Set the angle of the grid. The angle increases clockwise.
-- **Map Size**&#8202;: Set the map size. You can change the map size between 1/2 and 4x the default size (CS1&#8202;: 17.28&#8202;km, CS2&#8202;: 57.344&#8202;km) . The size includes the unplayable area.
-- **Sea Level**&#8202;: Elevations below this level are automatically adjusted to 0&#8202;m.
-- **Adjust Level**&#8202;: The sea level is automatically aligned with the minimum height.
+
+### Preview
+
+- **Normalize**&#8202;: Normalize preview image.
+- **Min & Max Height**&#8202;: Click the preview button at the bottom to retrieve current area's minimum and maximum elevations. Please note that slight variations in values may occur due to interpolation based on map size. If the elevation does not fit within the "Elev. Scale" due to settings other than the "Elev. Type", the color of the numerical value will change.
+- **Scale**&#8202;: For Unreal Engine.
+
+### General Tab
+
+- **Map Type**&#8202;: Select the map type from CS1, CS2, Unity, or UE.
+- **Map Size**&#8202;: Set the map size. You can change the map size. For CS1 and CS2, the size includes the unplayable area.
+- **Resolution**&#8202;: Heightmap resolution.
+- **Elev. Scale**&#8202;: The maximum height that the heightmap can depict, measured relative to the base level. For example, if the base level is -100&#8202;m and the Elevation Scale is 2,000&#8202;m, the maximum elevation that can be represented is 1,900&#8202;m.
+- **World Partition & Cells**&#8202;: For UE5 - World Partition.
+- **Base Level**&#8202;: The minimum elevation that the heightmap can represent. Setting it to the seabed elevation or the lowest elevation allows you to make the most of the resolution of the Elevation Scale.
+- **Adjust Level**&#8202;: The base level is automatically aligned with the minimum height.
 - **Height Ratio**&#8202;: Define the vertical-to-horizontal distance ratio.
 - **Height Scale**&#8202;: Set the proportion relative to actual terrain height.  
 *‡ Height Ratio and Height Scale are interrelated and are linked to map size. You can lock one.*
 - **Elev. Type**&#8202;: Auto-configures Height Ratio and Height Scale.
   * Manual&#8202;: No automatic adjustments.
-  * Limit&#8202;: If exceeded, adjusts the maximum elevation to 1,023.98&#8202;m (CS1) or elevation scale value (CS2). 
-  * Maximise&#8202;: Set the maximum elevation at 1,023.98&#8202;m (CS1) or elevation scale value (CS2).
-- **Water Depth**&#8202;: Modify the water depth.
-- **Littoral Zone**&#8202;: Adjust the width of littoral zone. Increasing it creates a gradual slope from the coast to the seafloor.
-- **Littoral Editor**&#8202;: Configure the shape of the littoral slope.
-- **Smoothing & Sharpen**&#8202;: Set ranges for terrain smoothing and sharpening.
+  * Limit&#8202;: If exceeded, adjusts the maximum elevation to elevation scale value. 
+  * Maximise&#8202;: Set the maximum elevation at elevation scale value.
+- **Interpolation**&#8202;: Choose from Bilinear or Bicubic.
 
     The refresh button retrieves the minimum and maximum elevation in the grid. Additionally, grid information is displayed in the browser console.
+
+### Water Tab
+
+- **Littoral Editor**&#8202;: Configure the shape of the littoral slope.
+- **Detail**&#8202;: Level of detail of the water area.
+- **Water Depth**&#8202;: Modify the water depth.
+- **Littoral Zone**&#8202;: Adjust the width of littoral zone. Increasing it creates a gradual slope from the coast to the seafloor.
+- **Riparian Zone**&#8202;: Adjust the width of riparian zone. Increasing it creates a gradual slope from the riverbank or lakeshore to the bottom of the river or lake.
+- **Stream Depth & Stream Width**&#8202;: Aiding in the depiction of streams.
+- **Use actual seafloor**&#8202;: Get the seafloor elevation using MapTiler Ocean RGB.
+
+### Modify Tab
+
+- **Smoothing**&#8202;: Gaussian blur.
+- **Sharpen**&#8202;: Unsharp mask.
+- **Reflecting the amount of effect**&#8202;: Reflect the sharpen and smooth intensity on the map.
+
+    Smoothing is applied below the threshold value, Sharpen is applied above the threshold value.
+
+    Noise is applied within the same altitude range as the shapen, with the Terrain Ruggedness Index (TRI) used as the threshold.
+
+### Config Tab
+
+- **Preview at original resolution**&#8202;: Please note that there will be many API requests.
+- **MapTiler API Key**&#8202;: Required from version 2.
+- **Use mapbox for heightmap source**&#8202;: You can choose the source of elevation data.
+- **Mapbox Access Token**&#8202;: Required to get custom map images.
+- **Mapbox User Style URL**&#8202;: For map image.
+
+    You can import and export settings other than MapTiler API Key, Mapbox Access Token, and Mapbox User Style URL.
 
 ## Download panel
 
@@ -62,7 +102,6 @@
   * Heightmap in 16-bit grayscale PNG format
   * Map image
   * OSM data
-- Configuration Panel
 - GitHub link
 
 ## Control buttons
@@ -81,26 +120,12 @@
 - Download map images by customizing style, zoom level, and image size.  
 *‡ Depending on the configuration, many API requests may occur, so you'll need a Mapbox access token.*
 
-## Configuration panel
-
-- **Heightmap Type**&#8202;: Choose either CS1 or CS2.
-- **Interpolation**&#8202;: Choose from Bilinear or Bicubic.
-- **Elevation Scale**&#8202;: The maximum elevation for CS2.
-- **Waterside Detail**&#8202;: Adjust the level of detail for waterside drawings.
-- **Stream Depth**&#8202;: Aiding in the depiction of streams.
-- **Smooth Count**&#8202;: Determine the number of times the smooth effect is repeated.
-- **Noise Value**&#8202;: Add or subtract height.
-- **Noise Detail**&#8202;: Adjust the level of detail for noise. The higher the value, the finer the noise.
-- **Reflecting the amount of effect**&#8202;: Reflect the sharpen and smooth intensity on the map.
-- **User Style URL**&#8202;: Downloads a map image using the specified map style.
-- **Access Token**&#8202;: You will need your own Mapbox access token to download the heightmap for CS2.
-
 ## ToDo
 
 - [x] Improve the littoral slope shape.
 - [x] Make the entire download process a web worker.
 - [x] Download map information.
 - [x] Download more customized map images.
-- [ ] Improve shapeen and smooth behavior in CS2 map.
+- [x] Improve shapeen and smooth behavior in CS2 map.
 - [ ] River bed level correction.
 - [ ] Support for Larger map mod.
