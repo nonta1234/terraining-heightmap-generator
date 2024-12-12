@@ -1,8 +1,9 @@
 import * as Comlink from 'comlink'
 import type { TileDecoderWorkerType } from '~/assets/workers/tileDecoderWorker'
-import TileDecoderWorker from '~/assets/workers/tileDecoderWorker.ts?worker'
 import type { Settings, MapType } from '~/types/types'
 import type { FetchError } from 'ofetch'
+import TileDecoderWorker from '~/assets/workers/tileDecoderWorker.ts?worker'
+import { WorkerPool } from '~/utils/workerPool'
 
 type T = {
   data: Blob | undefined
@@ -10,35 +11,18 @@ type T = {
 }
 
 export class TileDecoder {
-  private workers: Comlink.Remote<TileDecoderWorkerType>[] = []
-  private workerQueue: Comlink.Remote<TileDecoderWorkerType>[] = []
-  private waitingCalls: ((worker: Comlink.Remote<TileDecoderWorkerType>) => void)[] = []
+  private workers: { remote: Comlink.Remote<TileDecoderWorkerType>, worker: Worker }[] = []
+  private workerPool: WorkerPool<Comlink.Remote<TileDecoderWorkerType>>
 
   constructor(workerCount = navigator.hardwareConcurrency || 4) {
+    const remotes: Comlink.Remote<TileDecoderWorkerType>[] = []
     for (let i = 0; i < workerCount; i++) {
-      const comlinkWorker = Comlink.wrap<TileDecoderWorkerType>(new TileDecoderWorker())
-      this.workers.push(comlinkWorker)
-      this.workerQueue.push(comlinkWorker)
+      const worker = new TileDecoderWorker()
+      const remote = Comlink.wrap<TileDecoderWorkerType>(worker)
+      this.workers.push({ remote, worker })
+      remotes.push(remote)
     }
-  }
-
-  private getWorker(): Promise<Comlink.Remote<TileDecoderWorkerType>> {
-    return new Promise((resolve) => {
-      if (this.workerQueue.length > 0) {
-        resolve(this.workerQueue.shift()!)
-      } else {
-        this.waitingCalls.push(resolve)
-      }
-    })
-  }
-
-  private releaseWorker(worker: Comlink.Remote<TileDecoderWorkerType>) {
-    if (this.waitingCalls.length > 0) {
-      const nextCall = this.waitingCalls.shift()!
-      nextCall(worker)
-    } else {
-      this.workerQueue.push(worker)
-    }
+    this.workerPool = new WorkerPool(remotes)
   }
 
   public async processTiles(
@@ -56,7 +40,7 @@ export class TileDecoder {
           const blob = tile.value.data
           const arrBuffer = await blob.arrayBuffer()
 
-          const worker = await this.getWorker()
+          const worker = await this.workerPool.getWorker()
           const useMapbox = settings.useMapbox
           const elevs = await worker.decodeTile(Comlink.transfer(
             {
@@ -77,10 +61,10 @@ export class TileDecoder {
             }
           }
 
-          this.releaseWorker(worker)
+          this.workerPool.releaseWorker(worker)
           onProgress?.()
         } catch (error) {
-          console.error(`Error processing tile at index ${index}:`, error)
+          console.error(`Error processing tile at index #${index}:`, error)
           throw error
         }
       }
@@ -91,19 +75,18 @@ export class TileDecoder {
   }
 
   public async terminate() {
-    const terminationPromises = this.workers.map(async (worker) => {
+    const terminationPromises = this.workers.map(async ({ remote, worker }) => {
       try {
-        await worker.cleanup()
+        await remote.cleanup()
       } catch (error) {
-        console.error('Error during worker cleanup:', error)
+        console.error('Error during decode worker cleanup:', error)
       } finally {
-        worker[Comlink.releaseProxy]()
+        remote[Comlink.releaseProxy]()
+        worker.terminate()
       }
     })
 
     await Promise.all(terminationPromises)
     this.workers = []
-    this.workerQueue = []
-    this.waitingCalls = []
   }
 }
