@@ -82,7 +82,7 @@ class GetCitiesMapWorker {
     const newWorker = new MapProcessWorker()
     const newRemote = Comlink.wrap<MapProcessWorkerType>(newWorker)
     const index = (this.workerPool?.getQueueSize() || 0) + (this.workerPool?.getWaitingSize() || 0)
-    console.log(index)
+
     await newRemote.initialize(index - 1, Comlink.proxy(this.progressCallback!))
 
     this.workerPool?.addWorker({ remote: newRemote, worker: newWorker })
