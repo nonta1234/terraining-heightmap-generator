@@ -13,7 +13,7 @@
 <br>
 
 > [!IMPORTANT]
-> Since version 2, we have utilized MapTiler's functionality, and a MapTiler API key has become mandatory. While it is possible to optionally get elevation data from Mapbox, a MapTiler API key is still required in that case. I appreciate your understanding.
+> Since version 2, I have utilized MapTiler's functionality, and a MapTiler API key has become mandatory. While it is possible to optionally get elevation data from Mapbox, a MapTiler API key is still required in that case. I appreciate your understanding.
 
 <br>
 
