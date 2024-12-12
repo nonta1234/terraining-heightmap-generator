@@ -38,6 +38,7 @@ useListen('isDownload', (value: boolean) => {
 })
 
 useListen('message:reset', () => {
+  message.value = ''
   total.value = 0
   progress.value = 0
 })
@@ -108,7 +109,7 @@ const onPreview = async () => {
   }
 
   try {
-    const t0 = window.performance.now()
+    console.time('Preview')
     const worker = useWorker()
     const { debugMode } = useDebug()
 
@@ -117,10 +118,11 @@ const onPreview = async () => {
     previewData.value.waterWayMapImage = undefined
     previewData.value.min = 0
     previewData.value.max = 0
+    message.value = ''
     total.value = 0
     progress.value = 0
 
-    const res = mapbox.value.settings.originalPreview ? mapbox.value.settings.resolution : Math.min(getResolution(), mapbox.value.settings.resolution)
+    const _resolution = mapbox.value.settings.originalPreview ? mapbox.value.settings.resolution : Math.min(getResolution(), mapbox.value.settings.resolution)
     const plainSettings: Settings = JSON.parse(JSON.stringify(mapbox.value.settings))
 
     isDownloading.value = true
@@ -128,13 +130,13 @@ const onPreview = async () => {
     previewData.value = await worker.value?.generateMap(
       'preview',
       plainSettings,
-      res,
+      _resolution,
       debugMode.value,
     ) as ResultType
 
     render(mapbox.value.settings.normalizePreview)
 
-    const t1 = window.performance.now()
+    console.timeEnd('Preview')
 
     if (debugMode.value) {
       const { osWaterCanvas, osWaterWayCanvas } = useState<Canvases>('canvases').value
@@ -149,16 +151,15 @@ const onPreview = async () => {
       mapbox.value.settings.size,
       mapbox.value.settings.angle,
     )
+
     const corners = getPoint(grid)
-    console.log(`Preview: ${(t1 - t0).toFixed(0)}ms`)
     console.table(JSON.parse(JSON.stringify(corners.gridCorner)))
     if (corners.playAreaCorner) console.table(JSON.parse(JSON.stringify(corners.playAreaCorner)))
     saveSettings(mapbox.value.settings)
-
-    await worker.value?.setSubWorker(0)
-    await setRequiredSubWorkers()
   } catch (e) {
     console.error('Failed to generate preview data.:', e)
+  } finally {
+    setTimeout(() => isDownloading.value = false, 3000)
   }
 }
 
