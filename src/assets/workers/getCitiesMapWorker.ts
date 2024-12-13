@@ -3,7 +3,7 @@ import type { SingleMapOption, MultiMapOption, Settings, Extent, ProgressData, R
 import type { MapProcessWorkerType } from '~/assets/workers/mapProcessWorker'
 import { mapSpec } from '~/utils/const'
 import { getMinMaxHeight } from '~/utils/elevation'
-import { mergeTiles } from '~/utils/tileProcess'
+import { mergeTiles, scaleDownWorldMap } from '~/utils/tileProcess'
 import { getExtentInWorldCoords, rotateExtent } from '~/utils/getExtent'
 import initPng, { encode_png } from '~~/wasm/png_lib/pkg'
 import { WorkerPool } from '~/utils/workerPool'
