@@ -59,13 +59,9 @@ useListen('message:phase', (data: string) => {
 
 const getResolution = () => {
   const rect = previewBox.value?.getBoundingClientRect()
-  let res = Math.floor(rect!.width * window.devicePixelRatio)
-  if (mapbox.value.settings.gridInfo === 'cs2') {
-    res = res + (res % 2)
-  } else {
-    res = res + (res % 2) + 1
-  }
-  return res
+  const res = Math.floor(rect!.width * window.devicePixelRatio)
+  const correction = mapSpec[mapbox.value.settings.gridInfo].correction
+  return res + (res % 2) + correction
 }
 
 const setImageBitmap = (canvas: OffscreenCanvas, image: ImageBitmap) => {
