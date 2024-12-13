@@ -14,8 +14,11 @@
 
 > [!WARNING]
 > #### MapTiler API Key Requirement
-> - Since version 2, a MapTiler API key is mandatory.
+> - Since Ver.2, a MapTiler API key is mandatory.
 > - Optional Mapbox elevation data still requires a MapTiler API key.
+>
+> #### Migration to Ver.2
+> - First, please reset all settings using the reset button on the config tab. Keys and Tokens are not reset.
 
 <br>
 
