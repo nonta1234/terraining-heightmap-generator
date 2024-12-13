@@ -214,7 +214,6 @@ const drawSlope = (
 /**
  * Get heightmap in Float32Array. Also returns ImageBitmap for debugging.\
  * The returned image size is increased by 200px to account for edge processing and consistency with the heightmap.
- * @param mapType
  * @param settings
  * @param extent rotated extent
  * @param mapPixels the number of pixels corresponding to extent, excluding the correction part and including padding
@@ -223,7 +222,6 @@ const drawSlope = (
  * @param isDebug default false
  * @return Promise\<Float32Array, ImageBitmap\>
  */
-
 export const getWaterMap = async (
   settings: Settings,
   extent: Extent,
