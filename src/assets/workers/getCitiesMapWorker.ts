@@ -329,7 +329,7 @@ class GetCitiesMapWorker {
 
   private async encode(mode: 'raw' | 'png', data: ResultType, settings: Settings, resolution: number, map: 'heightmap' | 'worldMap' = 'heightmap') {
     const base = settings.adjToMin ? data.min : settings.baseLevel
-    const elevationRange = data.max - data.min
+    const elevationRange = data.max - base
     const unitScale = settings.elevationScale / 65535
 
     let scaleFactor: number
