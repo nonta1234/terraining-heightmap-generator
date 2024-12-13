@@ -27,7 +27,7 @@ const progressMsg = computed(() => {
 })
 
 const isOverflow = computed(() => (
-  previewData.value.max - previewData.value.min - mapbox.value.settings.baseLevel) * mapbox.value.settings.vertScale > mapbox.value.settings.elevationScale,
+  previewData.value.max - mapbox.value.settings.baseLevel) * mapbox.value.settings.vertScale > mapbox.value.settings.elevationScale,
 )
 
 const scaleXY = computed(() => mapbox.value.settings.size * 100000 / (mapbox.value.settings.resolution - 1))
