@@ -12,8 +12,10 @@
 
 <br>
 
-> [!IMPORTANT]
-> Since version 2, I have utilized MapTiler's functionality, and a MapTiler API key has become mandatory. While it is possible to optionally get elevation data from Mapbox, a MapTiler API key is still required in that case. I appreciate your understanding.
+> [!WARNING]
+> #### MapTiler API Key Requirement
+> - Since version 2, a MapTiler API key is mandatory.
+> - Optional Mapbox elevation data still requires a MapTiler API key.
 
 <br>
 
@@ -21,11 +23,18 @@
 
 ## Features
 
-- Preview feature.
-- Easily get the heightmap for CS1, CS2, Unity and Unreal Engine.
-- Choose a square area on the map between 8.64&#8202;km and 69.12&#8202;km for CS1, between 28.672&#8202;km and 229.376&#8202;km for CS2, and between 0.5&#8202;km and 100&#8202;km for Unity and UE.
-- Easily rotate the selected square area.
-- Download the heightmap, map images, and OSM data. For CS2, you can get both the heightmap and the world map.
+- Offers a preview feature
+- Easily generate heightmaps for Cities: Skylines 1 & 2, Unity, and Unreal Engine
+- Select square areas ranging from&#8202;:
+  * Cities: Skylines 1&#8202;: 8.64&#8202;km to 69.12&#8202;km
+  * Cities: Skylines 2&#8202;: 28.672&#8202;km to 229.376&#8202;km
+  * Unity and Unreal Engine&#8202;: 0.5&#8202;km to 100&#8202;km
+- Rotate selected area with ease
+- Download multiple formats&#8202;:
+  * Heightmap
+  * Map images
+  * OSM data
+  * For Cities: Skylines 2, get both heightmap and world map
 
 ## How to
 
@@ -56,14 +65,14 @@
 - **Adjust Level**&#8202;: The base level is automatically aligned with the minimum height.
 - **Height Ratio**&#8202;: Define the vertical-to-horizontal distance ratio.
 - **Height Scale**&#8202;: Set the proportion relative to actual terrain height.  
-*‡ Height Ratio and Height Scale are interrelated and are linked to map size. You can lock one.*
+*† Height Ratio and Height Scale are interrelated and are linked to map size. You can lock one.*
 - **Elev. Type**&#8202;: Auto-configures Height Ratio and Height Scale.
   * Manual&#8202;: No automatic adjustments.
   * Limit&#8202;: If exceeded, adjusts the maximum elevation to elevation scale value. 
   * Maximise&#8202;: Set the maximum elevation at elevation scale value.
 - **Interpolation**&#8202;: Choose from Bilinear or Bicubic.
 
-    The refresh button retrieves the minimum and maximum elevation in the grid. Additionally, grid information is displayed in the browser console.
+    The preview button retrieves the minimum and maximum elevation in the grid. Additionally, grid information is displayed in the browser console.
 
 ### Water Tab
 
@@ -118,7 +127,7 @@
 ## Customize map image panel
 
 - Download map images by customizing style, zoom level, and image size.  
-*‡ Depending on the configuration, many API requests may occur, so you'll need a Mapbox access token.*
+*† Depending on the configuration, many API requests may occur, so you'll need a Mapbox access token.*
 
 ## ToDo
 
@@ -129,3 +138,5 @@
 - [x] Improve shapeen and smooth behavior in CS2 map.
 - [ ] River bed level correction.
 - [ ] Support for Larger map mod.
+- [ ] Implement effect processing with WebGL.
+- [ ] Improve ocean-river connections.
