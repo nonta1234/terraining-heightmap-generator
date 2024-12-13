@@ -75,15 +75,15 @@ class GetCitiesMapWorker {
   }
 
   private async replaceWorker(oldWorker: SubWorker) {
+    const index = await oldWorker.remote.getIndex()
     // delete used workers
     oldWorker.remote[Comlink.releaseProxy]()
     oldWorker.worker.terminate()
     // create a new worker
     const newWorker = new MapProcessWorker()
     const newRemote = Comlink.wrap<MapProcessWorkerType>(newWorker)
-    const index = (this.workerPool?.getQueueSize() || 0) + (this.workerPool?.getWaitingSize() || 0)
 
-    await newRemote.initialize(index - 1, Comlink.proxy(this.progressCallback!))
+    await newRemote.initialize(index ?? 0, Comlink.proxy(this.progressCallback!))
 
     this.workerPool?.addWorker({ remote: newRemote, worker: newWorker })
   }

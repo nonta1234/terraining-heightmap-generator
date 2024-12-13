@@ -21,6 +21,10 @@ class MapProcessWorker {
     this.progressCallback = progressCallback
   }
 
+  public getIndex() {
+    return this.index
+  }
+
   public async getMapData(option: SingleMapOption) {
     this.validateCallback()
 
