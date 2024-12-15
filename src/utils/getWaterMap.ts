@@ -5,6 +5,7 @@ import { VectorTile, Point } from 'mapbox-vector-tile'
 import { createSlopeTexture, createRadialTexture } from '~/utils/createTexture'
 import { useFetchVectorTiles } from '~/composables/useFetchTiles'
 import { mapSpec } from '~/utils/const'
+import booleanContains from '~/utils/contains'
 import RBush from 'rbush'
 
 /**
@@ -171,7 +172,7 @@ const drawSlope = (
       // Skip if the line segment is included in another Polygon or is the same as a line segment in another Polygon.
       let shouldSkip = false
       for (const waterPolygon of potentialPolygons) {
-        if (turf.booleanContains(waterPolygon.geom, lineSegment.geometry) && (id !== waterPolygon.id)) {
+        if (booleanContains(waterPolygon.geom, lineSegment.geometry) && (id !== waterPolygon.id)) {
           shouldSkip = true
           break
         }
