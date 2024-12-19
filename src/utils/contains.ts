@@ -7,7 +7,7 @@ import type {
   MultiPolygon,
   Point,
   Polygon,
-} from '@turf/helpers'
+} from 'geojson'
 import calcBbox from '@turf/bbox'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import isPointOnLine from '@turf/boolean-point-on-line'

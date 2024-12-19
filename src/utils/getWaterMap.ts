@@ -1,6 +1,7 @@
 import type { Settings, Extent } from '~/types/types'
 import type { FetchError } from 'ofetch'
 import * as turf from '@turf/turf'
+import type { Geometry, Position } from 'geojson'
 import { VectorTile, Point } from 'mapbox-vector-tile'
 import { createSlopeTexture, createRadialTexture } from '~/utils/createTexture'
 import { useFetchVectorTiles } from '~/composables/useFetchTiles'
@@ -25,7 +26,7 @@ interface BBoxItem extends RBush.BBox {
   minY: number
   maxX: number
   maxY: number
-  geom: turf.Geometry
+  geom: Geometry
   id: number
 }
 
@@ -65,7 +66,7 @@ const getWaterTree = (tile: VectorTile) => {
       const feature = tile.layers.water.feature(i)
       const polygonGeo = feature.asPolygons() as Point[][][]
       const lineGeo = feature.loadGeometry()
-      const polygonArray = polygonGeo.map(polygon => polygon.map(line => line.map(point => [point.x, point.y] as turf.helpers.Position)))
+      const polygonArray = polygonGeo.map(polygon => polygon.map(line => line.map(point => [point.x, point.y] as Position)))
 
       for (let m = 0; m < polygonGeo.length; m++) {
         for (let n = 0; n < polygonGeo[m].length; n++) {

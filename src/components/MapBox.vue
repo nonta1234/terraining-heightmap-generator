@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import * as turf from '@turf/turf'
+import type { Feature, LineString, Position, GeoJsonProperties } from 'geojson'
 import { NavigationControl } from 'mapbox-gl'
 import { effectRasterColorMix } from '~/utils/const'
 
@@ -324,10 +325,10 @@ onMounted(() => {
     gridState = 'none'
   }
 
-  let lineString: turf.helpers.Feature<turf.helpers.LineString, turf.helpers.Properties>
+  let lineString: Feature<LineString, GeoJsonProperties>
 
-  function getFarthestLineString(coordinates: turf.Position[][], point: turf.Coord) {
-    let farthestLineString: turf.helpers.Feature<turf.helpers.LineString, turf.helpers.Properties> | undefined
+  function getFarthestLineString(coordinates: Position[][], point: turf.Coord) {
+    let farthestLineString: Feature<LineString, GeoJsonProperties> | undefined
     let maxDistance = 0
 
     for (let i = 0; i < coordinates.length; i++) {
@@ -338,7 +339,7 @@ onMounted(() => {
         farthestLineString = line
       }
     }
-    return farthestLineString as turf.helpers.Feature<turf.helpers.LineString, turf.helpers.Properties>
+    return farthestLineString as Feature<LineString, GeoJsonProperties>
   }
 
   function onResizeStart(e: any) {

@@ -1,4 +1,5 @@
 import * as turf from '@turf/turf'
+import type { Feature, Polygon, MultiPolygon, FeatureCollection, GeoJsonProperties } from 'geojson'
 import { geojson2osm } from 'geojson2osm'
 import osm2geojson from 'osm2geojson-lite'
 import { getGeom } from '@turf/invariant'
@@ -6,10 +7,10 @@ import { getExtent } from '~/utils/getExtent'
 import booleanContains from '~/utils/contains'
 import type { GenerateMapOption } from '~/types/types'
 
-function clip(clippingData: turf.helpers.Feature<turf.helpers.Polygon, turf.helpers.Properties>, inputData: turf.AllGeoJSON) {
-  const output: turf.FeatureCollection = {
+function clip(clippingData: Feature<Polygon, GeoJsonProperties>, inputData: turf.AllGeoJSON) {
+  const output: FeatureCollection = {
     type: 'FeatureCollection',
-    features: Array<turf.Feature>(),
+    features: Array<Feature>(),
   }
 
   const clippingFeatures = turf.flatten(clippingData).features
@@ -29,7 +30,10 @@ function clip(clippingData: turf.helpers.Feature<turf.helpers.Polygon, turf.help
         } else {
           const iGeoType = getGeom(iGeo).type
           if (iGeoType === 'Polygon' || iGeoType === 'MultiPolygon') {
-            const intersectFeatures = turf.intersect(iGeo, cGeo)
+            const featureCollection: FeatureCollection<Polygon | MultiPolygon, GeoJsonProperties>
+              = turf.featureCollection([iGeo as Feature<Polygon | MultiPolygon, GeoJsonProperties>])
+            featureCollection.features[0].properties = iGeo.properties
+            const intersectFeatures = turf.intersect(featureCollection, cGeo)
             if (intersectFeatures) {
               intersectFeatures.properties = cGeo.properties
               output.features.push(intersectFeatures)

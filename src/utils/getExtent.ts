@@ -1,4 +1,5 @@
 import * as turf from '@turf/turf'
+import type { Position } from 'geojson'
 import type { Extent } from '~/types/types'
 import { lng2pixel, lat2pixel, pixel2lat, pixel2lng } from '~/utils/tiles'
 
@@ -60,10 +61,10 @@ export const getExtent = (lng: number, lat: number, size: number, offset = 0) =>
     { units: 'kilometers' },
   )
 
-  const _north = buffer.geometry.coordinates[0][8][1]
-  const _south = buffer.geometry.coordinates[0][24][1]
-  const _east = buffer.geometry.coordinates[0][0][0]
-  const _west = buffer.geometry.coordinates[0][16][0]
+  const _north = buffer!.geometry.coordinates[0][8][1] as number
+  const _south = buffer!.geometry.coordinates[0][24][1] as number
+  const _east = buffer!.geometry.coordinates[0][0][0] as number
+  const _west = buffer!.geometry.coordinates[0][16][0] as number
 
   const width = lng2pixel(_east, 0) + (_east > _west ? 0 : 256) - lng2pixel(_west, 0)
   const height = lat2pixel(_south, 0) - lat2pixel(_north, 0)
@@ -79,10 +80,10 @@ export const getExtent = (lng: number, lat: number, size: number, offset = 0) =>
   const west = pixel2lng(x - halfSide + offsetPixels, 0)
 
   return {
-    topleft: [west, north] as turf.helpers.Position,
-    topright: [east, north] as turf.helpers.Position,
-    bottomleft: [west, south] as turf.helpers.Position,
-    bottomright: [east, south] as turf.helpers.Position,
+    topleft: [west, north] as Position,
+    topright: [east, north] as Position,
+    bottomleft: [west, south] as Position,
+    bottomright: [east, south] as Position,
     minX: west,
     minY: south,
     maxX: east,
@@ -110,10 +111,10 @@ export const getExtentInWorldCoords = (lng: number, lat: number, size: number, o
     { units: 'kilometers' },
   )
 
-  const _north = buffer.geometry.coordinates[0][8][1]
-  const _south = buffer.geometry.coordinates[0][24][1]
-  const _east = buffer.geometry.coordinates[0][0][0]
-  const _west = buffer.geometry.coordinates[0][16][0]
+  const _north = buffer!.geometry.coordinates[0][8][1] as number
+  const _south = buffer!.geometry.coordinates[0][24][1] as number
+  const _east = buffer!.geometry.coordinates[0][0][0] as number
+  const _west = buffer!.geometry.coordinates[0][16][0] as number
 
   const width = lng2pixel(_east, 0, pixelsPerTile) + (_east > _west ? 0 : pixelsPerTile) - lng2pixel(_west, 0, pixelsPerTile)
   const height = lat2pixel(_south, 0, pixelsPerTile) - lat2pixel(_north, 0, pixelsPerTile)

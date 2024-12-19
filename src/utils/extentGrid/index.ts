@@ -1,4 +1,4 @@
-import booleanIntersects from '@turf/boolean-intersects'
+import * as turf from '@turf/turf'
 import type {
   FeatureCollection,
   Polygon,
@@ -7,7 +7,6 @@ import type {
   MultiPolygon,
   GeoJsonProperties,
 } from 'geojson'
-import { featureCollection, polygon } from '@turf/helpers'
 
 export function extentGrid<P extends GeoJsonProperties = GeoJsonProperties>(
   bbox: BBox,
@@ -47,7 +46,7 @@ function rectangleGrid<P extends GeoJsonProperties = GeoJsonProperties>(
   for (let column = 0; column < columns; column++) {
     let currentY = south
     for (let row = 0; row < rows; row++) {
-      const cellPoly = polygon(
+      const cellPoly = turf.polygon(
         [
           [
             [currentX, currentY],
@@ -60,7 +59,7 @@ function rectangleGrid<P extends GeoJsonProperties = GeoJsonProperties>(
         options.properties,
       )
       if (options.mask) {
-        if (booleanIntersects(options.mask, cellPoly)) {
+        if (turf.booleanIntersects(options.mask, cellPoly)) {
           results.push(cellPoly)
         }
       }
@@ -72,5 +71,5 @@ function rectangleGrid<P extends GeoJsonProperties = GeoJsonProperties>(
     }
     currentX += cellWidthDeg
   }
-  return featureCollection(results)
+  return turf.featureCollection(results)
 }
