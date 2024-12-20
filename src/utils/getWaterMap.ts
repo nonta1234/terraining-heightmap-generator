@@ -180,7 +180,9 @@ const drawSlope = (
       }
       if (!shouldSkip) {
         for (const waterLine of potentialLines) {
-          if (turf.booleanEqual(lineSegment.geometry, waterLine.geom) && (id !== waterLine.id)) {
+          if ((turf.booleanIntersects(lineSegment.geometry, waterLine.geom)
+            || turf.booleanOverlap(lineSegment.geometry, waterLine.geom))
+          && (id !== waterLine.id)) {
             shouldSkip = true
             break
           }
