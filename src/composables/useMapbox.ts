@@ -17,12 +17,12 @@ const getPlayArea = (grid: GridSpec, features: Feature<Polygon, GeoJsonPropertie
   const play = grid.play
   const area = grid.play
     ? turf.polygon([[
-      features[play![0]].geometry.coordinates[0][0],
-      features[play![1]].geometry.coordinates[0][1],
-      features[play![2]].geometry.coordinates[0][2],
-      features[play![3]].geometry.coordinates[0][3],
-      features[play![0]].geometry.coordinates[0][0],
-    ]])
+        features[play![0]].geometry.coordinates[0][0],
+        features[play![1]].geometry.coordinates[0][1],
+        features[play![2]].geometry.coordinates[0][2],
+        features[play![3]].geometry.coordinates[0][3],
+        features[play![0]].geometry.coordinates[0][0],
+      ]])
     : undefined
   return area
 }
