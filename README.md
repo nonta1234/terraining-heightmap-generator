@@ -139,7 +139,7 @@
 - [x] Download map information.
 - [x] Download more customized map images.
 - [x] Improve shapeen and smooth behavior in CS2 map.
+- [x] Improve ocean-river connections.
 - [ ] River bed level correction.
 - [ ] Support for Larger map mod.
-- [ ] Implement effect processing with WebGL.
-- [ ] Improve ocean-river connections.
+- [ ] Uses WebGL to improve effects processing.
