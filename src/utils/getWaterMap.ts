@@ -145,6 +145,7 @@ const drawSlope = (
   lineDst: OffscreenCanvasRenderingContext2D,
   cornerSrc: OffscreenCanvasRenderingContext2D,
   cornerDst: OffscreenCanvasRenderingContext2D,
+  waterArea: OffscreenCanvasRenderingContext2D,
   id: number,
   points: Point[],
   tree: { polygonTree: RBush<BBoxItem>, lineTree: RBush<BBoxItem> },
@@ -180,9 +181,7 @@ const drawSlope = (
       }
       if (!shouldSkip) {
         for (const waterLine of potentialLines) {
-          if ((turf.booleanIntersects(lineSegment.geometry, waterLine.geom)
-            || turf.booleanOverlap(lineSegment.geometry, waterLine.geom))
-          && (id !== waterLine.id)) {
+          if (turf.booleanEqual(lineSegment.geometry, waterLine.geom) && (id !== waterLine.id)) {
             shouldSkip = true
             break
           }
@@ -210,6 +209,11 @@ const drawSlope = (
           lineSrc.canvas.height,
         )
         lineDst.restore()
+      } else {
+        waterArea.beginPath()
+        waterArea.moveTo(points[i].x, points[i].y)
+        waterArea.lineTo(points[i + 1].x, points[i + 1].y)
+        waterArea.stroke()
       }
     }
   }
@@ -280,6 +284,8 @@ export const getWaterMap = async (
     waterCtx.canvas.width = resultPixels
     waterCtx.canvas.height = resultPixels
     waterCtx.fillStyle = '#FFFFFF'
+    waterCtx.strokeStyle = '#000000'
+    waterCtx.lineWidth = 2 / scale
     waterCtx.fillRect(0, 0, resultPixels, resultPixels)
     waterCtx.translate(halfMapSize, halfMapSize)
     waterCtx.rotate(theta)
@@ -381,7 +387,7 @@ export const getWaterMap = async (
                         const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
                         path.push(point)
                       }
-                      drawSlope(littCtx, waterSideCtx, littCornerCtx, waterSideCtx, _id, path, waterTree)
+                      drawSlope(littCtx, waterSideCtx, littCornerCtx, waterSideCtx, waterCtx, _id, path, waterTree)
                     }
                   }
                 } else {
@@ -393,7 +399,7 @@ export const getWaterMap = async (
                         const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
                         path.push(point)
                       }
-                      drawSlope(ripaCtx, waterSideCtx, ripaCornerCtx, waterSideCtx, _id, path, waterTree)
+                      drawSlope(ripaCtx, waterSideCtx, ripaCornerCtx, waterSideCtx, waterCtx, _id, path, waterTree)
                     }
                   }
                 }
