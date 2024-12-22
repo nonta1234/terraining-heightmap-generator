@@ -95,6 +95,8 @@
 
     Smoothing is applied below the threshold value, Sharpen is applied above the threshold value.
 
+    For CS2, it internally calculates using a map size of 16,384&#8202;px.
+
     Noise is applied within the same altitude range as the shapen, with the Terrain Ruggedness Index (TRI) used as the threshold.
 
 ### Config Tab
