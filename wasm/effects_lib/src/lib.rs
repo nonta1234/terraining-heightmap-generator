@@ -38,6 +38,7 @@ pub fn gaussian_blur(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, r
     fft.process(&mut input_complex);
 
     let mut kernel = generate_gaussian_kernel(size, radius);
+    fft_shift_2d(&mut kernel, size);
     fft.process(&mut kernel);
 
     input_complex.par_iter_mut()
@@ -47,7 +48,6 @@ pub fn gaussian_blur(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, r
         });
 
     ifft.process(&mut input_complex);
-    ifft_shift_2d(&mut input_complex, size);
 
     let len = length as f32; 
 
@@ -110,6 +110,7 @@ pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f
 
         // Blur so that the slope of the noise boundary does not exceed 45 degrees.
         let mut kernel = generate_gaussian_kernel(size, (amount / pixel_distance).max(1.0));
+        fft_shift_2d(&mut kernel, size);
         fft.process(&mut kernel);
 
         mask.par_iter_mut()
@@ -119,7 +120,6 @@ pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f
             });
 
         ifft.process(&mut mask);
-        ifft_shift_2d(&mut mask, size);
 
         let len = length as f32;
 
@@ -133,62 +133,71 @@ pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f
     }
 }
 
-/*
+fn rotate_rows(data: &mut [Complex<f32>], size: usize, shift: isize) {
+    let row_count = data.len() / size;
+    let shift = ((shift % row_count as isize) + row_count as isize) as usize % row_count;
+
+    if shift == 0 {
+        return;
+    }
+
+    data.rotate_left(shift * size);
+}
+
 fn fft_shift_2d(data: &mut [Complex<f32>], size: usize) {
     let mid = size / 2;
-    let cor = size % 2;
 
     for row in data.chunks_mut(size) {
-        row.rotate_left(mid + cor);
+        row.rotate_left(mid);
     }
 
-    for col in 0..size {
-        let mut column: Vec<Complex<f32>> = (0..size).map(|row| data[row * size + col]).collect();
-        column.rotate_left(mid + cor);
-
-        for (row, &value) in column.iter().enumerate() {
-            data[row * size + col] = value;
-        }
-    }
+    rotate_rows(data, size, -(mid as isize));
 }
-*/
 
+/*
 fn ifft_shift_2d(data: &mut [Complex<f32>], size: usize) {
     let mid = size / 2;
 
     for row in data.chunks_mut(size) {
-        row.rotate_right(mid);
+        for i in 0..mid {
+            row.swap(i, i + mid);
+        }
     }
 
     for col in 0..size {
-        let mut column: Vec<Complex<f32>> = (0..size).map(|row| data[row * size + col]).collect();
-        column.rotate_right(mid);
-
-        for (row, &value) in column.iter().enumerate() {
-            data[row * size + col] = value;
+        for i in 0..mid {
+            data.swap(i * size + col, (i + mid) * size + col);
         }
     }
 }
+*/
 
 fn generate_gaussian_kernel(size: usize, radius: f32) -> Vec<Complex<f32>> {
     let sigma = (radius - 1.0) * 0.3 + 0.8;
     let length = size * size;
     let mut kernel = vec![Complex::new(0.0, 0.0); length];
     let center = size / 2;
+    let sigma_squared = sigma * sigma;
+    let two_pi_sigma_squared = 2.0 * std::f32::consts::PI * sigma_squared;
 
     for y in 0..size {
-        let dy = y as i32 - center as i32;
+        let dy = y - center;
         for x in 0..size {
-            let dx = x as i32 - center as i32;
-            let distance_squared = (dx * dx + dy * dy) as f32;
-            kernel[y * size + x] = Complex::new((-distance_squared / (2.0 * sigma * sigma)).exp(), 0.0);
+            let dx = x - center;
+            let distance_squared = (dx * dx + dy * dy)  as f32;
+
+            let value = (1.0 / two_pi_sigma_squared) * 
+                (-distance_squared / (2.0 * sigma_squared)).exp();
+
+            kernel[y * size + x] = Complex::new(value, 0.0);
         }
     }
 
     let sum: f32 = kernel.iter().map(|c| c.re).sum();
+    let norm = Complex::new(sum, 0.0);
 
     kernel.par_iter_mut().for_each(|k| {
-        *k /= Complex::new(sum, 0.0);
+        *k /= norm;
     });
 
     kernel

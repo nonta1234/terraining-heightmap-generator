@@ -204,7 +204,12 @@ export const splitTile = async (data: Float32Array, divisions: number, padding: 
   const coreSize = size - padding * 2
   const dividedSize = Math.floor(coreSize / divisions)
   const correction = coreSize % dividedSize
-  const tileSize = dividedSize + padding * 2 + correction
+  let tileSize = dividedSize + padding * 2 + correction
+
+  if (tileSize % 2 === 0) {
+    tileSize += 1
+  }
+
   const result: Float32Array[] = new Array(divisions * divisions)
   const promises: Promise<void>[] = []
 
