@@ -15,7 +15,7 @@ const mapStyleList = computed(() => {
   const options: OptionItem[] = Object.values(styleList).map(({ value, label }) => ({ value, label }))
   options.unshift({ type: 'header', label: '--Select Style--' })
   if (mapbox.value.settings.userStyleURL) {
-    options.push({ value: mapbox.value.settings.userStyleURL, label: 'User Style' })
+    options.push({ value: 'user', label: 'User Style' })
   }
   if (mapbox.value.settings.accessToken) {
     options.push({ type: 'divide' })
