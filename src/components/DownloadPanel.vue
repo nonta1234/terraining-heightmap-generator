@@ -14,7 +14,7 @@ const mapStyleValue = ref('')
 const mapStyleList = computed(() => {
   const options: OptionItem[] = Object.values(styleList).map(({ value, label }) => ({ value, label }))
   options.unshift({ type: 'header', label: '--Select Style--' })
-  if (mapbox.value.settings.userStyleURL) {
+  if (mapbox.value.settings.userStyleURL && mapbox.value.settings.accessToken) {
     options.push({ value: 'user', label: 'User Style' })
   }
   if (mapbox.value.settings.accessToken) {

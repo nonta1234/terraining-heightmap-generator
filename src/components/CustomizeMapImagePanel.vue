@@ -21,7 +21,7 @@ const caution = computed(() => requests.value > 1000)
 
 const mapStyleList = computed(() => {
   const options: OptionItem[] = Object.values(styleList).map(({ value, label }) => ({ value, label }))
-  if (mapbox.value.settings.userStyleURL) {
+  if (mapbox.value.settings.userStyleURL && mapbox.value.settings.accessToken) {
     options.push({ value: 'user', label: 'User Style' })
   }
   return options
