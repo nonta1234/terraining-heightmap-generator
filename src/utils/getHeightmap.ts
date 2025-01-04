@@ -212,7 +212,10 @@ export const getHeightmap = async (
     const maxTileX = 2 ** zoom - 1
 
     // input padding is 220 but output padding is 200
-    const resultPixels = mapPixels + _correction - 20
+    // for FFT processing, the output size must be an even number
+    const px = mapPixels + _correction - 20
+    const resultPixels = px % 2 === 0 ? px : px + 1
+
     const totalTiles = tileCount * tileCount
     onTotal(totalTiles)
 

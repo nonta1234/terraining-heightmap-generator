@@ -206,7 +206,8 @@ export const splitTile = async (data: Float32Array, divisions: number, padding: 
   const correction = coreSize % dividedSize
   let tileSize = dividedSize + padding * 2 + correction
 
-  if (tileSize % 2 === 0) {
+  // for FFT processing, the output size must be an even number
+  if (tileSize % 2 === 1) {
     tileSize += 1
   }
 

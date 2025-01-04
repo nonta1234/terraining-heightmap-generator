@@ -120,7 +120,7 @@ class GetCitiesMapWorker {
 
     this.validateArrayElements(heightmaps, 'generateSingleMap: Error when getting heightmap data')
 
-    const tileMaps: (Float32Array[] | undefined)[] = option.division > 0
+    const tileMaps: (Float32Array[] | undefined)[] = option.division > 1
       ? await Promise.all(
         heightmaps.map(async (map) => {
           const subWWorker = await this.workerPool?.getWorker()
@@ -162,13 +162,16 @@ class GetCitiesMapWorker {
       if (!combinedMaps[i]?.result) throw new Error('generateSingleMap: Error when combine maps')
     }
 
-    const resultMapData = option.division > 0
+    const resultMapData = option.division > 1
       ? (() => {
           this.progressCallback!({ type: 'phase', data: 'Merging map tiles' })
 
           const results: Float32Array[] = combinedMaps.map(item => item!.result)
 
-          const mergedMap = mergeTiles(results, option.mapPixels - 20 + mapSpec[option.settings.gridInfo].correction, 100)
+          const px = option.mapPixels - 20 + mapSpec[option.settings.gridInfo].correction
+          const size = px % 2 === 0 ? px : px + 1
+
+          const mergedMap = mergeTiles(results, size, 100)
           const min = Math.min(...combinedMaps.map(item => item!.min))
           const max = Math.max(...combinedMaps.map(item => item!.max))
 
@@ -226,7 +229,7 @@ class GetCitiesMapWorker {
     const worker2 = await this.workerPool?.getWorker()
 
     const [worldMapData, heightmapData] = await Promise.all([
-      worker1!.remote.getMapData(singleMapOptions[0]),   // the generated size is a multiple of 12 plus 200px
+      worker1!.remote.getMapData(singleMapOptions[0]),
       worker2!.remote.getMapData(singleMapOptions[1]),
     ])
 

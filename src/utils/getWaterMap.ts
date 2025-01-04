@@ -275,7 +275,9 @@ export const getWaterMap = async (
     const offsetY = _centerY - tileY0 * pixelsPerTile
 
     // input padding is 220 but output padding is 200
-    const resultPixels = mapPixels + mapSpec[settings.gridInfo].correction - 20
+    // for FFT processing, the output size must be an even number
+    const px = mapPixels + mapSpec[settings.gridInfo].correction - 20
+    const resultPixels = px % 2 === 0 ? px : px + 1
 
     const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
     const maxTileX = 2 ** zoom - 1
