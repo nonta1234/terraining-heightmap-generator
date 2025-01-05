@@ -38,7 +38,6 @@ pub fn gaussian_blur(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, r
     fft.process(&mut input_complex);
 
     let mut kernel = generate_gaussian_kernel(size, radius);
-    fft_shift_2d(&mut kernel, size);
     fft.process(&mut kernel);
 
     input_complex.par_iter_mut()
@@ -48,6 +47,7 @@ pub fn gaussian_blur(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, r
         });
 
     ifft.process(&mut input_complex);
+    fft_shift_2d(&mut input_complex, size);
 
     let len = length as f32; 
 
@@ -110,7 +110,6 @@ pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f
 
         // Blur so that the slope of the noise boundary does not exceed 45 degrees.
         let mut kernel = generate_gaussian_kernel(size, (amount / pixel_distance).max(1.0));
-        fft_shift_2d(&mut kernel, size);
         fft.process(&mut kernel);
 
         mask.par_iter_mut()
@@ -120,6 +119,7 @@ pub fn noise(input_ptr: *mut f32, output_ptr: *mut f32, length: usize, amount: f
             });
 
         ifft.process(&mut mask);
+        fft_shift_2d(&mut mask, size);
 
         let len = length as f32;
 
@@ -176,28 +176,27 @@ fn generate_gaussian_kernel(size: usize, radius: f32) -> Vec<Complex<f32>> {
     let sigma = (radius - 1.0) * 0.3 + 0.8;
     let length = size * size;
     let mut kernel = vec![Complex::new(0.0, 0.0); length];
-    let center = size / 2;
+    let center = (size - 1) as f32 / 2.0;
     let sigma_squared = sigma * sigma;
     let two_pi_sigma_squared = 2.0 * std::f32::consts::PI * sigma_squared;
 
+    let mut sum = 0.0;
     for y in 0..size {
-        let dy = y - center;
+        let dy = y as f32 - center;
         for x in 0..size {
-            let dx = x - center;
+            let dx = x as f32 - center;
             let distance_squared = (dx * dx + dy * dy)  as f32;
 
             let value = (1.0 / two_pi_sigma_squared) * 
                 (-distance_squared / (2.0 * sigma_squared)).exp();
 
+            sum += value;
             kernel[y * size + x] = Complex::new(value, 0.0);
         }
     }
 
-    let sum: f32 = kernel.iter().map(|c| c.re).sum();
-    let norm = Complex::new(sum, 0.0);
-
     kernel.par_iter_mut().for_each(|k| {
-        *k /= norm;
+        k.re /= sum;
     });
 
     kernel
