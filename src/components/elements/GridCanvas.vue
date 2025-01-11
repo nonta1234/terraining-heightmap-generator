@@ -79,8 +79,8 @@ function drawPoints(ctx: CanvasRenderingContext2D) {
   }
 
   ctx.beginPath()
-  ctx.fillStyle = 'lightskyblue'
   for (let i = 0; i < points.length; i++) {
+    ctx.fillStyle = i === selectedPoint ? 'dodgerblue' : 'lightskyblue'
     ctx.beginPath()
     ctx.arc(points[i].x, points[i].y.value, 7, 0, Math.PI * 2, false)
     ctx.fill()
@@ -156,11 +156,13 @@ const mouseUp = (e: MouseEvent) => {
   e.preventDefault()
   document.removeEventListener('mousemove', mouseMove)
   selectedPoint = -1
+  drawPoints(oCtx.value!)
 }
 
 const touchEnd = () => {
   document.removeEventListener('touchmove', touchMove)
   selectedPoint = -1
+  drawPoints(oCtx.value!)
 }
 
 const setCanvasSize = () => {
