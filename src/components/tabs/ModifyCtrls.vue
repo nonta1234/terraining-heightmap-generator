@@ -95,6 +95,7 @@ const toggleDisplayEffect = () => {
   gap: .75rem 0;
   grid-template-columns: 6.25rem 7.25rem 6.25rem 6.25rem;
   line-height: 1.875;
+  padding-top: .125rem;
   margin-bottom: 1rem;
 
   @media screen and (max-width: 524px) {

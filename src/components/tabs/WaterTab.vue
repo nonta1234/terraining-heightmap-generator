@@ -1,11 +1,19 @@
 <script setup lang="ts">
 const mapbox = useMapbox()
+
+const onlittoralSlopeToggle = () => {
+  nextTick()
+  useEvent('panel:updateHeight')
+}
 </script>
 
 <template>
   <div id="water-tab">
-    <GridCanvas />
-    <ResetSlope class="reset-slope" />
+    <details @toggle="onlittoralSlopeToggle">
+      <summary>Littoral Slope</summary>
+      <GridCanvas />
+      <ResetSlope class="reset-slope" />
+    </details>
     <div class="controls">
       <label for="waterside">Detail&#8202;:</label>
       <SelectMenu id="waterside" v-model="mapbox.settings.waterside" class="gap"
@@ -34,6 +42,15 @@ const mapbox = useMapbox()
 <style lang="scss" scoped>
 #water-tab {
   width: 100%;
+}
+
+summary {
+  margin-bottom: .125rem;
+  cursor: pointer;
+  outline: none;
+  &:focus {
+    color: aquamarine;
+  }
 }
 
 .reset-slope {

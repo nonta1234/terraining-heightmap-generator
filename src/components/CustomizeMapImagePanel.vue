@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { styleList } from '~/utils/const'
 import type { OptionItem } from '~/types/types'
 
 const mapbox = useMapbox()
