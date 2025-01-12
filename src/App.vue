@@ -152,7 +152,7 @@ useListen('map:reload', () => {
 }
 
 .fade-enter-active, .fade-leave-active {
-  transition: all .4s;
+  transition: all .3s;
 }
 
 .fade-enter-from, .fade-leave-to {
