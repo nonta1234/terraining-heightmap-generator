@@ -48,7 +48,7 @@ summary {
   margin-bottom: .125rem;
   cursor: pointer;
   outline: none;
-  &:focus {
+  &:focus, &:hover {
     color: aquamarine;
   }
 }
