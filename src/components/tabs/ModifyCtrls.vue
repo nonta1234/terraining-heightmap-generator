@@ -60,7 +60,6 @@ const toggleDisplayEffect = () => {
 
 <template>
   <div class="controls">
-    <hr>
     <label for="smooth">Smoothing&#8202;:</label>
     <NumberInput id="smooth" v-model="mapbox.settings.smoothing" class="gap" :max="100" :min="0" :step="1" unit="%" />
     <label for="smooth-radius">Radius&#8202;:</label>
@@ -95,8 +94,7 @@ const toggleDisplayEffect = () => {
   gap: .75rem 0;
   grid-template-columns: 6.25rem 7.25rem 6.25rem 6.25rem;
   line-height: 1.875;
-  padding-top: .125rem;
-  margin-bottom: 1rem;
+  margin: .75rem 0 1rem;
 
   @media screen and (max-width: 524px) {
     margin-bottom: 1.5rem;

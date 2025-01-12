@@ -14,6 +14,7 @@ const onlittoralSlopeToggle = () => {
       <GridCanvas />
       <ResetSlope class="reset-slope" />
     </details>
+    <hr>
     <div class="controls">
       <label for="waterside">Detail&#8202;:</label>
       <SelectMenu id="waterside" v-model="mapbox.settings.waterside" class="gap"
@@ -44,6 +45,10 @@ const onlittoralSlopeToggle = () => {
   width: 100%;
 }
 
+details {
+  margin: .5rem 0 .75rem;
+}
+
 summary {
   margin-bottom: .125rem;
   cursor: pointer;
@@ -61,7 +66,7 @@ summary {
   display: grid;
   width: 100%;
   gap: .75rem 0;
-  padding-top: 1rem;
+  margin: .75rem 0 1rem;
   grid-template-columns: 7rem 6.5em 7rem 5.5rem;
   line-height: 1.875;
 
@@ -75,6 +80,17 @@ summary {
 
   @media screen and (max-width: 524px) {
     margin: auto 0 auto auto !important;
+  }
+}
+
+hr {
+  background-color: $borderColor;
+  height: 2px;
+  border: none;
+  grid-column: 1 / 5;
+
+  @media screen and (max-width: 524px) {
+    grid-column: 1 / 3;
   }
 }
 

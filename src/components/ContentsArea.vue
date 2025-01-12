@@ -22,11 +22,11 @@ const onChangeTabs = (tab: number) => {
       <label class="tab-switch" for="config">Config</label>
     </header>
     <div class="contents">
-      <PreviewTab v-show="currentTab === 0 || currentTab === 2">
+      <PreviewTab v-show="currentTab !== 3">
         <GeneralCtrls v-show="currentTab === 0" />
+        <WaterTab v-show="currentTab === 1" />
         <ModifyCtrls v-show="currentTab === 2" />
       </PreviewTab>
-      <WaterTab v-show="currentTab === 1" />
       <ConfigTab v-show="currentTab === 3" />
     </div>
   </div>

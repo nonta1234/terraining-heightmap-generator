@@ -187,6 +187,7 @@ onMounted(() => {
       <span>Y&#8202;: {{ scaleXY.toFixed(decimal) }}</span>
       <span>Z&#8202;: {{ scaleZ.toFixed(decimal) }}</span>
     </div>
+    <hr>
     <slot />
     <footer class="footer">
       <div class="message"><span v-if="isDownloading">{{ progressMsg }}</span></div>
@@ -283,5 +284,12 @@ onMounted(() => {
 .preview-btn {
   flex-shrink: 0;
   @include common-button;
+}
+
+hr {
+  background-color: $borderColor;
+  padding-top: .125rem;
+  height: 2px;
+  border: none;
 }
 </style>

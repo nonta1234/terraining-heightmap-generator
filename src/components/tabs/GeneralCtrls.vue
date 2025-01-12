@@ -104,7 +104,6 @@ const onCellsChange = () => {
 
 <template>
   <div class="controls">
-    <hr>
     <label for="map-type">Map Type&#8202;:</label>
     <SelectMenu
       id="map-type"
@@ -183,7 +182,7 @@ hr {
   gap: .75rem 0;
   grid-template-columns: 6.25rem 7.25rem 6.25rem 6.25rem;
   line-height: 1.875;
-  margin-bottom: 1rem;
+  margin: .75rem 0 1rem;
 
   @media screen and (max-width: 524px) {
     margin-bottom: 1.5rem;
