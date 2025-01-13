@@ -96,6 +96,7 @@ export interface Grid {
 }
 
 export const settingsSchema = z.object({
+  build: z.number(),
   lng: z.number(),
   lat: z.number(),
   zoom: z.number(),

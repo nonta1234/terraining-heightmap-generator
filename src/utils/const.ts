@@ -4,6 +4,8 @@ export const NEED_TOKEN = 'You will need your own Mapbox access token\nto downlo
 export const ATTR = '\u00A9 Mapbox \u00A9 OpenStreetMap'
 export const ATTR_RAS = '\u00A9 Maxar \u00A9 Mapbox \u00A9 OpenStreetMap'
 
+export const BUILD_NUMBER = 1
+
 export const mapStyle = {
   streets: 'mapbox://styles/mapbox/streets-v12?optimize=true',
   outdoors: 'mapbox://styles/mapbox/outdoors-v12?optimize=true',
@@ -133,6 +135,7 @@ export const effectRasterColorMix: [number, number, number, number] = [
 ]
 
 export const initialValue: Settings = {
+  build: 0,
   lng: -73.96530,
   lat: 40.78280,
   zoom: 10,

@@ -46,7 +46,8 @@ onMounted(async () => {
 
   await initializeWorker()
 
-  const { accessTokenMT } = useMapbox().value.settings
+  const { build, accessTokenMT } = useMapbox().value.settings
+  if (build < BUILD_NUMBER) alert('Please reset the parameters once.')
   if (!accessTokenMT) alert('Version 2 now requires a MapTiler API key.')
 })
 
