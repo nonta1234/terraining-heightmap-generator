@@ -8,6 +8,7 @@ interface Props {
   iconClass?: string
   checkedIconClass?: string
   disabled?: boolean
+  noShadow?: boolean
 }
 
 interface Emits {
@@ -38,7 +39,7 @@ const toggle = () => {
 <template>
   <div class="toggle-icon">
     <input :id="name" ref="nInput" class="input" type="checkbox" :checked="_value" tabindex="-1" @change="toggle">
-    <label :for="name" class="label" tabindex="0" @keydown.enter="toggle" @keydown.space="toggle">
+    <label :for="name" :class="['label', { shadow: !noShadow }]" tabindex="0" @keydown.enter="toggle" @keydown.space="toggle">
       <template v-if="checkedIcon">
         <font-awesome-icon v-show="!_value" :icon="icon" :class="iconClass" />
         <font-awesome-icon v-show="_value" :icon="checkedIcon" :class="checkedIconClass" />
@@ -68,10 +69,12 @@ const toggle = () => {
   color: $textDisabled;
   cursor: pointer;
   outline: none;
+}
 
+.shadow {
   &:focus {
     svg {
-      filter: drop-shadow(0px 0px 3px rgba(0, 0, 0, .9));
+      filter: drop-shadow(0px 0px 3px rgba(0, 206, 209, .9));
     }
   }
 }

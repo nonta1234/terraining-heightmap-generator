@@ -119,7 +119,7 @@ const onCellsChange = () => {
     />
     <div class="size-label">
       <label for="map-size">Map Size&#8202;:</label>
-      <button class="size-reset" @click="onSizeReset"><font-awesome-icon :icon="['fas', 'arrow-rotate-right']" class="fa-fw fa-xs" /></button>
+      <button class="size-reset" title="Reset Size" @click="onSizeReset"><font-awesome-icon :icon="['fas', 'arrow-rotate-right']" class="fa-fw fa-xs" /></button>
     </div>
     <NumberInput id="map-size" v-model="mapbox.settings.size" :max="maxSize" :min="minSize" :step="0.001" unit="㎞" @change="onSizeChange" />
     <label for="resolution">Resolution&#8202;:</label>
@@ -210,7 +210,7 @@ hr {
   margin: .25rem 0;
   color: $textColor;
   height: 1.375rem;
-  width: 21px;
+  width: calc(1.375rem - 1px);
   border-radius: .25rem;
   background-color: rgba(255, 255, 255, .1);
   border: solid 1px $borderColor;

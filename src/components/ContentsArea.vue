@@ -1,9 +1,13 @@
 <script setup lang="ts">
 const mapbox = useMapbox()
 const currentTab = ref(0)
+const isShowInfo = ref(true)
+const isShowDepth = ref(false)
 
 const onChangeTabs = (tab: number) => {
   currentTab.value = tab
+  isShowInfo.value = tab !== 1
+  isShowDepth.value = tab === 1
   useEvent('panel:tabChange', tab)
   saveSettings(mapbox.value.settings)
 }
@@ -22,10 +26,15 @@ const onChangeTabs = (tab: number) => {
       <label class="tab-switch" for="config">Config</label>
     </header>
     <div class="contents">
-      <PreviewTab v-show="currentTab !== 3">
+      <PreviewTab v-show="currentTab !== 3" :show-info="isShowInfo">
         <GeneralCtrls v-show="currentTab === 0" />
         <WaterTab v-show="currentTab === 1" />
         <ModifyCtrls v-show="currentTab === 2" />
+        <template v-if="isShowDepth" #preview-overlay>
+          <div class="overlay">
+            <DepthPointsCanvas />
+          </div>
+        </template>
       </PreviewTab>
       <ConfigTab v-show="currentTab === 3" />
     </div>

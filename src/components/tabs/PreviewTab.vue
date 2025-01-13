@@ -2,6 +2,14 @@
 import { isMtTokenValid } from '~/utils/isTokenValid'
 import type { Settings, Canvases, ResultType } from '~/types/types'
 
+interface Props {
+  showInfo?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  showInfo: true,
+})
+
 const mapbox = useMapbox()
 const { isMobile } = useDevice()
 const decimal = isMobile ? 1 : 4
@@ -172,20 +180,25 @@ onMounted(() => {
     <div ref="previewBox" class="preview-canvas-wrapper">
       <canvas ref="previewCanvas" class="preview-canvas" @contextmenu="prevention"></canvas>
       <div class="cover" @contextmenu="prevention"></div>
-    </div>
-    <div class="normalize">
-      <label class="normalize-label" for="normalize-preview">Normalize&#8202;:&nbsp;&nbsp;</label>
-      <ToggleSwitch v-model="mapbox.settings.normalizePreview" :name="'normalize-preview'" @change="onNormalizeChange" />
-      <div :class="['min-max', { 'overflow': isOverflow }]">
-        <div class="min">Min&#8202;: {{ previewData.min.toFixed(1) }}&#8201;m</div>
-        <div class="max">Max&#8202;: {{ previewData.max.toFixed(1) }}&#8201;m</div>
+      <div v-if="$slots['preview-overlay']" class="preview-overlay-container">
+        <slot name="preview-overlay" />
       </div>
     </div>
-    <div v-if="mapbox.settings.gridInfo === 'ue'" class="scale">
-      <span>Scale&#8202;:</span>
-      <span>X&#8202;: {{ scaleXY.toFixed(decimal) }}</span>
-      <span>Y&#8202;: {{ scaleXY.toFixed(decimal) }}</span>
-      <span>Z&#8202;: {{ scaleZ.toFixed(decimal) }}</span>
+    <div :class="['info', { 'bottom-space': !props.showInfo }]">
+      <div class="normalize">
+        <label class="normalize-label" for="normalize-preview">Normalize&#8202;:</label>
+        <ToggleSwitch v-model="mapbox.settings.normalizePreview" :name="'normalize-preview'" @change="onNormalizeChange" />
+        <div v-if="props.showInfo" :class="['min-max', { 'overflow': isOverflow }]">
+          <div class="min">Min&#8202;: {{ previewData.min.toFixed(1) }}&#8201;m</div>
+          <div class="max">Max&#8202;: {{ previewData.max.toFixed(1) }}&#8201;m</div>
+        </div>
+      </div>
+      <div v-if="mapbox.settings.gridInfo === 'ue' && props.showInfo" class="scale">
+        <span>Scale&#8202;:</span>
+        <span>X&#8202;: {{ scaleXY.toFixed(decimal) }}</span>
+        <span>Y&#8202;: {{ scaleXY.toFixed(decimal) }}</span>
+        <span>Z&#8202;: {{ scaleZ.toFixed(decimal) }}</span>
+      </div>
     </div>
     <hr>
     <slot />
@@ -203,7 +216,7 @@ onMounted(() => {
 
 .preview-canvas-wrapper {
   position: relative;
-  margin-bottom: .5rem;
+  margin-bottom: .6875rem;
 }
 
 .preview-canvas {
@@ -232,7 +245,9 @@ onMounted(() => {
 .normalize-label {
   display: block;
   flex-shrink: 0;
+  padding-right: .5rem;
   margin-bottom: .5rem;
+  z-index: 10;
 }
 
 :deep(.toggle-switch) {
@@ -291,5 +306,22 @@ hr {
   padding-top: .125rem;
   height: 2px;
   border: none;
+}
+
+.preview-overlay-container {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: calc(100% + 16px);
+}
+
+.info {
+  margin-bottom: .1875rem;
+}
+
+.bottom-space {
+  @include layout {
+    padding-bottom: 2rem;
+  }
 }
 </style>
