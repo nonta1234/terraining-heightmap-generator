@@ -22,11 +22,23 @@ const mapTypeSchema = z.union([
   z.literal('ocean'),
 ])
 
+const depthPointSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  depth: z.number(),
+})
+
 export type LngLat = Extract<LngLatLike, [number, number]>
 export type HeightCalcType = 'manual' | 'limit' | 'maximize'
 export type Interpolation = 'bilinear' | 'bicubic'
 export type MapType = 'cs1' | 'cs2' | 'cs2play' | 'unity' | 'ue' | 'ocean'
 export type StyleType = Record<'label' | 'value' | 'before' | 'grid' | 'alpha', string>
+
+export type DepthPoint = {
+  x: number
+  y: number
+  depth: number
+}
 
 export const viewModes = ['height', 'world'] as const
 export type ViewMode = typeof viewModes[number]
@@ -127,6 +139,7 @@ export const settingsSchema = z.object({
   useMapbox: z.boolean(),
   accessToken: z.string().optional(),
   accessTokenMT: z.string().optional(),
+  depthPoints: z.array(depthPointSchema),
 })
 
 export type Settings = z.infer<typeof settingsSchema>

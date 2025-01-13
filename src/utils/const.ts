@@ -176,6 +176,12 @@ export const initialValue: Settings = {
   useMapbox: false,
   accessToken: '',
   accessTokenMT: '',
+  depthPoints: [
+    { x: 0, y: 0, depth: 0 },
+    { x: 1, y: 0, depth: 0 },
+    { x: 0, y: 1, depth: 0 },
+    { x: 1, y: 1, depth: 0 },
+  ],
 }
 
 export const needToken = (type: string) => {
