@@ -143,6 +143,7 @@ const onReset = () => {
     const { $resetSettings } = useNuxtApp()
     mapbox.value.settings = $resetSettings()
 
+    mapbox.value.settings.build = BUILD_NUMBER
     mapbox.value.settings.lng = lng
     mapbox.value.settings.lat = lat
     mapbox.value.settings.accessToken = token
