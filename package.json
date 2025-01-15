@@ -25,6 +25,7 @@
     "@nuxtjs/device": "^3.1.0",
     "@nuxtjs/google-fonts": "^3.0.2",
     "@turf/turf": "7.1.0",
+    "@types/delaunator": "^5.0.3",
     "@types/geojson2osm": "^0.0.5",
     "@types/node": "22.4.1",
     "@types/overlayscrollbars": "^1.12.3",
