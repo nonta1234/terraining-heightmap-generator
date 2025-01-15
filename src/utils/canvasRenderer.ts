@@ -12,7 +12,7 @@ export const renderCanvas = (
   const size = Math.sqrt(data.length)
   canvas.width = size
   canvas.height = size
-  gl.viewport (0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
+  gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
 
   const texture = new Texture2D(gl, {
     data: data,
