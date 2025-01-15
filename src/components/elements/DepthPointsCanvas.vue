@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { setParameters } from '@luma.gl/gltools'
+import Delaunator from 'delaunator'
+
 const mapbox = useMapbox()
-const depthPointsContainer = ref<HTMLDivElement>()
+const depthContainer = ref<HTMLDivElement>()
+const depthPointsCanvas = ref<HTMLCanvasElement>()
+const depthPointsCtx = ref<CanvasRenderingContext2D>()
 const depthCanvas = ref<HTMLCanvasElement>()
-const depthCtx = ref<CanvasRenderingContext2D>()
+const gl = ref<WebGL2RenderingContext>()
 
 const previewWidth = ref(0)
 const previewHeight = ref(0)
@@ -19,17 +24,48 @@ const isDeleteMode = computed({
 const clickBuffer = ref(0.1)
 const touchBuffer = ref(0.1)
 
-const selectedPointValue = computed({
-  get: () => selectedPoint.value === -1 ? undefined : mapbox.value.settings.depthPoints[selectedPoint.value]?.depth,
-  set: (value) => {
-    if (value && selectedPoint.value !== -1) {
-      mapbox.value.settings.depthPoints[selectedPoint.value].depth = value
-    }
-  },
+const currentValue = ref<number>()
+
+watch(selectedPoint, (value) => {
+  currentValue.value = value !== -1 ? mapbox.value.settings.depthPoints[value].depth : undefined
 })
+
+const updateDepthValue = (value: number) => {
+  if (selectedPoint.value !== -1) {
+    mapbox.value.settings.depthPoints[selectedPoint.value].depth = value
+    saveSettings(mapbox.value.settings)
+  }
+  update()
+}
+
+const delaunay = ref(
+  Delaunator.from(
+    mapbox.value.settings.depthPoints,
+    point => point.x,
+    point => point.y,
+  ),
+)
 
 const prevention = (e: Event) => {
   e.preventDefault()
+}
+
+const updateDepth = () => {
+  delaunay.value = Delaunator.from(
+    mapbox.value.settings.depthPoints,
+    point => point.x,
+    point => point.y,
+  )
+
+  const depthsData = mapbox.value.settings.depthPoints.map(point => point.depth)
+
+  const positions = new Float32Array(delaunay.value.coords)
+  const depths = new Float32Array(depthsData)
+  const indices = new Uint32Array(delaunay.value.triangles)
+
+  if (depthCanvas.value && gl.value) {
+    renderDepthCanvas(depthCanvas.value, gl.value, positions, depths, indices)
+  }
 }
 
 const deleteAll = () => {
@@ -46,20 +82,25 @@ const deleteAll = () => {
   }
 }
 
-const update = () => {
-  depthCtx.value!.clearRect(0, 0, depthCtx.value!.canvas.width, depthCtx.value!.canvas.height)
+const updatePoints = () => {
+  depthPointsCtx.value!.clearRect(0, 0, depthPointsCtx.value!.canvas.width, depthPointsCtx.value!.canvas.height)
   for (let i = 0; i < mapbox.value.settings.depthPoints.length; i++) {
-    depthCtx.value!.fillStyle = i === selectedPoint.value ? 'dodgerblue' : 'lightskyblue'
-    depthCtx.value!.beginPath()
+    depthPointsCtx.value!.fillStyle = i === selectedPoint.value ? 'dodgerblue' : 'lightskyblue'
+    depthPointsCtx.value!.beginPath()
     const x = (mapbox.value.settings.depthPoints[i].x * (previewWidth.value - 1)) + padding
     const y = (mapbox.value.settings.depthPoints[i].y * (previewHeight.value - 1)) + padding
-    depthCtx.value!.arc(x, y, 7, 0, Math.PI * 2, false)
-    depthCtx.value!.fill()
+    depthPointsCtx.value!.arc(x, y, 7, 0, Math.PI * 2, false)
+    depthPointsCtx.value!.fill()
   }
 }
 
+const update = () => {
+  updatePoints()
+  updateDepth()
+}
+
 const getNormalizedPoint = (x: number, y: number) => {
-  const rect = depthCanvas.value!.getBoundingClientRect()
+  const rect = depthPointsCanvas.value!.getBoundingClientRect()
   const normX = Math.max(Math.min((x - rect.left - padding) / (previewWidth.value - 1), 1), 0)
   const normY = Math.max(Math.min((y - rect.top - padding) / (previewHeight.value - 1), 1), 0)
   return { x: normX, y: normY }
@@ -81,11 +122,10 @@ const onMouseDown = (e: MouseEvent) => {
   if (e.button === 0) {
     e.preventDefault()
     const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
-    const index = getPointIndex(x, y, clickBuffer.value)
+    selectedPoint.value = getPointIndex(x, y, clickBuffer.value)
 
-    if (isAddMode.value && index !== -1) {
+    if (isAddMode.value && selectedPoint.value !== -1) {
       isDrag.value = true
-      selectedPoint.value = index
       document.addEventListener('mousemove', onMouseMove)
     }
     document.addEventListener('mouseup', onMouseUp, { once: true })
@@ -181,11 +221,15 @@ const onTouchEnd = (e: TouchEvent) => {
 }
 
 const setCanvasSize = () => {
-  const size = depthPointsContainer.value!.clientWidth
-  depthCanvas.value!.width = size
-  depthCanvas.value!.height = size
+  const size = depthContainer.value!.clientWidth
+  depthPointsCanvas.value!.width = size
+  depthPointsCanvas.value!.height = size
   previewWidth.value = size - padding * 2
   previewHeight.value = size - padding * 2
+
+  depthCanvas.value!.width = size - padding * 2
+  depthCanvas.value!.height = size - padding * 2
+  gl.value?.viewport(0, 0, gl.value.drawingBufferWidth, gl.value.drawingBufferHeight)
 
   clickBuffer.value = Math.min(0.1, 9 / (previewWidth.value - 1))
   touchBuffer.value = Math.min(0.1, 13 / (previewWidth.value - 1))
@@ -196,33 +240,46 @@ const onResize = () => {
   setCanvasSize()
 }
 
-const clearCanvas = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-  ctx.canvas.width = 0
-  ctx.canvas.height = 0
+const clearCanvas = () => {
+  depthPointsCtx.value?.clearRect(0, 0, depthPointsCtx.value!.canvas.width, depthPointsCtx.value!.canvas.height)
+  depthPointsCtx.value!.canvas.width = 0
+  depthPointsCtx.value!.canvas.height = 0
+  gl.value?.clearColor(0, 0, 0, 0)
+  gl.value!.canvas.width = 0
+  gl.value!.canvas.height = 0
 }
 
 onMounted(() => {
   window.addEventListener('resize', onResize)
-  depthCtx.value = depthCanvas.value!.getContext('2d') as CanvasRenderingContext2D
+  depthPointsCtx.value = depthPointsCanvas.value!.getContext('2d') as CanvasRenderingContext2D
+  gl.value = depthCanvas.value?.getContext('webgl2', {
+    alpha: true,
+    antialias: true,
+  }) as WebGL2RenderingContext
+
+  setParameters(gl.value, {
+    blend: true,
+    blendFunc: [gl.value.SRC_ALPHA, gl.value.ONE_MINUS_SRC_ALPHA],
+  })
   setCanvasSize()
 })
 
 onUnmounted(() => {
-  clearCanvas(depthCtx.value!)
+  clearCanvas()
   window.removeEventListener('resize', onResize)
 })
 </script>
 
 <template>
-  <div ref="depthPointsContainer" class="depth-points-canvas-container">
-    <canvas id="depth-points-canvas" ref="depthCanvas" @mousedown="onMouseDown" @touchstart="onTouchStart" @contextmenu="prevention"></canvas>
+  <div ref="depthContainer" class="depth-container">
+    <canvas id="depth-canvas" ref="depthCanvas"></canvas>
+    <canvas id="depth-points-canvas" ref="depthPointsCanvas" @mousedown="onMouseDown" @touchstart="onTouchStart" @contextmenu="prevention"></canvas>
     <div class="control">
       <ToggleIcon v-model="isAddMode" class="button mode-button" :name="'addMode'" :icon="['fas', 'plus']" :icon-class="'fa-sm fa-fw'" :no-shadow="true" title="Add Point" />
       <ToggleIcon v-model="isDeleteMode" class="button mode-button" :name="'deleteMode'" :icon="['fas', 'minus']" :icon-class="'fa-sm fa-fw'" :no-shadow="true" title="Delete Point" />
       <label class="input-label" for="depth-correction">Depth Corr&#8202;:</label>
-      <NumberInput v-model="selectedPointValue" class="depth-correction-input"
-        :max="100" :min="0" :step="1" :disabled="selectedPointValue === undefined" unit="m" />
+      <NumberInput :value="currentValue" class="depth-correction-input"
+        :max="100" :min="0" :step="1" :disabled="selectedPoint === -1" unit="m" @change="updateDepthValue" />
       <button class="button" title="Delete All" @click="deleteAll"><TrashIcon /></button>
     </div>
   </div>
@@ -234,9 +291,18 @@ canvas {
   aspect-ratio: 1;
 }
 
+.depth-container {
+  position: relative;
+}
+
 #depth-points-canvas {
-  width: 100%;
-  aspect-ratio: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#depth-canvas {
+  padding: 8px;
 }
 
 .control {
@@ -323,11 +389,11 @@ canvas {
 
   &:hover,
   &:focus {
+    background-color: rgba(0, 206, 209, .35) !important;
+
     :deep(.label) {
       color: aquamarine !important;
     }
-
-    background-color: rgba(0, 206, 209, .35) !important;
   }
 }
 </style>
