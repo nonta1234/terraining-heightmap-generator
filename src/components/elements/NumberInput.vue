@@ -117,7 +117,7 @@ const handleChange = (value: number) => {
 }
 
 const onChange = () => {
-  if (!isComposing) {
+  if (!isComposing && nInput.value) {
     handleChange(parseFloat(filter(nInput.value!.value)))
   }
 }

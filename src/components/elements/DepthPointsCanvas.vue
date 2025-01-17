@@ -13,7 +13,7 @@ const previewWidth = ref(0)
 const previewHeight = ref(0)
 const padding = 8
 const selectedPoint = ref(-1)
-const isDrag = ref(false)
+const isDragging = ref(false)
 const isAddMode = ref(true)
 
 const isDeleteMode = computed({
@@ -45,10 +45,6 @@ const delaunay = ref(
     point => point.y,
   ),
 )
-
-const prevention = (e: Event) => {
-  e.preventDefault()
-}
 
 const updateDepth = () => {
   delaunay.value = Delaunator.from(
@@ -118,106 +114,67 @@ const getPointIndex = (x: number, y: number, buffer: number) => {
   return -1
 }
 
-const onMouseDown = (e: MouseEvent) => {
-  if (e.button === 0) {
-    e.preventDefault()
-    const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
-    selectedPoint.value = getPointIndex(x, y, clickBuffer.value)
+const activePointerId: Ref<number | null> = ref(null)
 
-    if (isAddMode.value && selectedPoint.value !== -1) {
-      isDrag.value = true
-      document.addEventListener('mousemove', onMouseMove)
-    }
-    document.addEventListener('mouseup', onMouseUp, { once: true })
-  }
-}
-
-const onMouseMove = (e: MouseEvent) => {
-  if (isDrag.value) {
-    e.preventDefault()
-    const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
-    if (selectedPoint.value > 3) {
-      mapbox.value.settings.depthPoints[selectedPoint.value].x = x
-      mapbox.value.settings.depthPoints[selectedPoint.value].y = y
-    }
-    update()
-  }
-}
-
-const onMouseUp = (e: MouseEvent) => {
-  e.preventDefault()
-  if (isDrag.value) {
-    isDrag.value = false
-    document.removeEventListener('mousemove', onMouseMove)
-  } else {
+const onPointerdown = (e: PointerEvent) => {
+  if (e.button === 0 && activePointerId.value === null && e.isPrimary) {
     const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
     const index = getPointIndex(x, y, clickBuffer.value)
 
-    if (isDeleteMode.value) {
-      if (index > 3) {
-        mapbox.value.settings.depthPoints.splice(index, 1)
-        selectedPoint.value = -1
-      }
+    if (isAddMode.value && index > 3) {
+      depthPointsCanvas.value!.style.touchAction = 'none'
+      isDragging.value = true
+      activePointerId.value = e.pointerId
+      depthPointsCanvas.value?.setPointerCapture(e.pointerId)
     } else {
-      if (index === -1) {
-        mapbox.value.settings.depthPoints.push({ x, y, depth: 0 })
-        selectedPoint.value = mapbox.value.settings.depthPoints.length - 1
-      } else {
-        selectedPoint.value = index
-      }
+      activePointerId.value = e.pointerId
     }
+    selectedPoint.value = index
   }
   update()
-  saveSettings(mapbox.value.settings)
 }
 
-const onTouchStart = (e: TouchEvent) => {
-  const { x, y } = getNormalizedPoint(e.targetTouches[0].clientX, e.targetTouches[0].clientY)
-  const index = getPointIndex(x, y, touchBuffer.value)
-
-  if (isAddMode.value && index !== -1) {
-    isDrag.value = true
-    selectedPoint.value = index
-    document.addEventListener('touchmove', onTouchMove)
-  }
-  document.addEventListener('touchend', onTouchEnd, { once: true })
-}
-
-const onTouchMove = (e: TouchEvent) => {
-  if (isDrag.value) {
-    const { x, y } = getNormalizedPoint(e.targetTouches[0].clientX, e.targetTouches[0].clientY)
-    if (selectedPoint.value > 3) {
-      mapbox.value.settings.depthPoints[selectedPoint.value].x = x
-      mapbox.value.settings.depthPoints[selectedPoint.value].y = y
-    }
+const onPointerMove = (e: PointerEvent) => {
+  if (isDragging.value && e.pointerId === activePointerId.value) {
+    const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
+    mapbox.value.settings.depthPoints[selectedPoint.value].x = x
+    mapbox.value.settings.depthPoints[selectedPoint.value].y = y
+    e.preventDefault()
     update()
   }
 }
 
-const onTouchEnd = (e: TouchEvent) => {
-  if (isDrag.value) {
-    isDrag.value = false
-    document.removeEventListener('touchmove', onTouchMove)
-  } else {
-    const { x, y } = getNormalizedPoint(e.targetTouches[0].clientX, e.targetTouches[0].clientY)
-    const index = getPointIndex(x, y, touchBuffer.value)
-
-    if (isDeleteMode.value) {
-      if (index > 3) {
-        mapbox.value.settings.depthPoints.splice(index, 1)
-        selectedPoint.value = -1
-      }
-    } else {
-      if (index === -1) {
+const onPointerUp = (e: PointerEvent) => {
+  if (e.pointerId === activePointerId.value) {
+    if (isAddMode.value) {
+      if (selectedPoint.value === -1 && document.elementFromPoint(e.clientX, e.clientY) === depthPointsCanvas.value) {
+        const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
         mapbox.value.settings.depthPoints.push({ x, y, depth: 0 })
         selectedPoint.value = mapbox.value.settings.depthPoints.length - 1
       } else {
-        selectedPoint.value = index
+        isDragging.value = false
+        depthPointsCanvas.value?.releasePointerCapture(e.pointerId)
+        depthPointsCanvas.value!.style.touchAction = 'auto'
+      }
+    } else {
+      if (selectedPoint.value > 3 && document.elementFromPoint(e.clientX, e.clientY) === depthPointsCanvas.value) {
+        const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
+        const index = getPointIndex(x, y, clickBuffer.value)
+        if (selectedPoint.value === index) {
+          mapbox.value.settings.depthPoints.splice(index, 1)
+          selectedPoint.value = -1
+        }
       }
     }
+    activePointerId.value = null
+    e.preventDefault()
+    update()
+    saveSettings(mapbox.value.settings)
   }
-  update()
-  saveSettings(mapbox.value.settings)
+}
+
+const onContextMenu = (e: Event) => {
+  e.preventDefault()
 }
 
 const setCanvasSize = () => {
@@ -231,8 +188,8 @@ const setCanvasSize = () => {
   depthCanvas.value!.height = size - padding * 2
   gl.value?.viewport(0, 0, gl.value.drawingBufferWidth, gl.value.drawingBufferHeight)
 
-  clickBuffer.value = Math.min(0.1, 9 / (previewWidth.value - 1))
-  touchBuffer.value = Math.min(0.1, 13 / (previewWidth.value - 1))
+  clickBuffer.value = Math.min(0.1, 9 / previewWidth.value)
+  touchBuffer.value = Math.min(0.1, 13 / previewWidth.value)
   update()
 }
 
@@ -273,12 +230,17 @@ onUnmounted(() => {
 <template>
   <div ref="depthContainer" class="depth-container">
     <canvas id="depth-canvas" ref="depthCanvas"></canvas>
-    <canvas id="depth-points-canvas" ref="depthPointsCanvas" @mousedown="onMouseDown" @touchstart="onTouchStart" @contextmenu="prevention"></canvas>
+    <canvas id="depth-points-canvas" ref="depthPointsCanvas"
+      @pointerdown="onPointerdown"
+      @pointermove="onPointerMove"
+      @pointerup="onPointerUp"
+      @contextmenu="onContextMenu"
+    ></canvas>
     <div class="control">
       <ToggleIcon v-model="isAddMode" class="button mode-button" :name="'addMode'" :icon="['fas', 'plus']" :icon-class="'fa-sm fa-fw'" :no-shadow="true" title="Add Point" />
       <ToggleIcon v-model="isDeleteMode" class="button mode-button" :name="'deleteMode'" :icon="['fas', 'minus']" :icon-class="'fa-sm fa-fw'" :no-shadow="true" title="Delete Point" />
       <label class="input-label" for="depth-correction">Depth Corr&#8202;:</label>
-      <NumberInput :value="currentValue" class="depth-correction-input"
+      <NumberInput :key="selectedPoint" :value="currentValue" class="depth-correction-input"
         :max="100" :min="0" :step="1" :disabled="selectedPoint === -1" unit="m" @change="updateDepthValue" />
       <button class="button" title="Delete All" @click="deleteAll"><TrashIcon /></button>
     </div>
