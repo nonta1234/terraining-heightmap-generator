@@ -235,7 +235,7 @@ class GetCitiesMapWorker {
     ])
 
     const worldMaps = [worldMapData?.heightmap, worldMapData?.waterMap, worldMapData?.waterWayMap, worldMapData?.weterDepthMap]
-    const heightmaps = [heightmapData?.heightmap, heightmapData?.waterMap, heightmapData?.waterWayMap, worldMapData?.weterDepthMap]
+    const heightmaps = [heightmapData?.heightmap, heightmapData?.waterMap, heightmapData?.waterWayMap, heightmapData?.weterDepthMap]
 
     this.validateArrayElements(worldMaps, 'generateCS2Map: Error when getting world map data')
     this.validateArrayElements(heightmaps, 'generateCS2Map: Error when getting heightmap data')
