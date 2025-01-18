@@ -79,6 +79,10 @@
 
 ### Water Tab
 
+- **Water Depth Correction Editor**&#8202;: This editor performs depth correction for water areas. You can input arbitrary points on the preview screen and specify the correction value for the depth at each point. These values will ultimately be added to the Water Depth. The input points form triangles, and the depth correction values within each triangle are linearly interpolated based on the values at its vertices. This ensures a smooth transition in depth across the area.
+  * Usage&#8202;: The plus and minus mode buttons determine the behavior when right-clicking. Also, points are draggable. Left-clicking toggles the display of the triangle subdivision. Dragging points may alter the state of the triangle subdivision.
+  * Input Depth Correction&#8202;: When a point is selected, its correction value is displayed. The value ranges from 0 to 100.
+  * Preview&#8202;: Larger correction values are displayed in light blue, with 0 being transparent. Additionally, clicking the preview button updates the current input state to reflect on the elevation data.
 - **Littoral Editor**&#8202;: Configure the shape of the littoral slope.
 - **Detail**&#8202;: Level of detail of the water area.
 - **Water Depth**&#8202;: Modify the water depth.
@@ -142,6 +146,7 @@
 - [x] Download more customized map images.
 - [x] Improve shapeen and smooth behavior in CS2 map.
 - [x] Improve ocean-river connections.
-- [ ] River bed level correction.
+- [x] Water depth correction.
 - [ ] Support for Larger map mod.
 - [ ] Uses WebGL to improve effects processing.
+- [ ] Implementation of riparian zone in its original meaning.
