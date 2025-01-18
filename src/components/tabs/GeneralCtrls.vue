@@ -242,13 +242,13 @@ hr {
 @media screen and (min-width: 525px) {
   .wp {
     grid-column: 1 / 3;
-    grid-row: 4 / 5;
+    grid-row: 3 / 4;
     z-index: 5;
   }
 
   .wp-switch {
     grid-column: 2 / 3;
-    grid-row: 4 / 5;
+    grid-row: 3 / 4;
     z-index: 10;
     margin: auto 1rem auto auto !important;
   }
