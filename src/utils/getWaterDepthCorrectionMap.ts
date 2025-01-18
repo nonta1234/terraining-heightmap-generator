@@ -37,6 +37,10 @@ export const getWaterDepthCorrectionMap = (
 
       const coreData = getDepthCorrectionData(gl, positions, depths, indices, coreSize, coreSize)
 
+      for (let i = 0; i < coreData.length; i++) {
+        coreData[i] *= 100
+      }
+
       const resultData = new Float32Array(resultPixels * resultPixels)
 
       // addd padding
