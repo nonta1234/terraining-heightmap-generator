@@ -192,12 +192,12 @@ const onPointerUp = (e: PointerEvent) => {
           }
         }
       }
-      activePointerId.value = null
-      e.preventDefault()
       saveSettings(mapbox.value.settings)
     } else if (e.button === 2) {
       drawLines.value = !drawLines.value
     }
+    activePointerId.value = null
+    e.preventDefault()
     update()
   }
 }
