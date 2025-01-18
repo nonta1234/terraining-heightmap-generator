@@ -116,7 +116,7 @@ class GetCitiesMapWorker {
     const subWWorker = await this.workerPool?.getWorker()
     const data = await subWWorker?.remote.getMapData(option)
 
-    const heightmaps = [data?.heightmap, data?.waterMap, data?.waterWayMap]
+    const heightmaps = [data?.heightmap, data?.waterMap, data?.waterWayMap, data?.weterDepthMap]
 
     this.validateArrayElements(heightmaps, 'generateSingleMap: Error when getting heightmap data')
 
@@ -130,7 +130,7 @@ class GetCitiesMapWorker {
           return tileMap
         }),
       )
-      : [[data!.heightmap], [data!.waterMap], [data!.waterWayMap]]
+      : [[data!.heightmap], [data!.waterMap], [data!.waterWayMap], [data!.weterDepthMap]]
 
     this.validateArrayElements(tileMaps, 'generateSingleMap: Error when split tiles')
 
@@ -148,6 +148,7 @@ class GetCitiesMapWorker {
           noiseMap,
           Comlink.transfer(tileMaps[1]![index], [tileMaps[1]![index].buffer]),
           Comlink.transfer(tileMaps[2]![index], [tileMaps[2]![index].buffer]),
+          Comlink.transfer(tileMaps[3]![index], [tileMaps[3]![index].buffer]),
           mapOption,
           true,
         )
@@ -233,8 +234,8 @@ class GetCitiesMapWorker {
       worker2!.remote.getMapData(singleMapOptions[1]),
     ])
 
-    const worldMaps = [worldMapData?.heightmap, worldMapData?.waterMap, worldMapData?.waterWayMap]
-    const heightmaps = [heightmapData?.heightmap, heightmapData?.waterMap, heightmapData?.waterWayMap]
+    const worldMaps = [worldMapData?.heightmap, worldMapData?.waterMap, worldMapData?.waterWayMap, worldMapData?.weterDepthMap]
+    const heightmaps = [heightmapData?.heightmap, heightmapData?.waterMap, heightmapData?.waterWayMap, worldMapData?.weterDepthMap]
 
     this.validateArrayElements(worldMaps, 'generateCS2Map: Error when getting world map data')
     this.validateArrayElements(heightmaps, 'generateCS2Map: Error when getting heightmap data')
@@ -284,6 +285,7 @@ class GetCitiesMapWorker {
           noiseMap,
           Comlink.transfer(tileMaps[1]![index], [tileMaps[1]![index].buffer]),
           Comlink.transfer(tileMaps[2]![index], [tileMaps[2]![index].buffer]),
+          Comlink.transfer(tileMaps[3]![index], [tileMaps[3]![index].buffer]),
           mapOption,
           false,
         )

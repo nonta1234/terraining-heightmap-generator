@@ -281,7 +281,7 @@ export const getWaterMap = async (
 
     const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
     const maxTileX = 2 ** zoom - 1
-    const halfMapSize = resultPixels / 2
+    const halfMapSize = px / 2
     const theta = -settings.angle * Math.PI / 180
 
     // setup waterCtx

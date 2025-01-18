@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { setParameters } from '@luma.gl/gltools'
 import Delaunator from 'delaunator'
+import { setParameters } from '@luma.gl/gltools'
 
 const mapbox = useMapbox()
 const depthContainer = ref<HTMLDivElement>()
@@ -21,6 +21,8 @@ const isDeleteMode = computed({
   set: value => isAddMode.value = !value,
 })
 
+const drawLines = ref(true)
+
 const clickBuffer = ref(0.1)
 const touchBuffer = ref(0.1)
 
@@ -36,6 +38,23 @@ const updateDepthValue = (value: number) => {
     saveSettings(mapbox.value.settings)
   }
   update()
+}
+
+const generateLinePositions = (delaunay: Delaunator<any>): Float32Array => {
+  const linePositions: number[] = []
+
+  for (let e = 0; e < delaunay.halfedges.length; e++) {
+    const oppositeEdge = delaunay.halfedges[e]
+    if (oppositeEdge > e) continue
+
+    const p = delaunay.triangles[e]
+    const q = delaunay.triangles[(e % 3 === 2) ? e - 2 : e + 1]
+
+    linePositions.push(delaunay.coords[p * 2], delaunay.coords[p * 2 + 1])
+    linePositions.push(delaunay.coords[q * 2], delaunay.coords[q * 2 + 1])
+  }
+
+  return new Float32Array(linePositions)
 }
 
 const delaunay = ref(
@@ -58,9 +77,10 @@ const updateDepth = () => {
   const positions = new Float32Array(delaunay.value.coords)
   const depths = new Float32Array(depthsData)
   const indices = new Uint32Array(delaunay.value.triangles)
+  const linePositions = drawLines.value ? generateLinePositions(delaunay.value) : undefined
 
   if (depthCanvas.value && gl.value) {
-    renderDepthCanvas(depthCanvas.value, gl.value, positions, depths, indices)
+    renderDepthCanvas(gl.value, positions, depths, indices, linePositions)
   }
 }
 
@@ -117,21 +137,26 @@ const getPointIndex = (x: number, y: number, buffer: number) => {
 const activePointerId: Ref<number | null> = ref(null)
 
 const onPointerdown = (e: PointerEvent) => {
-  if (e.button === 0 && activePointerId.value === null && e.isPrimary) {
-    const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
-    const index = getPointIndex(x, y, clickBuffer.value)
+  if (activePointerId.value === null && e.isPrimary) {
+    if (e.button === 0) {
+      const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
+      const index = getPointIndex(x, y, clickBuffer.value)
 
-    if (isAddMode.value && index > 3) {
-      depthPointsCanvas.value!.style.touchAction = 'none'
-      isDragging.value = true
-      activePointerId.value = e.pointerId
-      depthPointsCanvas.value?.setPointerCapture(e.pointerId)
-    } else {
+      if (isAddMode.value && index > 3) {
+        depthPointsCanvas.value!.style.touchAction = 'none'
+        isDragging.value = true
+        activePointerId.value = e.pointerId
+        depthPointsCanvas.value?.setPointerCapture(e.pointerId)
+      } else {
+        activePointerId.value = e.pointerId
+      }
+      selectedPoint.value = index
+    } else if (e.button === 2) {
       activePointerId.value = e.pointerId
     }
-    selectedPoint.value = index
+    e.preventDefault()
+    update()
   }
-  update()
 }
 
 const onPointerMove = (e: PointerEvent) => {
@@ -146,30 +171,34 @@ const onPointerMove = (e: PointerEvent) => {
 
 const onPointerUp = (e: PointerEvent) => {
   if (e.pointerId === activePointerId.value) {
-    if (isAddMode.value) {
-      if (selectedPoint.value === -1 && document.elementFromPoint(e.clientX, e.clientY) === depthPointsCanvas.value) {
-        const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
-        mapbox.value.settings.depthPoints.push({ x, y, depth: 0 })
-        selectedPoint.value = mapbox.value.settings.depthPoints.length - 1
+    if (e.button === 0) {
+      if (isAddMode.value) {
+        if (selectedPoint.value === -1 && document.elementFromPoint(e.clientX, e.clientY) === depthPointsCanvas.value) {
+          const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
+          mapbox.value.settings.depthPoints.push({ x, y, depth: 0 })
+          selectedPoint.value = mapbox.value.settings.depthPoints.length - 1
+        } else {
+          isDragging.value = false
+          depthPointsCanvas.value?.releasePointerCapture(e.pointerId)
+          depthPointsCanvas.value!.style.touchAction = 'auto'
+        }
       } else {
-        isDragging.value = false
-        depthPointsCanvas.value?.releasePointerCapture(e.pointerId)
-        depthPointsCanvas.value!.style.touchAction = 'auto'
-      }
-    } else {
-      if (selectedPoint.value > 3 && document.elementFromPoint(e.clientX, e.clientY) === depthPointsCanvas.value) {
-        const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
-        const index = getPointIndex(x, y, clickBuffer.value)
-        if (selectedPoint.value === index) {
-          mapbox.value.settings.depthPoints.splice(index, 1)
-          selectedPoint.value = -1
+        if (selectedPoint.value > 3 && document.elementFromPoint(e.clientX, e.clientY) === depthPointsCanvas.value) {
+          const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
+          const index = getPointIndex(x, y, clickBuffer.value)
+          if (selectedPoint.value === index) {
+            mapbox.value.settings.depthPoints.splice(index, 1)
+            selectedPoint.value = -1
+          }
         }
       }
+      activePointerId.value = null
+      e.preventDefault()
+      saveSettings(mapbox.value.settings)
+    } else if (e.button === 2) {
+      drawLines.value = !drawLines.value
     }
-    activePointerId.value = null
-    e.preventDefault()
     update()
-    saveSettings(mapbox.value.settings)
   }
 }
 

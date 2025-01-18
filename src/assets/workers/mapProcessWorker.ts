@@ -4,6 +4,7 @@ import { mixArray, getMinMaxHeight } from '~/utils/elevation'
 import { splitTile, scaleUpBicubic, blendMapsWithFeathering } from '~/utils/tileProcess'
 import { getHeightmap } from '~/utils/getHeightmap'
 import { getWaterMap } from '~/utils/getWaterMap'
+import { getWaterDepthCorrectionMap } from '~/utils/getWaterDepthCorrectionMap'
 import { gaussianBlur, unsharpMask, noise } from '~/utils/effects'
 
 class MapProcessWorker {
@@ -41,7 +42,7 @@ class MapProcessWorker {
       const rasterPixels = 512
       const vectorPixels = 4096
 
-      const [heightmap, oceanMap, { waterMap, waterWayMap, waterMapImage, waterWayMapImage }] = settings.actualSeafloor
+      const [heightmap, oceanMap, { waterMap, waterWayMap, waterMapImage, waterWayMapImage }, weterDepthMap] = settings.actualSeafloor
         ? await Promise.all([
           getHeightmap(settings.gridInfo, settings, rasterExtent, mapPixels, rasterPixels,
             total => this.progressCallback!({ type: 'total', data: total }),
@@ -55,6 +56,7 @@ class MapProcessWorker {
             total => this.progressCallback!({ type: 'total', data: total }),
             () => this.progressCallback!({ type: 'progress' }),
           ),
+          getWaterDepthCorrectionMap(settings, mapPixels),
         ])
         : await Promise.all([
           getHeightmap(settings.gridInfo, settings, rasterExtent, mapPixels, rasterPixels,
@@ -66,11 +68,16 @@ class MapProcessWorker {
             total => this.progressCallback!({ type: 'total', data: total }),
             () => this.progressCallback!({ type: 'progress' }),
           ),
+          getWaterDepthCorrectionMap(settings, mapPixels),
         ])
 
       const resultHeightmap = oceanMap ? mixArray(heightmap, oceanMap) : heightmap
 
       const transferables: (ArrayBufferLike | ImageBitmap)[] = [resultHeightmap.buffer, waterMap.buffer, waterWayMap.buffer]
+
+      if (weterDepthMap) {
+        transferables.push(weterDepthMap.buffer)
+      }
 
       if (waterMapImage) {
         transferables.push(waterMapImage)
@@ -85,6 +92,7 @@ class MapProcessWorker {
           heightmap: resultHeightmap,
           waterMap,
           waterWayMap,
+          weterDepthMap,
           waterMapImage,
           waterWayMapImage,
         },
@@ -169,7 +177,15 @@ class MapProcessWorker {
     )
   }
 
-  public async combineMap(heightmap: Float32Array, noiseMap: Float32Array | undefined, waterMap: Float32Array, waterWayMap: Float32Array, option: MapOption, getMinMax: boolean) {
+  public async combineMap(
+    heightmap: Float32Array,
+    noiseMap: Float32Array | undefined,
+    waterMap: Float32Array,
+    waterWayMap: Float32Array,
+    waterDepthMap: Float32Array,
+    option: MapOption,
+    getMinMax: boolean,
+  ) {
     this.validateCallback()
     this.progressCallback!({ type: 'phase', data: `Combining map data (#${this.index})` })
 
@@ -178,7 +194,7 @@ class MapProcessWorker {
 
     for (let i = 0; i < heightmap.length; i++) {
       const landArea = waterMap[i] * waterWayMap[i] === 1 ? 1 : 0
-      const waterDepth = Math.max((1 - waterMap[i]) * depth, (1 - waterWayMap[i]) * streamDepth)
+      const waterDepth = Math.max((1 - waterMap[i]) * (depth + waterDepthMap[i]), (1 - waterWayMap[i]) * (streamDepth + waterDepthMap[i]))
       const noise = noiseMap ? noiseMap[i] : 0
       result[i] = heightmap[i] + landArea * noise - waterDepth
     }
