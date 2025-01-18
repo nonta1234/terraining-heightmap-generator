@@ -235,7 +235,7 @@ class GetCitiesMapWorker {
     ])
 
     const worldMaps = [worldMapData?.heightmap, worldMapData?.waterMap, worldMapData?.waterWayMap, worldMapData?.weterDepthMap]
-    const heightmaps = [heightmapData?.heightmap, heightmapData?.waterMap, heightmapData?.waterWayMap, heightmapData?.weterDepthMap]
+    const heightmaps = [heightmapData?.heightmap, heightmapData?.waterMap, heightmapData?.waterWayMap]
 
     this.validateArrayElements(worldMaps, 'generateCS2Map: Error when getting world map data')
     this.validateArrayElements(heightmaps, 'generateCS2Map: Error when getting heightmap data')
@@ -246,11 +246,13 @@ class GetCitiesMapWorker {
         if (!subWorker || !map) return undefined
 
         const scaleUpedWorldMap = await subWorker.remote.scaleUpBicubic(Comlink.transfer(map, [map.buffer]))
-        const blendedMap = await subWorker.remote.blendMapsWithFeathering(
-          Comlink.transfer(scaleUpedWorldMap!, [scaleUpedWorldMap!.buffer]),
-          Comlink.transfer(heightmaps[index]!, [heightmaps[index]!.buffer]),
-          100,
-        )
+        const blendedMap = index !== 3
+          ? await subWorker.remote.blendMapsWithFeathering(
+            Comlink.transfer(scaleUpedWorldMap!, [scaleUpedWorldMap!.buffer]),
+            Comlink.transfer(heightmaps[index]!, [heightmaps[index]!.buffer]),
+            100,
+          )
+          : scaleUpedWorldMap!
 
         this.workerPool?.releaseWorker(subWorker)
         return blendedMap

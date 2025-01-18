@@ -39,12 +39,33 @@ export const getWaterDepthCorrectionMap = (
 
       const resultData = new Float32Array(resultPixels * resultPixels)
 
+      // addd padding
       for (let y = 0; y < coreSize; y++) {
-        for (let x = 0; x < coreSize; x++) {
-          const originalIndex = y * coreSize + x
-          const paddedIndex = (y + padding) * resultPixels + (x + padding)
-          resultData[paddedIndex] = coreData[originalIndex] * 100
-        }
+        const sourceStart = y * coreSize
+        const targetStart = (y + padding) * resultPixels + padding
+        resultData.set(coreData.subarray(sourceStart, sourceStart + coreSize), targetStart)
+      }
+
+      for (let y = 0; y < padding; y++) {
+        const firstRow = resultData.subarray(
+          (padding) * resultPixels,
+          (padding) * resultPixels + resultPixels,
+        )
+        resultData.set(firstRow, y * resultPixels)
+
+        const lastRow = resultData.subarray(
+          (resultPixels - padding - 1) * resultPixels,
+          (resultPixels - padding - 1) * resultPixels + resultPixels,
+        )
+        resultData.set(lastRow, (resultPixels - padding + y) * resultPixels)
+      }
+
+      for (let y = padding; y < resultPixels - padding; y++) {
+        const leftValue = resultData[y * resultPixels + padding]
+        resultData.fill(leftValue, y * resultPixels, y * resultPixels + padding)
+
+        const rightValue = resultData[y * resultPixels + resultPixels - padding - 1]
+        resultData.fill(rightValue, y * resultPixels + resultPixels - padding, (y + 1) * resultPixels)
       }
 
       resolve(resultData)
