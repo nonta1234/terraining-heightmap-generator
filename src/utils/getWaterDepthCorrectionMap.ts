@@ -48,8 +48,8 @@ export const getWaterDepthCorrectionMap = (
 
       for (let y = 0; y < padding; y++) {
         const firstRow = resultData.subarray(
-          (padding) * resultPixels,
-          (padding) * resultPixels + resultPixels,
+          padding * resultPixels,
+          padding * resultPixels + resultPixels,
         )
         resultData.set(firstRow, y * resultPixels)
 
