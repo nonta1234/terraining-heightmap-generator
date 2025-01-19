@@ -137,16 +137,18 @@ const getPointIndex = (x: number, y: number, buffer: number) => {
 const activePointerId: Ref<number | null> = ref(null)
 
 const onPointerdown = (e: PointerEvent) => {
+  e.preventDefault()
   if (activePointerId.value === null && e.isPrimary) {
-    if (e.button === 0) {
+    if (e.button === 0 || e.pointerType === 'touch') {
       const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
-      const index = getPointIndex(x, y, clickBuffer.value)
-
+      const index = getPointIndex(x, y, e.pointerType === 'touch' ? touchBuffer.value : clickBuffer.value)
+      console.log(index)
       if (isAddMode.value && index > 3) {
         depthPointsCanvas.value!.style.touchAction = 'none'
         isDragging.value = true
         activePointerId.value = e.pointerId
         depthPointsCanvas.value?.setPointerCapture(e.pointerId)
+        document.addEventListener('pointermove', onPointerMove, { passive: false })
       } else {
         activePointerId.value = e.pointerId
       }
@@ -154,24 +156,25 @@ const onPointerdown = (e: PointerEvent) => {
     } else if (e.button === 2) {
       activePointerId.value = e.pointerId
     }
-    e.preventDefault()
+    document.addEventListener('pointerup', onPointerUp, { once: true })
     update()
   }
 }
 
 const onPointerMove = (e: PointerEvent) => {
+  e.preventDefault()
   if (isDragging.value && e.pointerId === activePointerId.value) {
     const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
     mapbox.value.settings.depthPoints[selectedPoint.value].x = x
     mapbox.value.settings.depthPoints[selectedPoint.value].y = y
-    e.preventDefault()
     update()
   }
 }
 
 const onPointerUp = (e: PointerEvent) => {
+  e.preventDefault()
   if (e.pointerId === activePointerId.value) {
-    if (e.button === 0) {
+    if (e.button === 0 || e.pointerType === 'touch') {
       if (isAddMode.value) {
         if (selectedPoint.value === -1 && document.elementFromPoint(e.clientX, e.clientY) === depthPointsCanvas.value) {
           const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
@@ -185,7 +188,7 @@ const onPointerUp = (e: PointerEvent) => {
       } else {
         if (selectedPoint.value > 3 && document.elementFromPoint(e.clientX, e.clientY) === depthPointsCanvas.value) {
           const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
-          const index = getPointIndex(x, y, clickBuffer.value)
+          const index = getPointIndex(x, y, e.pointerType === 'touch' ? touchBuffer.value : clickBuffer.value)
           if (selectedPoint.value === index) {
             mapbox.value.settings.depthPoints.splice(index, 1)
             selectedPoint.value = -1
@@ -197,7 +200,7 @@ const onPointerUp = (e: PointerEvent) => {
       drawLines.value = !drawLines.value
     }
     activePointerId.value = null
-    e.preventDefault()
+    document.removeEventListener('pointermove', onPointerMove)
     update()
   }
 }
@@ -261,8 +264,7 @@ onUnmounted(() => {
     <canvas id="depth-canvas" ref="depthCanvas"></canvas>
     <canvas id="depth-points-canvas" ref="depthPointsCanvas"
       @pointerdown="onPointerdown"
-      @pointermove="onPointerMove"
-      @pointerup="onPointerUp"
+      @touchstart="(e) => e.preventDefault()"
       @contextmenu="onContextMenu"
     ></canvas>
     <div class="control">
