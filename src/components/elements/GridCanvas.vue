@@ -108,6 +108,7 @@ const mouseDown = (e: MouseEvent) => {
 }
 
 const touchStart = (e: TouchEvent) => {
+  e.preventDefault()
   const toucheX = e.changedTouches[0].clientX - oCanvas.value!.getBoundingClientRect().left
   const toucheY = e.changedTouches[0].clientY - oCanvas.value!.getBoundingClientRect().top
 
@@ -159,7 +160,8 @@ const mouseUp = (e: MouseEvent) => {
   drawPoints(oCtx.value!)
 }
 
-const touchEnd = () => {
+const touchEnd = (e: TouchEvent) => {
+  e.preventDefault()
   document.removeEventListener('touchmove', touchMove)
   selectedPoint = -1
   drawPoints(oCtx.value!)
