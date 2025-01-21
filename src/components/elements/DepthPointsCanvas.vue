@@ -127,7 +127,7 @@ const getPointIndex = (x: number, y: number, buffer: number) => {
     const point = mapbox.value.settings.depthPoints[i]
     const dx = point.x - x
     const dy = point.y - y
-    if (Math.sqrt(dx * dx + dy * dy) < buffer) {
+    if (Math.sqrt(dx * dx + dy * dy) <= buffer) {
       return i
     }
   }
