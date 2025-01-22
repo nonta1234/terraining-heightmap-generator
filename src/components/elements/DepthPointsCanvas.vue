@@ -136,28 +136,56 @@ const getPointIndex = (x: number, y: number, buffer: number) => {
 
 const activePointerId: Ref<number | null> = ref(null)
 
+let longPressTimer: string | number | NodeJS.Timeout | undefined = undefined
+const isLongPress = ref(false)
+
+const startLongPressTimer = (e: PointerEvent) => {
+  isLongPress.value = false
+  longPressTimer = setTimeout(() => {
+    isLongPress.value = true
+    onContextMenu(e as unknown as MouseEvent)
+    clearLongPressTimer()
+  }, 1000)
+}
+
+const clearLongPressTimer = () => {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer)
+    longPressTimer = undefined
+  }
+}
+
+const resetFlags = () => {
+  isLongPress.value = false
+  isDragging.value = false
+  activePointerId.value = null
+  depthPointsCanvas.value?.releasePointerCapture(activePointerId.value!)
+  depthPointsCanvas.value!.style.touchAction = 'auto'
+}
+
 const onPointerdown = (e: PointerEvent) => {
   e.preventDefault()
   if (activePointerId.value === null && e.isPrimary) {
     if (e.button === 0 || e.pointerType === 'touch') {
       const { x, y } = getNormalizedPoint(e.clientX, e.clientY)
       const index = getPointIndex(x, y, e.pointerType === 'touch' ? touchBuffer.value : clickBuffer.value)
-      console.log(index)
+
+      if (e.pointerType === 'touch') {
+        clearLongPressTimer()
+        startLongPressTimer(e)
+      }
+
       if (isAddMode.value && index > 3) {
         depthPointsCanvas.value!.style.touchAction = 'none'
         isDragging.value = true
-        activePointerId.value = e.pointerId
         depthPointsCanvas.value?.setPointerCapture(e.pointerId)
         document.addEventListener('pointermove', onPointerMove, { passive: false })
-      } else {
-        activePointerId.value = e.pointerId
       }
-      selectedPoint.value = index
-    } else if (e.button === 2) {
       activePointerId.value = e.pointerId
+      selectedPoint.value = index
+      document.addEventListener('pointerup', onPointerUp, { once: true })
+      update()
     }
-    document.addEventListener('pointerup', onPointerUp, { once: true })
-    update()
   }
 }
 
@@ -168,11 +196,22 @@ const onPointerMove = (e: PointerEvent) => {
     mapbox.value.settings.depthPoints[selectedPoint.value].x = x
     mapbox.value.settings.depthPoints[selectedPoint.value].y = y
     update()
+
+    if (e.pointerType === 'touch') {
+      clearLongPressTimer()
+    }
   }
 }
 
 const onPointerUp = (e: PointerEvent) => {
   e.preventDefault()
+  clearLongPressTimer()
+
+  if (isLongPress.value) {
+    resetFlags()
+    return
+  }
+
   if (e.pointerId === activePointerId.value) {
     if (e.button === 0 || e.pointerType === 'touch') {
       if (isAddMode.value) {
@@ -196,8 +235,6 @@ const onPointerUp = (e: PointerEvent) => {
         }
       }
       saveSettings(mapbox.value.settings)
-    } else if (e.button === 2) {
-      drawLines.value = !drawLines.value
     }
     activePointerId.value = null
     document.removeEventListener('pointermove', onPointerMove)
@@ -205,8 +242,10 @@ const onPointerUp = (e: PointerEvent) => {
   }
 }
 
-const onContextMenu = (e: Event) => {
+const onContextMenu = (e: MouseEvent) => {
   e.preventDefault()
+  drawLines.value = !drawLines.value
+  update()
 }
 
 const setCanvasSize = () => {
