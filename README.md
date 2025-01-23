@@ -8,16 +8,18 @@
 *This repository is based on and further developed from sysoppl/Cities-Skylines-heightmap-generator.*
 
 **An online heightmap generator for Cities: Skylines, Unity, and Unreal Engine.**  
-**https://terraining.ateliernonta.com**
+**<https://terraining.ateliernonta.com>**
 
 <br>
 
 > [!WARNING]
 > #### MapTiler API Key Requirement
+>
 > - Since Ver.2, a MapTiler API key is mandatory.
 > - Optional Mapbox elevation data still requires a MapTiler API key.
 >
 > #### Migration to Ver.2
+>
 > - First, please reset all settings using the reset button on the config tab. Keys and Tokens are not reset.
 
 <br>
@@ -29,9 +31,9 @@
 - Offers a preview feature
 - Easily generate heightmaps for Cities: Skylines 1 & 2, Unity, and Unreal Engine
 - Select square areas ranging from&#8202;:
-  * Cities: Skylines 1&#8202;: 8.64&#8202;km to 69.12&#8202;km
-  * Cities: Skylines 2&#8202;: 28.672&#8202;km to 229.376&#8202;km
-  * Unity and Unreal Engine&#8202;: 0.5&#8202;km to 100&#8202;km
+  + Cities: Skylines 1&#8202;: 8.64&#8202;km to 69.12&#8202;km
+  + Cities: Skylines 2&#8202;: 28.672&#8202;km to 229.376&#8202;km
+  + Unity and Unreal Engine&#8202;: 0.5&#8202;km to 100&#8202;km
 - Rotate selected area with ease
 - Download multiple formats&#8202;:
   * Heightmap
@@ -75,12 +77,13 @@
   * Maximise&#8202;: Set the maximum elevation at elevation scale value.
 - **Interpolation**&#8202;: Choose from Bilinear or Bicubic.
 
-    The preview button retrieves the minimum and maximum elevation in the grid. Additionally, grid information is displayed in the browser console.
+> [!NOTE]
+> The preview button retrieves the minimum and maximum elevation in the grid. Additionally, grid information is displayed in the browser console.
 
 ### Water Tab
 
 - **Water Depth Correction Editor**&#8202;: This editor performs depth correction for water areas. You can input arbitrary points on the preview screen and specify the correction value for the depth at each point. These values will ultimately be added to the Water Depth. The input points form triangles, and the depth correction values within each triangle are linearly interpolated based on the values at its vertices. This ensures a smooth transition in depth across the area.
-  * Usage&#8202;: The plus and minus mode buttons determine the behavior when left-clicking. Also, points are draggable. right-clicking toggles the display of the triangle subdivision. Dragging points may alter the state of the triangle subdivision.
+  * Usage&#8202;: The plus and minus mode buttons determine the behavior when left-clicking. Also, points are draggable. Right-clicking toggles the display of the triangle subdivision. Dragging points may alter the state of the triangle subdivision.
   * Input Depth Correction&#8202;: When a point is selected, its correction value is displayed. The value ranges from 0 to 100.
   * Preview&#8202;: Larger correction values are displayed in light blue, with 0 being transparent. Additionally, clicking the preview button updates the current input state to reflect on the elevation data.
 - **Littoral Editor**&#8202;: Configure the shape of the littoral slope.
@@ -97,11 +100,7 @@
 - **Sharpen**&#8202;: Unsharp mask.
 - **Reflecting the amount of effect**&#8202;: Reflect the sharpen and smooth intensity on the map.
 
-    Smoothing is applied below the threshold value, Sharpen is applied above the threshold value.
-
-    For CS2, it internally calculates using a map size of 16,384&#8202;px.
-
-    Noise is applied within the same altitude range as the shapen, with the Terrain Ruggedness Index (TRI) used as the threshold.
+Smoothing is applied below the threshold value, Sharpen is applied above the threshold value. For CS2, it internally calculates using a map size of 16,384&#8202;px. Noise is applied within the same altitude range as the shapen, with the Terrain Ruggedness Index (TRI) used as the threshold.
 
 ### Config Tab
 
@@ -111,15 +110,16 @@
 - **Mapbox Access Token**&#8202;: Required to get custom map images.
 - **Mapbox User Style URL**&#8202;: For map image.
 
-    You can import and export settings other than MapTiler API Key, Mapbox Access Token, and Mapbox User Style URL.
+> [!NOTE]
+> You can import and export settings other than MapTiler API Key, Mapbox Access Token, and Mapbox User Style URL.
 
 ## Download panel
 
 - Download the following data&#8202;:
-  * Heightmap in raw data
-  * Heightmap in 16-bit grayscale PNG format
-  * Map image
-  * OSM data
+  + Heightmap in raw data
+  + Heightmap in 16-bit grayscale PNG format
+  + Map image
+  + OSM data
 - GitHub link
 
 ## Control buttons
@@ -135,8 +135,10 @@
 
 ## Customize map image panel
 
-- Download map images by customizing style, zoom level, and image size.  
-*† Depending on the configuration, many API requests may occur, so you'll need a Mapbox access token.*
+- Download map images by customizing style, zoom level, and image size.
+
+> [!NOTE]
+> Depending on the configuration, many API requests may occur, so you'll need a Mapbox access token. Get a Mapbox token and input it. Once you've done that, click the IMG button to select.
 
 ## ToDo
 
