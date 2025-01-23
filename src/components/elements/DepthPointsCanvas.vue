@@ -159,7 +159,6 @@ const resetFlags = () => {
   isLongPress.value = false
   isDragging.value = false
   activePointerId.value = null
-  depthPointsCanvas.value?.releasePointerCapture(activePointerId.value!)
   depthPointsCanvas.value!.style.touchAction = 'auto'
 }
 
@@ -178,7 +177,6 @@ const onPointerdown = (e: PointerEvent) => {
       if (isAddMode.value && index > 3) {
         depthPointsCanvas.value!.style.touchAction = 'none'
         isDragging.value = true
-        depthPointsCanvas.value?.setPointerCapture(e.pointerId)
         document.addEventListener('pointermove', onPointerMove, { passive: false })
       }
       activePointerId.value = e.pointerId
@@ -221,7 +219,6 @@ const onPointerUp = (e: PointerEvent) => {
           selectedPoint.value = mapbox.value.settings.depthPoints.length - 1
         } else {
           isDragging.value = false
-          depthPointsCanvas.value?.releasePointerCapture(e.pointerId)
           depthPointsCanvas.value!.style.touchAction = 'auto'
         }
       } else {
