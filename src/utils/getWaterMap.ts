@@ -1,4 +1,4 @@
-import type { Settings, Extent } from '~/types/types'
+import type { Settings, Extent, ProgressData } from '~/types/types'
 import type { FetchError } from 'ofetch'
 import * as turf from '@turf/turf'
 import type { Geometry, Position } from 'geojson'
@@ -240,8 +240,7 @@ export const getWaterMap = async (
   includeOcean: boolean,
   pixelsPerTile: number,
   isDebug: boolean,
-  onTotal: (total: number) => void,
-  onProgress: () => void,
+  progressCallback: (data: ProgressData) => void,
 ) => {
   try {
     const waterCtx = new OffscreenCanvas(0, 0).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
@@ -329,7 +328,7 @@ export const getWaterMap = async (
     createRadialTexture(settings.littArray, ripaPixelSize, ripaCornerCtx)
 
     const totalTiles = tileCount * tileCount
-    onTotal(totalTiles)
+    progressCallback({ type: 'total', data: totalTiles })
     const tiles = new Array<Promise<T>>(totalTiles)
     // fetch tiles
     for (let y = 0; y < tileCount; y++) {
@@ -430,7 +429,7 @@ export const getWaterMap = async (
             waterCtx.restore()
             waterSideCtx.restore()
             waterWayCtx.restore()
-            onProgress()
+            progressCallback({ type: 'progress' })
           }
         }
       })

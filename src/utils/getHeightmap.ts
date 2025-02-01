@@ -178,8 +178,7 @@ export const getHeightmap = async (
   extent: Extent,
   mapPixels: number,
   pixelsPerTile: number,
-  onTotal: (total: number) => void,
-  onProgress: () => void,
+  progressCallback: (data: ProgressData) => void,
 ) => {
   let decoder: TileDecoder | undefined
   try {
@@ -217,7 +216,8 @@ export const getHeightmap = async (
     const resultPixels = px % 2 === 0 ? px : px + 1
 
     const totalTiles = tileCount * tileCount
-    onTotal(totalTiles)
+
+    progressCallback({ type: 'total', data: totalTiles })
 
     const tiles = new Array<Promise<T>>(totalTiles)
     const elevations = new Float32Array(tilePixels * tilePixels)
@@ -247,7 +247,7 @@ export const getHeightmap = async (
         pixelsPerTile,
         tileCount,
         elevations,
-        onProgress,
+        data => progressCallback(data),
       )
     } else {
       if (mapType !== 'ocean' || settings.useMapbox) {
@@ -278,7 +278,7 @@ export const getHeightmap = async (
                   elevations[(dy + y) * tilePixels + (dx + x)] = elevs[y * pixelsPerTile + x]
                 }
               }
-              onProgress()
+              progressCallback({ type: 'progress' })
             }
           }
         })

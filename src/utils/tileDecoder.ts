@@ -1,6 +1,6 @@
 import * as Comlink from 'comlink'
 import type { TileDecoderWorkerType } from '~/assets/workers/tileDecoderWorker'
-import type { Settings, MapType } from '~/types/types'
+import type { Settings, MapType, ProgressData } from '~/types/types'
 import type { FetchError } from 'ofetch'
 import TileDecoderWorker from '~/assets/workers/tileDecoderWorker.ts?worker'
 import { WorkerPool } from '~/utils/workerPool'
@@ -32,7 +32,7 @@ export class TileDecoder {
     pixelsPerTile: number,
     tileCount: number,
     elevations: Float32Array,
-    onProgress?: () => void,
+    progressCallback: (data: ProgressData) => void,
   ) {
     const decodingPromises = tileList.map(async (tile, index) => {
       if (tile.status === 'fulfilled' && tile.value.data) {
@@ -62,7 +62,7 @@ export class TileDecoder {
           }
 
           this.workerPool.releaseWorker(worker)
-          onProgress?.()
+          progressCallback({ type: 'progress' })
         } catch (error) {
           console.error(`Error processing tile at index #${index}:`, error)
           throw error
