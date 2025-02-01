@@ -167,7 +167,7 @@ const onSubdivisionToggle = () => {
     />
     <hr>
     <details class="subdivision" @toggle="onSubdivisionToggle">
-      <summary>Tile Subdivision Process</summary>
+      <summary>Tile Subdivision Option</summary>
       <div class="subdivision-controls">
         <label for="subdivision">Subdivision&#8202;:</label>
         <ToggleSwitch v-model="mapbox.settings.subdivision" name="subdivision" class="sd-switch" />
