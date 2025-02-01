@@ -80,7 +80,7 @@ pub fn scale_up_bicubic(input_ptr: *const f32, output_ptr: *mut f32) {
                 fy[3] * input[(y0 + 2) * FULL_SIZE + (x0 + 2)],
             ];
 
-            output[y * OUTPUT_SIZE + x] = 
+            output[y * OUTPUT_SIZE + x] =
                 fx[0] * tmp_vals[0] + fx[1] * tmp_vals[1] + 
                 fx[2] * tmp_vals[2] + fx[3] * tmp_vals[3];
         }
