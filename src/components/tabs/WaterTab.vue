@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const mapbox = useMapbox()
 
-const onlittoralSlopeToggle = () => {
+const onLittoralSlopeToggle = () => {
   nextTick()
   useEvent('panel:updateHeight')
 }
@@ -9,7 +9,7 @@ const onlittoralSlopeToggle = () => {
 
 <template>
   <div id="water-tab">
-    <details @toggle="onlittoralSlopeToggle">
+    <details @toggle="onLittoralSlopeToggle">
       <summary>Littoral Slope</summary>
       <GridCanvas />
       <ResetSlope class="reset-slope" />

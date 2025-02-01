@@ -141,6 +141,9 @@ export const settingsSchema = z.object({
   accessToken: z.string().optional(),
   accessTokenMT: z.string().optional(),
   depthPoints: z.array(depthPointSchema),
+  subdivision: z.boolean(),
+  subdivisionCount: z.number(),
+  kernelNumber: z.number(),
 })
 
 export type Settings = z.infer<typeof settingsSchema>
@@ -163,6 +166,7 @@ export type GenerateMapOption = {
 export type MapOption = {
   settings: Settings
   mapPixels: number
+  rasterPixels: number
   unitSize: number
   smoothRadius: number
   sharpenRadius: number
@@ -173,11 +177,13 @@ export type MapOption = {
 export type SingleMapOption = MapOption & {
   rasterExtent: Extent
   vectorExtent: Extent
+  oceanExtent: Extent
 }
 
 export type MultiMapOption = MapOption & {
   rasterExtents: Extent[]
   vectorExtents: Extent[]
+  oceanExtents: Extent[]
 }
 
 export interface MapData {

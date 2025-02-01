@@ -100,6 +100,11 @@ const onWorldPartitionChange = () => {
 const onCellsChange = () => {
   mapbox.value.settings.resolution = (mapbox.value.settings.wpCells * 511) - (mapbox.value.settings.wpCells - 1)
 }
+
+const onSubdivisionToggle = () => {
+  nextTick()
+  useEvent('panel:updateHeight')
+}
 </script>
 
 <template>
@@ -129,14 +134,14 @@ const onCellsChange = () => {
     <NumberInput id="elev-scale" ref="elevationScale" v-model="mapbox.settings.elevationScale" :max="100000" :min="0" :step="0.001" :disabled="esDisabled" unit="m" class="elev-scale" />
     <template v-if="mapbox.settings.gridInfo === 'ue'">
       <label for="world-partition" class="wp">World Partition&#8202;:</label>
-      <ToggleSwitch v-model="mapbox.settings.worldPartition" :name="'world-partition'" class="wp-switch" @change="onWorldPartitionChange" />
+      <ToggleSwitch v-model="mapbox.settings.worldPartition" name="world-partition" class="wp-switch" @change="onWorldPartitionChange" />
       <label for="wp-cells">Cells&#8202;:</label>
       <NumberInput id="wp-cells" v-model="mapbox.settings.wpCells" :max="32" :min="1" :step="1" class="wp-cells-input" :disabled="!mapbox.settings.worldPartition" :text-hidden="!mapbox.settings.worldPartition" @change="onCellsChange" />
     </template>
     <label for="base-level">Base Level&#8202;:</label>
     <NumberInput id="base-level" v-model="mapbox.settings.baseLevel" class="gap" :max="9999" :min="-9999" :step="0.1" unit="m" />
     <label for="adjust-level">Adjust Level&#8202;:</label>
-    <ToggleSwitch v-model="mapbox.settings.adjToMin" :name="'adjust-level'" />
+    <ToggleSwitch v-model="mapbox.settings.adjToMin" name="adjust-level" />
     <label for="height-ratio">Height Ratio&#8202;:</label>
     <NumberInput id="height-ratio" v-model="ratio" class="gap" :max="100" :min="0" :step="0.001" :disabled="ratioScalelDisabled" :text-hidden="ratioScalelDisabled">
       <ToggleIcon v-model="mapbox.settings.fixedRatio" :name="'fixedRatio'" :disabled="ratioScalelDisabled" :icon="['fas', 'thumbtack']" :icon-class="'fa-sm fa-fw'" />
@@ -146,7 +151,7 @@ const onCellsChange = () => {
       <ToggleIcon v-model="fixedScale" :name="'fixedScale'" :disabled="ratioScalelDisabled" :icon="['fas', 'thumbtack']" :icon-class="'fa-sm fa-fw'" />
     </NumberInput>
     <label for="elev-type">Elev. Type&#8202;:</label>
-    <SelectMenu id="'elev-type'" v-model="mapbox.settings.type" class="gap"
+    <SelectMenu id="elev-type" v-model="mapbox.settings.type" class="gap"
       :options="[
         { value: 'manual', label: 'Manual' },
         { value: 'limit', label: 'Limit' },
@@ -154,12 +159,36 @@ const onCellsChange = () => {
       ]"
     />
     <label for="interpolation">Interpolation&#8202;:</label>
-    <SelectMenu id="'interpolation'" v-model="mapbox.settings.interpolation"
+    <SelectMenu id="interpolation" v-model="mapbox.settings.interpolation"
       :options="[
         { value: 'bilinear', label: 'Bilinear' },
         { value: 'bicubic', label: 'Bicubic' },
       ]"
     />
+    <hr>
+    <details class="subdivision" @toggle="onSubdivisionToggle">
+      <summary>Tile Subdivision Process</summary>
+      <div class="subdivision-controls">
+        <label for="subdivision">Subdivision&#8202;:</label>
+        <ToggleSwitch v-model="mapbox.settings.subdivision" name="subdivision" class="sd-switch" />
+        <label for="subdivision-count">Level&#8202;:</label>
+        <SelectMenu id="subdivision-count" v-model="mapbox.settings.subdivisionCount"
+          :options="[
+            { value: 1, label: 'x2' },
+            { value: 2, label: 'x4' },
+          ]"
+        />
+        <label for="edge-sensitivity">Sensitivity&#8202;:</label>
+        <SelectMenu id="edge-sensitivity" v-model="mapbox.settings.kernelNumber"
+          class="gap"
+          :options="[
+            { value: 4, label: 'Soft' },
+            { value: 16, label: 'Balanced' },
+            { value: 64, label: 'Sharp' },
+          ]"
+        />
+      </div>
+    </details>
   </div>
 </template>
 
@@ -253,6 +282,10 @@ hr {
     margin: auto 1rem auto auto !important;
   }
 
+  .sd-switch {
+    margin: auto 1rem auto auto !important;
+  }
+
   :deep(.gap) {
     width: calc(100% - 1rem) !important;
   }
@@ -261,6 +294,44 @@ hr {
 :deep(.wp-resolution) {
   .input:disabled {
     color: $textColor !important;
+  }
+}
+
+.subdivision {
+  grid-column: 1 / 5;
+
+  @media screen and (max-width: 524px) {
+    grid-column: 1 / 3;
+  }
+
+  summary {
+    cursor: pointer;
+    outline: none;
+    margin-bottom: .125rem;
+    line-height: 1.5;
+
+    &:focus, &:hover {
+      color: aquamarine;
+    }
+  }
+}
+
+.subdivision-controls {
+  display: grid;
+  width: 100%;
+  gap: .75rem 0;
+  grid-template-columns: 6.25rem 7.25rem 6.25rem 6.25rem;
+  line-height: 1.875;
+  margin: .25rem 0;
+
+  @media screen and (min-width: 525px) {
+    :deep(.toggle-switch) {
+      margin: auto 1rem auto auto !important;
+    }
+  }
+
+  @media screen and (max-width: 524px) {
+    grid-template-columns: 1fr 7rem;
   }
 }
 </style>

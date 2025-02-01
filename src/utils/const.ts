@@ -6,6 +6,9 @@ export const ATTR_RAS = '\u00A9 Maxar \u00A9 Mapbox \u00A9 OpenStreetMap'
 
 export const BUILD_NUMBER = 1
 
+export const PIXELS_PER_TILE = 512
+export const PIXELS_PER_VECTOR_TILE = 4096
+
 export const mapStyle = {
   streets: 'mapbox://styles/mapbox/streets-v12?optimize=true',
   outdoors: 'mapbox://styles/mapbox/outdoors-v12?optimize=true',
@@ -185,6 +188,9 @@ export const initialValue: Settings = {
     { x: 0, y: 1, depth: 0 },
     { x: 1, y: 1, depth: 0 },
   ],
+  subdivision: false,
+  subdivisionCount: 1,
+  kernelNumber: 16,
 }
 
 export const needToken = (type: string) => {

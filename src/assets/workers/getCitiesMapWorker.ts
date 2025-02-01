@@ -1,7 +1,7 @@
 import * as Comlink from 'comlink'
 import type { SingleMapOption, MultiMapOption, Settings, Extent, ProgressData, ResultType, FileType } from '~/types/types'
 import type { MapProcessWorkerType } from '~/assets/workers/mapProcessWorker'
-import { mapSpec } from '~/utils/const'
+import { mapSpec, PIXELS_PER_TILE, PIXELS_PER_VECTOR_TILE } from '~/utils/const'
 import { getMinMaxHeight } from '~/utils/elevation'
 import { mergeTiles, scaleDownWorldMap } from '~/utils/tileProcess'
 import { getExtentInWorldCoords, rotateExtent } from '~/utils/getExtent'
@@ -134,7 +134,7 @@ class GetCitiesMapWorker {
 
     this.validateArrayElements(tileMaps, 'generateSingleMap: Error when split tiles')
 
-    const { rasterExtent, vectorExtent, ...mapOption } = option
+    const { rasterExtent, vectorExtent, oceanExtent, ...mapOption } = option
 
     const combinedMaps = await Promise.all(
       tileMaps[0]!.map(async (map, index) => {
@@ -214,6 +214,7 @@ class GetCitiesMapWorker {
       singleMapOptions.push({
         settings: option.settings,
         mapPixels: option.mapPixels,  // resolution compatible with split processing
+        rasterPixels: option.rasterPixels,
         unitSize: unitSizes[i],
         smoothRadius: option.smoothRadius,
         sharpenRadius: option.sharpenRadius,
@@ -221,6 +222,7 @@ class GetCitiesMapWorker {
         isDebug: option.isDebug,
         rasterExtent: option.rasterExtents[i],
         vectorExtent: option.vectorExtents[i],
+        oceanExtent: option.oceanExtents[i],
       })
     }
 
@@ -386,13 +388,13 @@ class GetCitiesMapWorker {
 
     try {
       this.resolution = resolution
-      const rasterPixels = 512
-      const vectorPixels = 4096
+      const rasterPixels = settings.subdivision ? PIXELS_PER_TILE * 2 * settings.subdivisionCount : PIXELS_PER_TILE
       const padding = 110           // considering edges, it is set larger than 100
       const offset4cs2play = 0.375
 
       const rasterExtents: Extent[] = []
       const vectorExtents: Extent[] = []
+      const oceanExtents: Extent[] = []
 
       const resScale = resolution / settings.resolution
       const smoothRadius = settings.smoothRadius * resScale / ((mode === 'preview' && settings.gridInfo === 'cs2') ? 4 : 1)
@@ -407,16 +409,23 @@ class GetCitiesMapWorker {
         ? await (async () => {
           // worldMap
           rasterExtents.push(this.getExtent(settings, tmpMapSize, 0, rasterPixels))
-          vectorExtents.push(this.getExtent(settings, tmpMapSize, 0, vectorPixels))
+          vectorExtents.push(this.getExtent(settings, tmpMapSize, 0, PIXELS_PER_VECTOR_TILE))
           // heightmap
           rasterExtents.push(this.getExtent(settings, tmpMapSize, offset4cs2play, rasterPixels))
-          vectorExtents.push(this.getExtent(settings, tmpMapSize, offset4cs2play, vectorPixels))
+          vectorExtents.push(this.getExtent(settings, tmpMapSize, offset4cs2play, PIXELS_PER_VECTOR_TILE))
+
+          if (settings.actualSeafloor) {
+            oceanExtents.push(this.getExtent(settings, tmpMapSize, 0, PIXELS_PER_TILE))
+            oceanExtents.push(this.getExtent(settings, tmpMapSize, offset4cs2play, PIXELS_PER_TILE))
+          }
 
           const option: MultiMapOption = {
             settings,
-            rasterExtents: rasterExtents,
-            vectorExtents: vectorExtents,
+            rasterExtents,
+            vectorExtents,
+            oceanExtents,
             mapPixels: tmpMapPixels,
+            rasterPixels,
             unitSize,
             smoothRadius,
             sharpenRadius,
@@ -428,7 +437,11 @@ class GetCitiesMapWorker {
         })()
         : await (async () => {
           rasterExtents.push(this.getExtent(settings, tmpMapSize, 0, rasterPixels))
-          vectorExtents.push(this.getExtent(settings, tmpMapSize, 0, vectorPixels))
+          vectorExtents.push(this.getExtent(settings, tmpMapSize, 0, PIXELS_PER_VECTOR_TILE))
+
+          if (settings.actualSeafloor) {
+            oceanExtents.push(this.getExtent(settings, tmpMapSize, 0, PIXELS_PER_TILE))
+          }
 
           const division = this.getDivisionCount(resolution)
 
@@ -436,7 +449,9 @@ class GetCitiesMapWorker {
             settings,
             rasterExtent: rasterExtents[0],
             vectorExtent: vectorExtents[0],
+            oceanExtent: oceanExtents[0],
             mapPixels: tmpMapPixels,
+            rasterPixels,
             unitSize,
             smoothRadius,
             sharpenRadius,

@@ -1,11 +1,12 @@
-import type { MapType, Settings, Extent } from '~/types/types'
+import type { MapType, Settings, Extent, ProgressData } from '~/types/types'
 import { decode as decode_webp } from '@jsquash/webp'
 import initPng, { decode_png } from '~~/wasm/png_lib/pkg'
 import { decodeElevation } from '~/utils/elevation'
 import { useFetchTerrainTiles, useFetchOceanTiles } from '~/composables/useFetchTiles'
-import { mapSpec } from '~/utils/const'
+import { mapSpec, PIXELS_PER_TILE } from '~/utils/const'
 import type { FetchError } from 'ofetch'
 import { TileDecoder } from '~/utils/tileDecoder'
+import { subdivideByGradient } from '~/utils/gradientBasedSubdivision'
 
 type T = {
   data: Blob | undefined
@@ -188,7 +189,6 @@ export const getHeightmap = async (
     const zoom = Math.min(Math.ceil(Math.log2(mapPixels / side)), maxZoom)
     const scale = (side * (2 ** zoom)) / mapPixels
 
-
     const minX = Math.min(extent.topleft.x, extent.topright.x, extent.bottomleft.x, extent.bottomright.x)
     const maxX = Math.max(extent.topleft.x, extent.topright.x, extent.bottomleft.x, extent.bottomright.x)
 
@@ -203,11 +203,13 @@ export const getHeightmap = async (
     const resultCenterX = extent.centerX * (2 ** zoom)
     const resultCenterY = extent.centerY * (2 ** zoom)
 
-    const offsetX = resultCenterX - tileX0 * pixelsPerTile - _correction / 2
-    const offsetY = resultCenterY - tileY0 * pixelsPerTile - _correction / 2
+    const offsetCorrection = settings.subdivision ? settings.subdivisionCount : 0
+
+    const offsetX = resultCenterX - tileX0 * pixelsPerTile - _correction / 2 + offsetCorrection
+    const offsetY = resultCenterY - tileY0 * pixelsPerTile - _correction / 2 + offsetCorrection
 
     const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
-    const tilePixels = tileCount * pixelsPerTile
+    const tilePixels = tileCount * PIXELS_PER_TILE
     const maxTileX = 2 ** zoom - 1
 
     // input padding is 220 but output padding is 200
@@ -270,13 +272,13 @@ export const getHeightmap = async (
                 byteArray = new Uint8ClampedArray(byte.data)
               }
               const elevs = decodeElevation(byteArray)
-              const dy = Math.floor(index / tileCount) * pixelsPerTile
-              const dx = (index % tileCount) * pixelsPerTile
+              const dy = Math.floor(index / tileCount) * PIXELS_PER_TILE
+              const dx = (index % tileCount) * PIXELS_PER_TILE
 
-              for (let y = 0; y < pixelsPerTile; y++) {
-                for (let x = 0; x < pixelsPerTile; x++) {
-                  elevations[(dy + y) * tilePixels + (dx + x)] = elevs[y * pixelsPerTile + x]
-                }
+              for (let y = 0; y < PIXELS_PER_TILE; y++) {
+                const srcStart = y * PIXELS_PER_TILE
+                const dstStart = (dy + y) * tilePixels + dx
+                elevations.set(elevs.subarray(srcStart, srcStart + PIXELS_PER_TILE), dstStart)
               }
               progressCallback({ type: 'progress' })
             }
@@ -287,11 +289,23 @@ export const getHeightmap = async (
       await processTiles(tileList)
     }
 
-    const result = settings.interpolation === 'bicubic'
-      ? getHeightMapBicubic(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
-      : getHeightMapBilinear(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
+    if (mapType !== 'ocean' && settings.subdivision) {
+      progressCallback({ type: 'phase', data: 'Subdividing elevation data' })
+      const subdividedData = subdivideByGradient(elevations, [1, settings.kernelNumber, 1], settings.subdivisionCount)
+      const pixels = tileCount * pixelsPerTile
 
-    return result
+      const result = settings.interpolation === 'bicubic'
+        ? getHeightMapBicubic(subdividedData, resultPixels, pixels, settings.angle, scale, offsetX, offsetY, _correction)
+        : getHeightMapBilinear(subdividedData, resultPixels, pixels, settings.angle, scale, offsetX, offsetY, _correction)
+
+      return result
+    } else {
+      const result = settings.interpolation === 'bicubic'
+        ? getHeightMapBicubic(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
+        : getHeightMapBilinear(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
+
+      return result
+    }
   } catch (error) {
     console.error('An error occurred in getHeightMap:', error)
     throw error

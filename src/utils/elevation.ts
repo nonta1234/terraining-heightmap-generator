@@ -11,7 +11,7 @@ export const mixArray = (heightmap: Float32Array, oceanmap: Float32Array) => {
   const result = new Float32Array(length)
 
   for (let i = 0; i < length; i++) {
-    result[i] = heightmap[i] === 0 ? oceanmap[i] : heightmap[i]
+    result[i] = heightmap[i] + oceanmap[i]
   }
   return result
 }

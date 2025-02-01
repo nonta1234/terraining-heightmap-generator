@@ -34,39 +34,35 @@ class MapProcessWorker {
         settings,
         rasterExtent,
         vectorExtent,
+        oceanExtent,
         mapPixels,
+        rasterPixels,
         unitSize,
         isDebug,
       } = option
 
-      const rasterPixels = 512
       const vectorPixels = 4096
 
       const [heightmap, oceanMap, { waterMap, waterWayMap, waterMapImage, waterWayMapImage }, weterDepthMap] = settings.actualSeafloor
         ? await Promise.all([
           getHeightmap(settings.gridInfo, settings, rasterExtent, mapPixels, rasterPixels,
-            total => this.progressCallback!({ type: 'total', data: total }),
-            () => this.progressCallback!({ type: 'progress' }),
+            data => this.progressCallback!(data),
           ),
-          getHeightmap('ocean', settings, rasterExtent, mapPixels, rasterPixels,
-            total => this.progressCallback!({ type: 'total', data: total }),
-            () => this.progressCallback!({ type: 'progress' }),
+          getHeightmap('ocean', settings, oceanExtent, mapPixels, 512,
+            data => this.progressCallback!(data),
           ),
           getWaterMap(settings, vectorExtent, mapPixels, unitSize, false, vectorPixels, isDebug,
-            total => this.progressCallback!({ type: 'total', data: total }),
-            () => this.progressCallback!({ type: 'progress' }),
+            data => this.progressCallback!(data),
           ),
           getWaterDepthCorrectionMap(settings, mapPixels),
         ])
         : await Promise.all([
           getHeightmap(settings.gridInfo, settings, rasterExtent, mapPixels, rasterPixels,
-            total => this.progressCallback!({ type: 'total', data: total }),
-            () => this.progressCallback!({ type: 'progress' }),
+            data => this.progressCallback!(data),
           ),
           undefined,
           getWaterMap(settings, vectorExtent, mapPixels, unitSize, true, vectorPixels, isDebug,
-            total => this.progressCallback!({ type: 'total', data: total }),
-            () => this.progressCallback!({ type: 'progress' }),
+            data => this.progressCallback!(data),
           ),
           getWaterDepthCorrectionMap(settings, mapPixels),
         ])
