@@ -171,14 +171,14 @@ const onSubdivisionToggle = () => {
       <div class="subdivision-controls">
         <label for="subdivision">Subdivision&#8202;:</label>
         <ToggleSwitch v-model="mapbox.settings.subdivision" name="subdivision" class="sd-switch" />
-        <label for="subdivision-count">Level&#8202;:</label>
+        <label for="subdivision-count">Detail Level&#8202;:</label>
         <SelectMenu id="subdivision-count" v-model="mapbox.settings.subdivisionCount"
           :options="[
             { value: 1, label: 'x2' },
             { value: 2, label: 'x4' },
           ]"
         />
-        <label for="edge-sensitivity">Sensitivity&#8202;:</label>
+        <label for="edge-sensitivity">Edge Response&#8202;:</label>
         <SelectMenu id="edge-sensitivity" v-model="mapbox.settings.kernelNumber"
           class="gap"
           :options="[
