@@ -178,7 +178,7 @@ const onSubdivisionToggle = () => {
             { value: 2, label: 'x4' },
           ]"
         />
-        <label for="edge-sensitivity">Edge Response&#8202;:</label>
+        <label for="edge-sensitivity">Mode&#8202;:</label>
         <SelectMenu id="edge-sensitivity" v-model="mapbox.settings.kernelNumber"
           class="gap"
           :options="[
