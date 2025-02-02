@@ -203,7 +203,7 @@ export const getHeightmap = async (
     const resultCenterX = extent.centerX * (2 ** zoom)
     const resultCenterY = extent.centerY * (2 ** zoom)
 
-    const offsetCorrection = (settings.subdivision ? settings.subdivisionCount : 0) * 1
+    const offsetCorrection = (settings.subdivision ? settings.subdivisionCount : 0) / scale
 
     const offsetX = resultCenterX - tileX0 * pixelsPerTile - _correction / 2 + offsetCorrection
     const offsetY = resultCenterY - tileY0 * pixelsPerTile - _correction / 2 + offsetCorrection
