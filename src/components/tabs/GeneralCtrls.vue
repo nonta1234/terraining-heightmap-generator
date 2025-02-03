@@ -100,11 +100,6 @@ const onWorldPartitionChange = () => {
 const onCellsChange = () => {
   mapbox.value.settings.resolution = (mapbox.value.settings.wpCells * 511) - (mapbox.value.settings.wpCells - 1)
 }
-
-const onSubdivisionToggle = () => {
-  nextTick()
-  useEvent('panel:updateHeight')
-}
 </script>
 
 <template>
@@ -165,30 +160,6 @@ const onSubdivisionToggle = () => {
         { value: 'bicubic', label: 'Bicubic' },
       ]"
     />
-    <hr>
-    <details class="subdivision" @toggle="onSubdivisionToggle">
-      <summary>Tile Subdivision Option</summary>
-      <div class="subdivision-controls">
-        <label for="subdivision">Subdivision&#8202;:</label>
-        <ToggleSwitch v-model="mapbox.settings.subdivision" name="subdivision" class="sd-switch" />
-        <label for="subdivision-count">Detail Level&#8202;:</label>
-        <SelectMenu id="subdivision-count" v-model="mapbox.settings.subdivisionCount"
-          :options="[
-            { value: 1, label: 'x2' },
-            { value: 2, label: 'x4' },
-          ]"
-        />
-        <label for="edge-sensitivity">Mode&#8202;:</label>
-        <SelectMenu id="edge-sensitivity" v-model="mapbox.settings.kernelNumber"
-          class="gap"
-          :options="[
-            { value: 4, label: 'Soft' },
-            { value: 16, label: 'Balanced' },
-            { value: 64, label: 'Sharp' },
-          ]"
-        />
-      </div>
-    </details>
   </div>
 </template>
 
@@ -211,7 +182,7 @@ hr {
   gap: .75rem 0;
   grid-template-columns: 6.25rem 7.25rem 6.25rem 6.25rem;
   line-height: 1.875;
-  margin: .75rem 0 1rem;
+  margin: .75rem 0 1.5rem;
 
   @media screen and (max-width: 524px) {
     margin-bottom: 1.5rem;
@@ -282,10 +253,6 @@ hr {
     margin: auto 1rem auto auto !important;
   }
 
-  .sd-switch {
-    margin: auto 1rem auto auto !important;
-  }
-
   :deep(.gap) {
     width: calc(100% - 1rem) !important;
   }
@@ -294,44 +261,6 @@ hr {
 :deep(.wp-resolution) {
   .input:disabled {
     color: $textColor !important;
-  }
-}
-
-.subdivision {
-  grid-column: 1 / 5;
-
-  @media screen and (max-width: 524px) {
-    grid-column: 1 / 3;
-  }
-
-  summary {
-    cursor: pointer;
-    outline: none;
-    margin-bottom: .125rem;
-    line-height: 1.5;
-
-    &:focus, &:hover {
-      color: aquamarine;
-    }
-  }
-}
-
-.subdivision-controls {
-  display: grid;
-  width: 100%;
-  gap: .75rem 0;
-  grid-template-columns: 6.25rem 7.25rem 6.25rem 6.25rem;
-  line-height: 1.875;
-  margin: .25rem 0;
-
-  @media screen and (min-width: 525px) {
-    :deep(.toggle-switch) {
-      margin: auto 1rem auto auto !important;
-    }
-  }
-
-  @media screen and (max-width: 524px) {
-    grid-template-columns: 1fr 7rem;
   }
 }
 </style>

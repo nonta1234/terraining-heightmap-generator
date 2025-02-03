@@ -172,6 +172,31 @@ onMounted(() => {
       <ToggleSwitch v-model="mapbox.settings.originalPreview" :name="'original-preview'" :disabled="device.isMobile" />
     </div>
     <hr>
+    <div class="subdivision">
+      <h4>Tile Subdivision Option</h4>
+      <div class="subdivision-controls">
+        <label for="subdivision-preview">Preview&#8202;:</label>
+        <ToggleSwitch v-model="mapbox.settings.subdivisionPreview" name="subdivision-preview" class="sd-switch" />
+        <label for="subdivision-download">Download&#8202;:</label>
+        <ToggleSwitch v-model="mapbox.settings.subdivisionDownload" name="subdivision-download" />
+        <label for="subdivision-count">Detail Level&#8202;:</label>
+        <SelectMenu id="subdivision-count" v-model="mapbox.settings.subdivisionCount" class="gap"
+          :options="[
+            { value: 1, label: 'x2' },
+            { value: 2, label: 'x4' },
+          ]"
+        />
+        <label for="edge-sensitivity">Mode&#8202;:</label>
+        <SelectMenu id="edge-sensitivity" v-model="mapbox.settings.kernelNumber"
+          :options="[
+            { value: 4, label: 'Soft' },
+            { value: 16, label: 'Balanced' },
+            { value: 64, label: 'Sharp' },
+          ]"
+        />
+      </div>
+    </div>
+    <hr>
     <label for="token-mt" class="label">MapTiler API Key <small>(Required)</small>&#8202;:</label>
     <div class="input-wrapper gap2">
       <input id="token-mt" ref="inputTokenMT" v-model="mapbox.settings.accessTokenMT" class="input" />
@@ -272,10 +297,6 @@ onMounted(() => {
   margin-bottom: 1.125rem;
 }
 
-:deep(.toggle-switch) {
-  margin-right: 1rem;
-}
-
 .required {
   color: $textAlt;
   font-size: .75rem;
@@ -333,5 +354,37 @@ hr {
 
 .io-button {
   @include common-button;
+}
+
+.subdivision {
+  h4 {
+    font-size: 1rem;
+    font-weight: 400;
+    padding-top: .125rem;
+  }
+}
+
+.subdivision-controls {
+  display: grid;
+  width: 100%;
+  gap: .75rem 0;
+  grid-template-columns: 6.25rem 7.25rem 6.25rem 6.25rem;
+  line-height: 1.875;
+  margin: .25rem 0 1.125rem;
+
+
+  @media screen and (max-width: 524px) {
+    grid-template-columns: 1fr 7rem;
+  }
+}
+
+@media screen and (min-width: 525px) {
+  :deep(.sd-switch) {
+    margin: auto 1rem auto auto;
+  }
+
+  :deep(.gap) {
+    width: calc(100% - 1rem) !important;
+  }
 }
 </style>
