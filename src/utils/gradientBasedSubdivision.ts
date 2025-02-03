@@ -1,4 +1,6 @@
-export const addPadding = (data: Float32Array, padding: number) => {
+import init, { allocate_memory, free_memory, subdivide_by_gradient } from '~~/wasm/tiles_lib/pkg'
+/*
+const addPadding = (data: Float32Array, padding: number) => {
   const size = Math.sqrt(data.length)
   const newSize = size + (padding * 2)
   const result = new Float32Array(newSize * newSize)
@@ -33,7 +35,7 @@ export const addPadding = (data: Float32Array, padding: number) => {
   return result
 }
 
-export const blurData = (data: Float32Array, k: number[]) => {
+const blurData = (data: Float32Array, k: number[]) => {
   const width = Math.sqrt(data.length)
   const height = width
   const temp = new Float32Array(data.length)
@@ -156,4 +158,32 @@ export const subdivideByGradient = (elevation: Float32Array, blurKernel: number[
   }
 
   return recursiveSubdivide(elevation, count)
+}
+*/
+
+export const subdivideByGradientInWasm = async (elevation: Float32Array, blurKernel: number[], count = 1) => {
+  const instance = await init()
+
+  const elevationPtr = allocate_memory(elevation.length)
+  const elevationMemory = new Float32Array(instance.memory.buffer, elevationPtr, elevation.length)
+  elevationMemory.set(elevation)
+
+  const kernel = new Float32Array(blurKernel)
+
+  const resultPtr = subdivide_by_gradient(elevationPtr, elevation.length, kernel, count)
+  const resultLen = elevation.length * Math.pow(2, count * 2)
+
+  const result = new Float32Array(resultLen)
+
+  const resultMemory = new Float32Array(
+    instance.memory.buffer,
+    resultPtr,
+    resultLen,
+  )
+  result.set(resultMemory)
+
+  free_memory(elevationPtr, elevation.length)
+  free_memory(resultPtr, resultLen)
+
+  return result
 }

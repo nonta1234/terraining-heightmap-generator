@@ -6,7 +6,7 @@ import { useFetchTerrainTiles, useFetchOceanTiles } from '~/composables/useFetch
 import { mapSpec, PIXELS_PER_TILE } from '~/utils/const'
 import type { FetchError } from 'ofetch'
 import { TileDecoder } from '~/utils/tileDecoder'
-import { subdivideByGradient } from '~/utils/gradientBasedSubdivision'
+import { subdivideByGradientInWasm } from '~/utils/gradientBasedSubdivision'
 
 type T = {
   data: Blob | undefined
@@ -291,7 +291,7 @@ export const getHeightmap = async (
 
     if (mapType !== 'ocean' && settings.subdivision) {
       progressCallback({ type: 'phase', data: 'Subdividing elevation data' })
-      const subdividedData = subdivideByGradient(elevations, [1, settings.kernelNumber, 1], settings.subdivisionCount)
+      const subdividedData = await subdivideByGradientInWasm(elevations, [1, settings.kernelNumber, 1], settings.subdivisionCount)
       const pixels = tileCount * pixelsPerTile
 
       const result = settings.interpolation === 'bicubic'
