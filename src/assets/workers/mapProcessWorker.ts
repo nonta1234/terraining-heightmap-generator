@@ -1,4 +1,5 @@
 import * as Comlink from 'comlink'
+import { PIXELS_PER_TILE } from '~/utils/const'
 import type { SingleMapOption, MapOption, ProgressData } from '~/types/types'
 import { mixArray, getMinMaxHeight } from '~/utils/elevation'
 import { splitTile, scaleUpBicubic, blendMapsWithFeathering } from '~/utils/tileProcess'
@@ -38,6 +39,7 @@ class MapProcessWorker {
         mapPixels,
         rasterPixels,
         unitSize,
+        subdivision,
         isDebug,
       } = option
 
@@ -45,10 +47,10 @@ class MapProcessWorker {
 
       const [heightmap, oceanMap, { waterMap, waterWayMap, waterMapImage, waterWayMapImage }, weterDepthMap] = settings.actualSeafloor
         ? await Promise.all([
-          getHeightmap(settings.gridInfo, settings, rasterExtent, mapPixels, rasterPixels,
+          getHeightmap(settings.gridInfo, settings, rasterExtent, mapPixels, rasterPixels, subdivision,
             data => this.progressCallback!(data),
           ),
-          getHeightmap('ocean', settings, oceanExtent, mapPixels, 512,
+          getHeightmap('ocean', settings, oceanExtent, mapPixels, PIXELS_PER_TILE, false,
             data => this.progressCallback!(data),
           ),
           getWaterMap(settings, vectorExtent, mapPixels, unitSize, false, vectorPixels, isDebug,
@@ -57,7 +59,7 @@ class MapProcessWorker {
           getWaterDepthCorrectionMap(settings, mapPixels),
         ])
         : await Promise.all([
-          getHeightmap(settings.gridInfo, settings, rasterExtent, mapPixels, rasterPixels,
+          getHeightmap(settings.gridInfo, settings, rasterExtent, mapPixels, rasterPixels, subdivision,
             data => this.progressCallback!(data),
           ),
           undefined,

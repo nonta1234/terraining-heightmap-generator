@@ -179,6 +179,7 @@ export const getHeightmap = async (
   extent: Extent,
   mapPixels: number,
   pixelsPerTile: number,
+  subdivision: boolean,
   progressCallback: (data: ProgressData) => void,
 ) => {
   let decoder: TileDecoder | undefined
@@ -203,7 +204,7 @@ export const getHeightmap = async (
     const resultCenterX = extent.centerX * (2 ** zoom)
     const resultCenterY = extent.centerY * (2 ** zoom)
 
-    const offsetCorrection = (settings.subdivision ? settings.subdivisionCount : 0) / scale
+    const offsetCorrection = (subdivision ? settings.subdivisionCount : 0) / scale
 
     const offsetX = resultCenterX - tileX0 * pixelsPerTile - _correction / 2 + offsetCorrection
     const offsetY = resultCenterY - tileY0 * pixelsPerTile - _correction / 2 + offsetCorrection
@@ -289,7 +290,7 @@ export const getHeightmap = async (
       await processTiles(tileList)
     }
 
-    if (mapType !== 'ocean' && settings.subdivision) {
+    if (mapType !== 'ocean' && subdivision) {
       progressCallback({ type: 'phase', data: 'Subdividing elevation data' })
       const subdividedData = await subdivideByGradientInWasm(elevations, [1, settings.kernelNumber, 1], settings.subdivisionCount)
       const pixels = tileCount * pixelsPerTile

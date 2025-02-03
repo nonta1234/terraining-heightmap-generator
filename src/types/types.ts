@@ -141,7 +141,8 @@ export const settingsSchema = z.object({
   accessToken: z.string().optional(),
   accessTokenMT: z.string().optional(),
   depthPoints: z.array(depthPointSchema),
-  subdivision: z.boolean(),
+  subdivisionPreview: z.boolean(),
+  subdivisionDownload: z.boolean(),
   subdivisionCount: z.number(),
   kernelNumber: z.number(),
 })
@@ -171,6 +172,7 @@ export type MapOption = {
   smoothRadius: number
   sharpenRadius: number
   division: number
+  subdivision: boolean
   isDebug: boolean
 }
 

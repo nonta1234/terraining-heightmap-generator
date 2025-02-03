@@ -188,7 +188,8 @@ export const initialValue: Settings = {
     { x: 0, y: 1, depth: 0 },
     { x: 1, y: 1, depth: 0 },
   ],
-  subdivision: false,
+  subdivisionPreview: false,
+  subdivisionDownload: false,
   subdivisionCount: 1,
   kernelNumber: 16,
 }

@@ -219,6 +219,7 @@ class GetCitiesMapWorker {
         smoothRadius: option.smoothRadius,
         sharpenRadius: option.sharpenRadius,
         division: option.division,
+        subdivision: option.subdivision,
         isDebug: option.isDebug,
         rasterExtent: option.rasterExtents[i],
         vectorExtent: option.vectorExtents[i],
@@ -388,7 +389,8 @@ class GetCitiesMapWorker {
 
     try {
       this.resolution = resolution
-      const rasterPixels = settings.subdivision ? PIXELS_PER_TILE * 2 * settings.subdivisionCount : PIXELS_PER_TILE
+      const subdivision = (mode === 'preview' && settings.subdivisionPreview) || (mode !== 'preview' && settings.subdivisionDownload)
+      const rasterPixels = subdivision ? PIXELS_PER_TILE * 2 * settings.subdivisionCount : PIXELS_PER_TILE
       const padding = 110           // considering edges, it is set larger than 100
       const offset4cs2play = 0.375
 
@@ -430,6 +432,7 @@ class GetCitiesMapWorker {
             smoothRadius,
             sharpenRadius,
             division: 4,
+            subdivision,
             isDebug: isDebug!,
           }
 
@@ -456,6 +459,7 @@ class GetCitiesMapWorker {
             smoothRadius,
             sharpenRadius,
             division,
+            subdivision,
             isDebug: isDebug!,
           }
 
