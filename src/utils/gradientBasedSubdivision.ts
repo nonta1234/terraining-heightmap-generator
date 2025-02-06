@@ -1,5 +1,5 @@
 import init, { allocate_memory, free_memory, subdivide_by_gradient } from '~~/wasm/tiles_lib/pkg'
-/*
+
 const addPadding = (data: Float32Array, padding: number) => {
   const size = Math.sqrt(data.length)
   const newSize = size + (padding * 2)
@@ -159,7 +159,6 @@ export const subdivideByGradient = (elevation: Float32Array, blurKernel: number[
 
   return recursiveSubdivide(elevation, count)
 }
-*/
 
 export const subdivideByGradientInWasm = async (elevation: Float32Array, blurKernel: number[], count = 1) => {
   const instance = await init()

@@ -292,7 +292,9 @@ export const getHeightmap = async (
 
     if (mapType !== 'ocean' && subdivision) {
       progressCallback({ type: 'phase', data: 'Subdividing elevation data' })
-      const subdividedData = await subdivideByGradientInWasm(elevations, [1, settings.kernelNumber, 1], settings.subdivisionCount)
+      const subdividedData = mapPixels < 10000
+        ? await subdivideByGradientInWasm(elevations, [1, settings.kernelNumber, 1], settings.subdivisionCount)
+        : subdivideByGradient(elevations, [1, settings.kernelNumber, 1], settings.subdivisionCount)
       const pixels = tileCount * pixelsPerTile
 
       const result = settings.interpolation === 'bicubic'
