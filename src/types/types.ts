@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { Map, LngLatLike } from 'mapbox-gl'
+import type { FetchError } from 'ofetch'
 import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolygon, MultiLineString } from 'geojson'
 
 const heightCalcTypeSchema = z.union([
@@ -239,4 +240,14 @@ export type ResultType = {
 export type FileType = {
   heightmap: Blob | Uint8Array
   worldMap?: Blob | Uint8Array
+}
+
+export type FetchResult<T> =
+  | { status: 'success', data: T }
+  | { status: 'error', error: FetchError }
+
+export type TileData = {
+  x: number
+  y: number
+  result: FetchResult<Blob>
 }
