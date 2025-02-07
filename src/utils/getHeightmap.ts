@@ -1,17 +1,11 @@
-import type { MapType, Settings, Extent, ProgressData } from '~/types/types'
+import type { MapType, Settings, Extent, ProgressData, FetchResult } from '~/types/types'
 import { decode as decode_webp } from '@jsquash/webp'
 import initPng, { decode_png } from '~~/wasm/png_lib/pkg'
 import { decodeElevation } from '~/utils/elevation'
 import { useFetchTerrainTiles, useFetchOceanTiles } from '~/composables/useFetchTiles'
 import { mapSpec, PIXELS_PER_TILE } from '~/utils/const'
-import type { FetchError } from 'ofetch'
 import { TileDecoder } from '~/utils/tileDecoder'
 import { subdivideByGradientInWasm } from '~/utils/gradientBasedSubdivision'
-
-type T = {
-  data: Blob | undefined
-  error: FetchError<any> | undefined
-}
 
 const getHeightMapBilinear = (
   elevations: Float32Array,
@@ -222,7 +216,7 @@ export const getHeightmap = async (
 
     progressCallback({ type: 'total', data: totalTiles })
 
-    const tiles = new Array<Promise<T>>(totalTiles)
+    const tiles = new Array<Promise<FetchResult<Blob>>>(totalTiles)
     const elevations = new Float32Array(tilePixels * tilePixels)
     const token = settings.useMapbox ? settings.accessToken! : settings.accessTokenMT!
 
@@ -257,10 +251,10 @@ export const getHeightmap = async (
         await initPng()
       }
 
-      const processTiles = async (list: PromiseSettledResult<T>[]) => {
+      const processTiles = async (list: PromiseSettledResult<FetchResult<Blob>>[]) => {
         const tilePromises = list.map(async (tile, index) => {
           if (tile.status === 'fulfilled') {
-            const blob = tile.value.data
+            const blob = tile.value.status === 'success' ? tile.value.data : undefined
             if (blob) {
               const arrBuffer = await blob.arrayBuffer()
               let byteArray: Uint8ClampedArray

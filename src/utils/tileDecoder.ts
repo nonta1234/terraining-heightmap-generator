@@ -1,14 +1,8 @@
 import * as Comlink from 'comlink'
 import type { TileDecoderWorkerType } from '~/assets/workers/tileDecoderWorker'
-import type { Settings, MapType, ProgressData } from '~/types/types'
-import type { FetchError } from 'ofetch'
+import type { Settings, MapType, ProgressData, FetchResult } from '~/types/types'
 import TileDecoderWorker from '~/assets/workers/tileDecoderWorker.ts?worker'
 import { WorkerPool } from '~/utils/workerPool'
-
-type T = {
-  data: Blob | undefined
-  error: FetchError<any> | undefined
-}
 
 export class TileDecoder {
   private workers: { remote: Comlink.Remote<TileDecoderWorkerType>, worker: Worker }[] = []
@@ -26,7 +20,7 @@ export class TileDecoder {
   }
 
   public async processTiles(
-    tileList: PromiseSettledResult<T>[],
+    tileList: PromiseSettledResult<FetchResult<Blob>>[],
     settings: Settings,
     mapType: MapType,
     pixelsPerTile: number,
@@ -35,7 +29,7 @@ export class TileDecoder {
     progressCallback: (data: ProgressData) => void,
   ) {
     const decodingPromises = tileList.map(async (tile, index) => {
-      if (tile.status === 'fulfilled' && tile.value.data) {
+      if (tile.status === 'fulfilled' && tile.value.status === 'success' && tile.value.data) {
         try {
           const blob = tile.value.data
           const arrBuffer = await blob.arrayBuffer()
