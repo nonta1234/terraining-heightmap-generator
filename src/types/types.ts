@@ -3,16 +3,37 @@ import type { Map, LngLatLike } from 'mapbox-gl'
 import type { FetchError } from 'ofetch'
 import type { FeatureCollection, Feature, Polygon, GeoJsonProperties, MultiPolygon, MultiLineString } from 'geojson'
 
+export type LngLat = Extract<LngLatLike, [number, number]>
+
 const heightCalcTypeSchema = z.union([
   z.literal('manual'),
   z.literal('limit'),
   z.literal('maximize'),
 ])
+export type HeightCalcType = z.infer<typeof heightCalcTypeSchema>
 
 const interpolationSchema = z.union([
-  z.literal('bilinear'),
+  z.literal('lanczos'),
   z.literal('bicubic'),
+  z.literal('bilinear'),
 ])
+export type Interpolation = z.infer<typeof interpolationSchema>
+
+const cubicFamilySchema = z.union([
+  z.literal('bSpline'),
+  z.literal('mitchell'),
+  z.literal('catrom'),
+  z.literal('Hermite'),
+])
+
+type CubicFamilyParam = {
+  b: number
+  c: number
+}
+
+export interface CubicFamily {
+  [index: string]: CubicFamilyParam
+}
 
 const mapTypeSchema = z.union([
   z.literal('cs1'),
@@ -22,27 +43,19 @@ const mapTypeSchema = z.union([
   z.literal('ue'),
   z.literal('ocean'),
 ])
+export type MapType = z.infer<typeof mapTypeSchema>
 
 const depthPointSchema = z.object({
   x: z.number(),
   y: z.number(),
   depth: z.number(),
 })
-
-export type LngLat = Extract<LngLatLike, [number, number]>
-export type HeightCalcType = 'manual' | 'limit' | 'maximize'
-export type Interpolation = 'bilinear' | 'bicubic'
-export type MapType = 'cs1' | 'cs2' | 'cs2play' | 'unity' | 'ue' | 'ocean'
-export type StyleType = Record<'label' | 'value' | 'before' | 'grid' | 'alpha', string>
-
-export type DepthPoint = {
-  x: number
-  y: number
-  depth: number
-}
+export type DepthPoint = z.infer<typeof depthPointSchema>
 
 export const viewModes = ['height', 'world'] as const
 export type ViewMode = typeof viewModes[number]
+
+export type StyleType = Record<'label' | 'value' | 'before' | 'grid' | 'alpha', string>
 
 export type StyleList = {
   [index: string]: StyleType
@@ -118,7 +131,7 @@ export const settingsSchema = z.object({
   littoral: z.number(),
   riparian: z.number(),
   littArray: z.array(z.number()),
-  actualSeafloor: z.boolean(),
+  useBathymetry: z.boolean(),
   smoothing: z.number(),
   smoothRadius: z.number(),
   smthThres: z.number(),
@@ -142,12 +155,16 @@ export const settingsSchema = z.object({
   accessToken: z.string().optional(),
   accessTokenMT: z.string().optional(),
   depthPoints: z.array(depthPointSchema),
+  cubicFamily: cubicFamilySchema,
+  lanczosWindowSize: z.number(),
+  oversampling: z.number(),
   subdivisionPreview: z.boolean(),
   subdivisionDownload: z.boolean(),
   subdivisionCount: z.number(),
-  kernelNumber: z.number(),
+  subdivisionMargin: z.number(),
+  subdivisionEnhance: z.number(),
+  subdivisionDamping: z.number(),
 })
-
 export type Settings = z.infer<typeof settingsSchema>
 
 export interface Mapbox {
@@ -169,11 +186,11 @@ export type MapOption = {
   settings: Settings
   mapPixels: number
   rasterPixels: number
+  oceanPixels: number
   unitSize: number
   smoothRadius: number
   sharpenRadius: number
   division: number
-  subdivision: boolean
   isDebug: boolean
 }
 
@@ -187,6 +204,8 @@ export type MultiMapOption = MapOption & {
   rasterExtents: Extent[]
   vectorExtents: Extent[]
   oceanExtents: Extent[]
+  playRasterPixels?: number
+  playOceanPixels?: number
 }
 
 export interface MapData {
@@ -242,12 +261,4 @@ export type FileType = {
   worldMap?: Blob | Uint8Array
 }
 
-export type FetchResult<T> =
-  | { status: 'success', data: T }
-  | { status: 'error', error: FetchError }
-
-export type TileData = {
-  x: number
-  y: number
-  result: FetchResult<Blob>
-}
+export type FetchResult<T> = { status: 'success', data: T } | { status: 'error', error: FetchError }

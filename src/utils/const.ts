@@ -1,4 +1,4 @@
-import type { LittoralArray, Settings, StyleList, GridSpec, MapSpecs } from '~/types/types'
+import type { LittoralArray, Settings, StyleList, GridSpec, MapSpecs, CubicFamily } from '~/types/types'
 
 export const NEED_TOKEN = 'You will need your own Mapbox access token\nto download the heightmap data for'
 export const ATTR = '\u00A9 Mapbox \u00A9 OpenStreetMap'
@@ -137,6 +137,25 @@ export const effectRasterColorMix: [number, number, number, number] = [
   -10030,
 ]
 
+export const cubicFamily: CubicFamily = {
+  bSpline: {
+    b: 1,
+    c: 0,
+  },
+  mitchell: {
+    b: 1 / 3,
+    c: 1 / 3,
+  },
+  catmull: {
+    b: 0,
+    c: 1 / 2,
+  },
+  hermite: {
+    b: 0,
+    c: 0,
+  },
+}
+
 export const initialValue: Settings = {
   build: 0,
   lng: -73.96530,
@@ -159,7 +178,7 @@ export const initialValue: Settings = {
   littoral: 160,
   riparian: 10,
   littArray: littoralArray.sine,
-  actualSeafloor: false,
+  useBathymetry: false,
   smoothing: 0,
   smoothRadius: 1,
   smthThres: -10000,
@@ -188,10 +207,15 @@ export const initialValue: Settings = {
     { x: 0, y: 1, depth: 0 },
     { x: 1, y: 1, depth: 0 },
   ],
+  cubicFamily: 'mitchell',
+  lanczosWindowSize: 3,
+  oversampling: 1,
   subdivisionPreview: false,
   subdivisionDownload: false,
-  subdivisionCount: 1,
-  kernelNumber: 16,
+  subdivisionCount: 0,
+  subdivisionMargin: 25,
+  subdivisionEnhance: 15,
+  subdivisionDamping: 10,
 }
 
 export const needToken = (type: string) => {
