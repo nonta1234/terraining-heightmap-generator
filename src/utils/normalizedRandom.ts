@@ -32,7 +32,7 @@ export function normalizedRandom(): number {
     if (v > -0.42 && v < 0.42) {
       const vv = v * v
       r = v * (((a[3] * vv + a[2]) * vv + a[1]) * vv + a[0])
-      / ((((b[3] * vv + b[2]) * vv + b[1]) * vv + b[0]) * vv + 1.0)
+        / ((((b[3] * vv + b[2]) * vv + b[1]) * vv + b[0]) * vv + 1.0)
     } else {
       if (v > 0) {
         w = Math.log(-Math.log(1 - u))
