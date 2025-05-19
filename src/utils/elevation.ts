@@ -16,7 +16,7 @@ export const mixArray = (heightmap: Float32Array, oceanmap: Float32Array) => {
   return result
 }
 
-export const getMinMaxHeight = async (map: Float32Array, padding = 0) => {
+export const getMinMaxHeight = (map: Float32Array, padding = 0) => {
   const heights = { min: 100000, max: -100000 }
   const size = Math.sqrt(map.length)
   const endIndex = size - padding
