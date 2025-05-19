@@ -26,12 +26,23 @@ const previewData = ref<ResultType>({
 })
 
 const isDownloading = ref(false)
+const startPreview = ref(false)
 const total = ref(0)
 const progress = ref(0)
+const subdTotal = ref(0)
+const subdProgress = ref(0)
 const message = ref('')
+
 const progressMsg = computed(() => {
-  const msg = message.value ? message.value : `Downloading elevation data: ${progress.value} / ${total.value}`
-  return msg
+  if (!message.value) {
+    return ''
+  } else if (message.value === 'subdivide') {
+    return `Subdividing elevation data: ${subdProgress.value} / ${subdTotal.value}`
+  } else if (message.value === 'download') {
+    return `Downloading elevation data: ${progress.value} / ${total.value}`
+  } else {
+    return message.value
+  }
 })
 
 const isOverflow = computed(() => (
@@ -41,24 +52,40 @@ const isOverflow = computed(() => (
 const scaleXY = computed(() => mapbox.value.settings.size * 100000 / (mapbox.value.settings.resolution - 1))
 const scaleZ = computed(() => mapbox.value.settings.elevationScale * 100 / 512)
 
+const resetMessage = () => {
+  message.value = ''
+  total.value = 0
+  progress.value = 0
+  subdTotal.value = 0
+  subdProgress.value = 0
+}
+
 useListen('isDownload', (value: boolean) => {
   isDownloading.value = value
 })
 
 useListen('message:reset', () => {
-  message.value = ''
-  total.value = 0
-  progress.value = 0
+  resetMessage()
 })
 
 useListen('message:total', (number: number) => {
-  message.value = ''
+  message.value = 'download'
   total.value += number
 })
 
 useListen('message:progress', () => {
-  message.value = ''
+  message.value = 'download'
   progress.value += 1
+})
+
+useListen('message:subdividingTotal', (number: number) => {
+  message.value = 'subdivide'
+  subdTotal.value += number
+})
+
+useListen('message:subdividingProgress', () => {
+  message.value = 'subdivide'
+  subdProgress.value += 1
 })
 
 useListen('message:phase', (data: string) => {
@@ -117,14 +144,14 @@ const onPreview = async () => {
     const worker = useWorker()
     const { debugMode } = useDebug()
 
+    startPreview.value = true
+
     previewData.value.heightmap = new Float32Array()
     previewData.value.waterMapImage = undefined
     previewData.value.waterWayMapImage = undefined
     previewData.value.min = 0
     previewData.value.max = 0
-    message.value = ''
-    total.value = 0
-    progress.value = 0
+    resetMessage()
 
     const _resolution = mapbox.value.settings.originalPreview ? mapbox.value.settings.resolution : Math.min(getResolution(), mapbox.value.settings.resolution)
     const plainSettings: Settings = JSON.parse(JSON.stringify(mapbox.value.settings))
@@ -163,7 +190,8 @@ const onPreview = async () => {
   } catch (e) {
     console.error('Failed to generate preview data.:', e)
   } finally {
-    setTimeout(() => isDownloading.value = false, 3000)
+    startPreview.value = false
+    setTimeout(() => { if (!startPreview.value) isDownloading.value = false }, 3000)
   }
 }
 

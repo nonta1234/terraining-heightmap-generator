@@ -1,34 +1,27 @@
 <script setup lang="ts">
 const mapbox = useMapbox()
 
-const _smoothing = computed(() => mapbox.value.settings.smoothing)
-const _smthThres = computed(() => mapbox.value.settings.smthThres)
-const _smthFade = computed(() => mapbox.value.settings.smthFade)
-const _sharpen = computed(() => mapbox.value.settings.sharpen)
-const _shrpThres = computed(() => mapbox.value.settings.shrpThres)
-const _shrpFade = computed(() => mapbox.value.settings.shrpFade)
-
-watch(_sharpen, () => {
+watch(() => mapbox.value.settings.sharpen, (newValue) => {
   if (mapbox.value.settings.displayEffectArea) {
     mapbox.value.map?.setPaintProperty(
       'sharpenLayer',
       'raster-opacity',
-      getRasterOpacity(mapbox.value.settings.sharpen),
+      getRasterOpacity(newValue),
     )
   }
 })
 
-watch(_smoothing, () => {
+watch(() => mapbox.value.settings.smoothing, (newValue) => {
   if (mapbox.value.settings.displayEffectArea) {
     mapbox.value.map?.setPaintProperty(
       'smoothLayer',
       'raster-opacity',
-      getRasterOpacity(mapbox.value.settings.smoothing),
+      getRasterOpacity(newValue),
     )
   }
 })
 
-watch([_shrpThres, _shrpFade], () => {
+watch([() => mapbox.value.settings.shrpThres, () => mapbox.value.settings.shrpFade], () => {
   mapbox.value.map?.setPaintProperty(
     'sharpenLayer',
     'raster-color',
@@ -36,7 +29,7 @@ watch([_shrpThres, _shrpFade], () => {
   )
 })
 
-watch([_smthThres, _smthFade], () => {
+watch([() => mapbox.value.settings.smthThres, () => mapbox.value.settings.smthFade], () => {
   mapbox.value.map?.setPaintProperty(
     'smoothLayer',
     'raster-color',

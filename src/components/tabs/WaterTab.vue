@@ -34,8 +34,8 @@ const onLittoralSlopeToggle = () => {
       <NumberInput id="stream-depth" v-model="mapbox.settings.streamDepth" class="gap" :max="100" :min="0" :step="1" unit="m" />
       <label for="stream-width">Stream Width&#8202;:</label>
       <NumberInput id="stream-width" v-model="mapbox.settings.streamWidth" :max="15" :min="1" :step="1" unit="m" />
-      <label for="actual-seafloor" class="as">Use actual seafloor&#8202;:</label>
-      <ToggleSwitch v-model="mapbox.settings.actualSeafloor" :name="'actual-seafloor'" class="as-switch" />
+      <label for="actual-seafloor" class="as">Use bathymetry&#8202;:</label>
+      <ToggleSwitch v-model="mapbox.settings.useBathymetry" :name="'actual-seafloor'" class="as-switch" />
     </div>
   </div>
 </template>

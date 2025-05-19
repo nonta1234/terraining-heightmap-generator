@@ -6,7 +6,6 @@ const esDisabled = computed(() => mapbox.value.settings.gridInfo === 'cs1')
 const maxSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 25.000) * 4)
 const minSize = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || 1.000) / 2)
 const hScale = computed(() => (mapSpec[mapbox.value.settings.gridInfo].defaultSize || mapbox.value.settings.size) / mapbox.value.settings.size)
-const vScale = computed(() => mapbox.value.settings.vertScale)
 const ratioScalelDisabled = computed(() => mapbox.value.settings.type === 'maximize')
 
 const fixedScale = computed({
@@ -23,7 +22,7 @@ const ratio = computed({
   },
 })
 
-watch([ratio, vScale], () => {
+watch([ratio, () => mapbox.value.settings.vertScale], () => {
   mapbox.value.map?.setTerrain()
   mapbox.value.map?.setTerrain({ source: 'terrain-dem', exaggeration: ratio.value })
 })
@@ -156,8 +155,9 @@ const onCellsChange = () => {
     <label for="interpolation">Interpolation&#8202;:</label>
     <SelectMenu id="interpolation" v-model="mapbox.settings.interpolation"
       :options="[
-        { value: 'bilinear', label: 'Bilinear' },
+        { value: 'lanczos', label: 'Lanczos' },
         { value: 'bicubic', label: 'Bicubic' },
+        { value: 'bilinear', label: 'Bilinear' },
       ]"
     />
   </div>
