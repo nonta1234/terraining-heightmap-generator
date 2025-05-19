@@ -1,13 +1,13 @@
-import type { Position } from 'geojson'
-import { $fetch, type FetchError } from 'ofetch'
 import { Canvg } from 'canvg'
 import { DOMParser } from '@xmldom/xmldom'
+import { $fetch, type FetchError } from 'ofetch'
+import type { Position } from 'geojson'
+import type { Settings } from '~/types/types'
 import { ATTR, ATTR_RAS } from '~/utils/const'
 import { pixel2lng, pixel2lat } from '~/utils/tiles'
-import type { Settings } from '~/types/types'
 import { getExtentInWorldCoords } from '~/utils/getExtent'
-import logoUrl from '~/assets/svg/mapboxgl-ctrl-logo.svg'
 import initPng, { encode_png } from '~~/wasm/png_lib/pkg'
+import logoUrl from '~/assets/svg/mapboxgl-ctrl-logo.svg'
 
 type T = {
   settings: Settings
