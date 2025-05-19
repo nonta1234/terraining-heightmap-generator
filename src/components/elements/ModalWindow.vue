@@ -1,6 +1,6 @@
 <script setup lang="ts">
 interface Props {
-  modal: boolean
+  modal?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
