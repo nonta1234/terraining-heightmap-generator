@@ -97,7 +97,7 @@ const getPngHeightmap = async () => {
     }
     saveSettings(mapbox.value.settings)
   } catch (e: any) {
-    console.log(e.message)
+    console.log(e.message, e)
   } finally {
     pngButton.value?.classList.remove('downloading')
     setTimeout(() => useEvent('isDownload', false), 3000)
