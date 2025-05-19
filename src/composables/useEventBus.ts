@@ -12,7 +12,9 @@ type ApplicationEvents = {
   'panel:updateHeight': void
   'isDownload': boolean
   'message:total': number
+  'message:subdividingTotal': number
   'message:progress': void
+  'message:subdividingProgress': void
   'message:phase': string
   'message:reset': void
   'debug:operate': void
