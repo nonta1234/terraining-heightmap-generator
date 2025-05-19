@@ -3,6 +3,7 @@ import * as turf from '@turf/turf'
 import type { Feature, GeoJsonProperties, Position, Polygon } from 'geojson'
 import { extentGrid } from '~/utils/extentGrid'
 import type { Mapbox, Grid, LngLat, GridPositions, GridSpec } from '~/types/types'
+import { initialValue } from '~/utils/const'
 
 export const getGridAngle = (mapbox?: Ref<Mapbox>) => {
   const _mapbox = mapbox || useMapbox()
@@ -10,8 +11,6 @@ export const getGridAngle = (mapbox?: Ref<Mapbox>) => {
   const point2 = _mapbox.value.grid?.gridArea.features[0].geometry.coordinates[0][0] // default: -135
   return (turf.rhumbBearing(point1, point2!) + 315) % 360 - 180
 }
-
-// -> Figure 1
 
 const getPlayArea = (grid: GridSpec, features: Feature<Polygon, GeoJsonProperties>[]) => {
   const play = grid.play
