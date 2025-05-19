@@ -6,7 +6,7 @@ export class WorkerPool<T> {
     this.workerQueue = [...workers]
   }
 
-  public getWorker(): Promise<T> {
+  public async getWorker(): Promise<T> {
     return new Promise((resolve) => {
       if (this.workerQueue.length > 0) {
         resolve(this.workerQueue.shift()!)
@@ -35,6 +35,15 @@ export class WorkerPool<T> {
       this.workerQueue.splice(index, 1)
     } else {
       console.warn('Worker is not in the queue, cannot remove.')
+    }
+  }
+
+  public async executeTask<R>(task: (worker: T) => Promise<R>): Promise<R> {
+    const worker = await this.getWorker()
+    try {
+      return await task(worker)
+    } finally {
+      this.releaseWorker(worker)
     }
   }
 
