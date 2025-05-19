@@ -1,160 +1,94 @@
-import type { MapType, Settings, Extent, ProgressData, FetchResult } from '~/types/types'
-import { decode as decode_webp } from '@jsquash/webp'
-import initPng, { decode_png } from '~~/wasm/png_lib/pkg'
-import { decodeElevation } from '~/utils/elevation'
-import { useFetchTerrainTiles, useFetchOceanTiles } from '~/composables/useFetchTiles'
-import { mapSpec, PIXELS_PER_TILE } from '~/utils/const'
+import type { MapType, Settings, Extent, ProgressData } from '~/types/types'
+import { useFetchTerrainTiles, useFetchOceanTiles, limitedParallelFetch } from '~/composables/useFetchTiles'
+import { mapSpec, cubicFamily, PIXELS_PER_TILE } from '~/utils/const'
 import { TileDecoder } from '~/utils/tileDecoder'
-import { subdivideByGradientInWasm } from '~/utils/gradientBasedSubdivision'
+import { lanczos } from './interpolation/lanczos'
+import { bicubic } from './interpolation/bicubic'
+import { bilinear } from './interpolation/bilinear'
 
-const getHeightMapBilinear = (
-  elevations: Float32Array,
-  resultPixels: number,
-  tilePixels: number,
-  angle: number,
-  scale: number,
-  offsetX: number,
-  offsetY: number,
-  correction: number,
+const addPadding = (
+  grid: (Float32Array | null)[][],
+  centerY: number,
+  centerX: number,
+  padding: number,
 ) => {
-  const heightMap = new Float32Array(resultPixels * resultPixels)
-  const cosTheta = Math.cos(-angle * Math.PI / 180)
-  const sinTheta = Math.sin(-angle * Math.PI / 180)
-  const halfSize = (resultPixels - correction) / 2
+  const paddedSize = PIXELS_PER_TILE + padding * 2
+  const output = new Float32Array(paddedSize * paddedSize)
 
-  // affine transformation & bilinear interpolation
-  for (let y = 0; y < resultPixels; y++) {
-    for (let x = 0; x < resultPixels; x++) {
-      const posX = offsetX + scale * (cosTheta * (x - halfSize) + sinTheta * (y - halfSize))
-      const posY = offsetY + scale * (cosTheta * (y - halfSize) - sinTheta * (x - halfSize))
-
-      const x0 = Math.floor(posX)
-      const y0 = Math.floor(posY)
-      const x1 = x0 + 1
-      const y1 = y0 + 1
-
-      const eX = x1 - posX
-      const eY = y1 - posY
-      const dX = posX - x0
-      const dY = posY - y0
-
-      const val
-        = eX * eY * elevations[y0 * tilePixels + x0]
-        + dX * eY * elevations[y0 * tilePixels + x1]
-        + eX * dY * elevations[y1 * tilePixels + x0]
-        + dX * dY * elevations[y1 * tilePixels + x1]
-
-      heightMap[y * resultPixels + x] = val
+  const getTile = (y: number, x: number): Float32Array => {
+    if (grid[y][x]) {
+      return grid[y][x]
+    } else {
+      throw new Error(`Tile not found at (${y}, ${x})`)
     }
   }
 
-  /**
-   * affine transformation
-   *
-   * a, b: offset x, y
-   * m: mapsize / 2
-   * θ = -angle * π / 180
-   * x = a - m * s * cos(θ) + s * x * cos(θ) - m * s * sin(θ) + s * y * sin(θ)
-   * y = b - m * s * cos(θ) + s * y * cos(θ) + m * s * sin(θ) - s * x * sin(θ)
-   *
-   *
-   * bilinear interpolation
-   *
-   * x = dX, y = dY
-   *
-   *      eX   dX
-   *    0--------
-   * eY |        |
-   *    |   x,y__|
-   * dY |     |  |
-   *     --------1
-   */
+  const a = getTile(centerY - 1, centerX - 1)
+  const b = getTile(centerY - 1, centerX)
+  const c = getTile(centerY - 1, centerX + 1)
+  const d = getTile(centerY, centerX - 1)
+  const e = getTile(centerY, centerX)
+  const f = getTile(centerY, centerX + 1)
+  const g = getTile(centerY + 1, centerX - 1)
+  const h = getTile(centerY + 1, centerX)
+  const i = getTile(centerY + 1, centerX + 1)
 
-  return heightMap
+  const copyRegion = (
+    dstX: number,
+    dstY: number,
+    src: Float32Array,
+    srcX: number,
+    srcY: number,
+    width: number,
+    height: number,
+  ) => {
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIndex = (srcY + y) * PIXELS_PER_TILE + (srcX + x)
+        const dstIndex = (dstY + y) * paddedSize + (dstX + x)
+        output[dstIndex] = src[srcIndex]
+      }
+    }
+  }
+
+  copyRegion(padding, padding, e, 0, 0, PIXELS_PER_TILE, PIXELS_PER_TILE)
+
+  copyRegion(padding, 0, b, 0, PIXELS_PER_TILE - padding, PIXELS_PER_TILE, padding)
+  copyRegion(padding, paddedSize - padding, h, 0, 0, PIXELS_PER_TILE, padding)
+  copyRegion(0, padding, d, PIXELS_PER_TILE - padding, 0, padding, PIXELS_PER_TILE)
+  copyRegion(paddedSize - padding, padding, f, 0, 0, padding, PIXELS_PER_TILE)
+
+  copyRegion(0, 0, a, PIXELS_PER_TILE - padding, PIXELS_PER_TILE - padding, padding, padding)
+  copyRegion(paddedSize - padding, 0, c, 0, PIXELS_PER_TILE - padding, padding, padding)
+  copyRegion(0, paddedSize - padding, g, PIXELS_PER_TILE - padding, 0, padding, padding)
+  copyRegion(paddedSize - padding, paddedSize - padding, i, 0, 0, padding, padding)
+
+  return output
 }
 
-// bicubic interpolation -----------------------------------------------------------------------------
-
-const getHeightMapBicubic = (
-  elevations: Float32Array,
-  resultPixels: number,
-  tilePixels: number,
-  angle: number,
-  scale: number,
-  offsetX: number,
-  offsetY: number,
-  correction: number,
+const subdivide = async (
+  mapType: MapType,
+  decoder: TileDecoder,
+  elevations: (Float32Array | null)[][],
+  subdividedElevations: (Float32Array | null)[][],
+  x: number,
+  y: number,
+  padding: number,
+  count: number,
+  margin: number,
+  enhance: number,
+  damping: number,
 ) => {
-  const heightMap = new Float32Array(resultPixels * resultPixels)
-  const cosTheta = Math.cos(-angle * Math.PI / 180)
-  const sinTheta = Math.sin(-angle * Math.PI / 180)
-  const halfSize = (resultPixels - correction) / 2
+  const inputData = addPadding(elevations, y + 1, x + 1, padding)
+  const subdividedTile = await decoder.subdivideTile(inputData, count, margin, enhance, damping)
 
-  // affine transformation & bicubic interpolation
-  // Mitchell
-  const b = 1 / 3
-  const c = 1 / 3
-  const coeff = cubicBCcoefficient(b, c)
-
-  for (let y = 0; y < resultPixels; y++) {
-    for (let x = 0; x < resultPixels; x++) {
-      const posX = offsetX + scale * (cosTheta * (x - halfSize) + sinTheta * (y - halfSize))
-      const posY = offsetY + scale * (cosTheta * (y - halfSize) - sinTheta * (x - halfSize))
-
-      const x0 = Math.floor(posX)
-      const y0 = Math.floor(posY)
-      const tx = posX - x0
-      const ty = posY - y0
-
-      const fx = [
-        cubicFunc(1 + tx, coeff),
-        cubicFunc(tx, coeff),
-        cubicFunc(1 - tx, coeff),
-        cubicFunc(2 - tx, coeff),
-      ]
-      const fy = [
-        cubicFunc(1 + ty, coeff),
-        cubicFunc(ty, coeff),
-        cubicFunc(1 - ty, coeff),
-        cubicFunc(2 - ty, coeff),
-      ]
-
-      const tmpVals = [
-        fy[0] * elevations[(y0 - 1) * tilePixels + x0 - 1] + fy[1] * elevations[y0 * tilePixels + x0 - 1] + fy[2] * elevations[(y0 + 1) * tilePixels + x0 - 1] + fy[3] * elevations[(y0 + 2) * tilePixels + x0 - 1],
-        fy[0] * elevations[(y0 - 1) * tilePixels + x0] + fy[1] * elevations[y0 * tilePixels + x0] + fy[2] * elevations[(y0 + 1) * tilePixels + x0] + fy[3] * elevations[(y0 + 2) * tilePixels + x0],
-        fy[0] * elevations[(y0 - 1) * tilePixels + x0 + 1] + fy[1] * elevations[y0 * tilePixels + x0 + 1] + fy[2] * elevations[(y0 + 1) * tilePixels + x0 + 1] + fy[3] * elevations[(y0 + 2) * tilePixels + x0 + 1],
-        fy[0] * elevations[(y0 - 1) * tilePixels + x0 + 2] + fy[1] * elevations[y0 * tilePixels + x0 + 2] + fy[2] * elevations[(y0 + 1) * tilePixels + x0 + 2] + fy[3] * elevations[(y0 + 2) * tilePixels + x0 + 2],
-      ]
-
-      heightMap[y * resultPixels + x] = fx[0] * tmpVals[0] + fx[1] * tmpVals[1] + fx[2] * tmpVals[2] + fx[3] * tmpVals[3]
+  if (mapType === 'ocean') {
+    for (let i = 0; i < subdividedTile.length; i++) {
+      subdividedTile[i] = Math.min(subdividedTile[i], 0)
     }
   }
 
-  function cubicBCcoefficient(b: number, c: number) {
-    const p = 2 - 1.5 * b - c
-    const q = -3 + 2 * b + c
-    const r = 0
-    const s = 1 - (1 / 3) * b
-    const t = -(1 / 6) * b - c
-    const u = b + 5 * c
-    const v = -2 * b - 8 * c
-    const w = (4 / 3) * b + 4 * c
-    return [p, q, r, s, t, u, v, w]
-  }
-
-  function cubicFunc(x: number, coeff: number[]) {
-    const [p, q, r, s, t, u, v, w] = coeff
-    let y = 0
-    const ax = Math.abs(x)
-    if (ax < 1) {
-      y = ((p * ax + q) * ax + r) * ax + s
-    } else if (ax < 2) {
-      y = ((t * ax + u) * ax + v) * ax + w
-    }
-    return y
-  }
-
-  return heightMap
+  subdividedElevations[y][x] = subdividedTile
 }
 
 /**
@@ -173,16 +107,18 @@ export const getHeightmap = async (
   extent: Extent,
   mapPixels: number,
   pixelsPerTile: number,
-  subdivision: boolean,
   progressCallback: (data: ProgressData) => void,
 ) => {
-  let decoder: TileDecoder | undefined
+  const decoder = new TileDecoder()
   try {
     const side = Math.sqrt((extent.topright.x - extent.bottomleft.x) ** 2 + (extent.topright.y - extent.bottomleft.y) ** 2) / Math.SQRT2
     const _correction = mapSpec[settings.gridInfo].correction
     const maxZoom = mapType === 'ocean' ? 7 : 14
-    const zoom = Math.min(Math.ceil(Math.log2(mapPixels / side)), maxZoom)
+    const zoom = Math.min(Math.ceil(Math.log2(mapPixels / side)) + Math.log2(settings.oversampling), maxZoom)
     const scale = (side * (2 ** zoom)) / mapPixels
+    const maxTileX = 2 ** zoom - 1
+    const ppt = Math.max(pixelsPerTile, PIXELS_PER_TILE)
+    const subdivisionCount = Math.log2(ppt / PIXELS_PER_TILE)
 
     const minX = Math.min(extent.topleft.x, extent.topright.x, extent.bottomleft.x, extent.bottomright.x)
     const maxX = Math.max(extent.topleft.x, extent.topright.x, extent.bottomleft.x, extent.bottomright.x)
@@ -190,118 +126,124 @@ export const getHeightmap = async (
     const minY = Math.min(extent.topleft.y, extent.topright.y, extent.bottomleft.y, extent.bottomright.y)
     const maxY = Math.max(extent.topleft.y, extent.topright.y, extent.bottomleft.y, extent.bottomright.y)
 
-    const tileX0 = Math.floor(minX * (2 ** zoom) / pixelsPerTile)
-    const tileY0 = Math.floor(minY * (2 ** zoom) / pixelsPerTile)
-    const tileX1 = Math.floor(maxX * (2 ** zoom) / pixelsPerTile)
-    const tileY1 = Math.floor(maxY * (2 ** zoom) / pixelsPerTile)
+    const tileX0 = Math.floor(minX * (2 ** zoom) / ppt)
+    const tileY0 = Math.floor(minY * (2 ** zoom) / ppt)
+    const tileX1 = Math.floor(maxX * (2 ** zoom) / ppt)
+    const tileY1 = Math.floor(maxY * (2 ** zoom) / ppt)
+
+    const paddingTileCount = subdivisionCount > 0 ? 1 : 0
+    const dlTileX0 = tileX0 - paddingTileCount
+    const dlTileY0 = tileY0 - paddingTileCount
+    const dlTileX1 = tileX1 + paddingTileCount
+    const dlTileY1 = tileY1 + paddingTileCount
 
     const resultCenterX = extent.centerX * (2 ** zoom)
     const resultCenterY = extent.centerY * (2 ** zoom)
 
-    const offsetCorrection = (subdivision ? settings.subdivisionCount : 0) / scale
+    const offsetX = resultCenterX - tileX0 * ppt - 0.5
+    const offsetY = resultCenterY - tileY0 * ppt - 0.5
 
-    const offsetX = resultCenterX - tileX0 * pixelsPerTile - _correction / 2 + offsetCorrection
-    const offsetY = resultCenterY - tileY0 * pixelsPerTile - _correction / 2 + offsetCorrection
+    const tileCountX = dlTileX1 - dlTileX0 + 1
+    const tileCountY = dlTileY1 - dlTileY0 + 1
+    const totalTiles = tileCountX * tileCountY
 
-    const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
-    const tilePixels = tileCount * PIXELS_PER_TILE
-    const maxTileX = 2 ** zoom - 1
+    console.log('mapType:', mapType, 'zoom:', zoom, 'scale:', scale, `(${(1 / scale * 100).toFixed(2)}%)`, 'subdivisionCount:', subdivisionCount, 'totalTiles:', totalTiles)
+
+    progressCallback({ type: 'total', data: totalTiles })
 
     // input padding is 220 but output padding is 200
     // for FFT processing, the output size must be an even number
     const px = mapPixels + _correction - 20
     const resultPixels = px % 2 === 0 ? px : px + 1
 
-    const totalTiles = tileCount * tileCount
+    const decodeTasks: (() => Promise<void>)[] = []
 
-    progressCallback({ type: 'total', data: totalTiles })
+    const elevations: (Float32Array | null)[][] = Array.from({ length: tileCountY }, () => Array(tileCountX).fill(null))
+    const subdividedElevations: (Float32Array | null)[][] | undefined = subdivisionCount > 0
+      ? Array.from({ length: tileCountY - 2 }, () => Array(tileCountX - 2).fill(null))
+      : undefined
 
-    const tiles = new Array<Promise<FetchResult<Blob>>>(totalTiles)
-    const elevations = new Float32Array(tilePixels * tilePixels)
     const token = settings.useMapbox ? settings.accessToken! : settings.accessTokenMT!
 
-    // fetch tiles
-    for (let y = 0; y < tileCount; y++) {
-      for (let x = 0; x < tileCount; x++) {
-        const tileX = (tileX0 + x + maxTileX + 1) & maxTileX
-        const tileY = tileY0 + y
+    // fetching and decoding tiles
+    for (let y = 0; y < tileCountY; y++) {
+      const tileY = dlTileY0 + y
+      for (let x = 0; x < tileCountX; x++) {
+        const tileX = (dlTileX0 + x + maxTileX + 1) & maxTileX
 
-        if (mapType === 'ocean') {
-          tiles[y * tileCount + x] = useFetchOceanTiles(zoom, tileX, tileY, settings.accessTokenMT!)
-        } else {
-          tiles[y * tileCount + x] = useFetchTerrainTiles(zoom, tileX, tileY, token, settings.useMapbox)
-        }
-      }
-    }
-    const tileList = await Promise.allSettled(tiles)
+        decodeTasks.push(async () => {
+          try {
+            const tileRes = mapType === 'ocean'
+              ? await useFetchOceanTiles(zoom, tileX, tileY, settings.accessTokenMT!)
+              : await useFetchTerrainTiles(zoom, tileX, tileY, token, settings.useMapbox)
 
-    if (totalTiles > 30) {
-      decoder = new TileDecoder()
-      await decoder.processTiles(
-        tileList,
-        settings,
-        mapType,
-        pixelsPerTile,
-        tileCount,
-        elevations,
-        data => progressCallback(data),
-      )
-    } else {
-      if (mapType !== 'ocean' || settings.useMapbox) {
-        await initPng()
-      }
+            if (tileRes.status === 'error') {
+              throw new Error(`Fetch error: ${tileRes.error.message}`)
+            }
 
-      const processTiles = async (list: PromiseSettledResult<FetchResult<Blob>>[]) => {
-        const tilePromises = list.map(async (tile, index) => {
-          if (tile.status === 'fulfilled') {
-            const blob = tile.value.status === 'success' ? tile.value.data : undefined
-            if (blob) {
-              const arrBuffer = await blob.arrayBuffer()
-              let byteArray: Uint8ClampedArray
-              if (mapType === 'ocean' || !settings.useMapbox) {
-                const imgData = await decode_webp(arrBuffer)
-                byteArray = new Uint8ClampedArray(imgData.data)
-              } else {
-                const arr = new Uint8Array(arrBuffer)
-                const byte = await decode_png({ data: arr })
-                byteArray = new Uint8ClampedArray(byte.data)
-              }
-              const elevs = decodeElevation(byteArray)
-              const dy = Math.floor(index / tileCount) * PIXELS_PER_TILE
-              const dx = (index % tileCount) * PIXELS_PER_TILE
+            const arrBuffer = await tileRes.data.arrayBuffer()
+            elevations[y][x] = await decoder.decodeTile(arrBuffer, settings.useMapbox, mapType)
 
-              for (let y = 0; y < PIXELS_PER_TILE; y++) {
-                const srcStart = y * PIXELS_PER_TILE
-                const dstStart = (dy + y) * tilePixels + dx
-                elevations.set(elevs.subarray(srcStart, srcStart + PIXELS_PER_TILE), dstStart)
-              }
-              progressCallback({ type: 'progress' })
+            progressCallback({ type: 'progress' })
+          } catch (error) {
+            if (error instanceof Error) {
+              console.error('Error fetching or decoding tile:', error.message)
+            } else {
+              console.error('Unknown error:', error)
             }
           }
         })
-        await Promise.all(tilePromises)
       }
-      await processTiles(tileList)
+    }
+    await limitedParallelFetch(decodeTasks)
+
+    if (subdivisionCount > 0) {
+      progressCallback({ type: 'subdividingTotal', data: (tileCountY - 2) * (tileCountX - 2) })
+
+      const subdividePromise: Promise<void>[] = []
+      const padding = 4
+
+      for (let y = 0; y < tileCountY - 2; y++) {
+        for (let x = 0; x < tileCountX - 2; x++) {
+          subdividePromise.push((async () => {
+            try {
+              progressCallback({ type: 'subdividingProgress' })
+              await subdivide(
+                mapType,
+                decoder,
+                elevations,
+                subdividedElevations!,
+                x,
+                y,
+                padding,
+                subdivisionCount,
+                settings.subdivisionMargin / 100,
+                settings.subdivisionEnhance / 100,
+                settings.subdivisionDamping / 100,
+              )
+            } catch (error) {
+              if (error instanceof Error) {
+                console.error('Error subdividing tile:', error.message)
+              } else {
+                console.error('Unknown error:', error)
+              }
+            }
+          })())
+        }
+      }
+      await Promise.all(subdividePromise)
     }
 
-    if (mapType !== 'ocean' && subdivision) {
-      progressCallback({ type: 'phase', data: 'Subdividing elevation data' })
-      const subdividedData = mapPixels < 10000
-        ? await subdivideByGradientInWasm(elevations, [1, settings.kernelNumber, 1], settings.subdivisionCount)
-        : subdivideByGradient(elevations, [1, settings.kernelNumber, 1], settings.subdivisionCount)
-      const pixels = tileCount * pixelsPerTile
+    const source = subdivisionCount > 0 ? subdividedElevations : elevations
 
-      const result = settings.interpolation === 'bicubic'
-        ? getHeightMapBicubic(subdividedData, resultPixels, pixels, settings.angle, scale, offsetX, offsetY, _correction)
-        : getHeightMapBilinear(subdividedData, resultPixels, pixels, settings.angle, scale, offsetX, offsetY, _correction)
-
-      return result
+    if (settings.interpolation === 'lanczos') {
+      return lanczos(source!, resultPixels, settings.angle, scale, offsetX, offsetY, _correction, ppt,
+        settings.lanczosWindowSize)
+    } else if (settings.interpolation === 'bicubic') {
+      return bicubic(source!, resultPixels, settings.angle, scale, offsetX, offsetY, _correction, ppt,
+        cubicFamily[settings.cubicFamily].b, cubicFamily[settings.cubicFamily].c)
     } else {
-      const result = settings.interpolation === 'bicubic'
-        ? getHeightMapBicubic(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
-        : getHeightMapBilinear(elevations, resultPixels, tilePixels, settings.angle, scale, offsetX, offsetY, _correction)
-
-      return result
+      return bilinear(source!, resultPixels, settings.angle, scale, offsetX, offsetY, _correction, ppt)
     }
   } catch (error) {
     console.error('An error occurred in getHeightMap:', error)
