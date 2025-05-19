@@ -1,6 +1,6 @@
 import * as Comlink from 'comlink'
 import type { TileDecoderWorkerType } from '~/assets/workers/tileDecoderWorker'
-import type { Settings, MapType, ProgressData, FetchResult } from '~/types/types'
+import type { MapType } from '~/types/types'
 import TileDecoderWorker from '~/assets/workers/tileDecoderWorker.ts?worker'
 import { WorkerPool } from '~/utils/workerPool'
 
@@ -19,68 +19,53 @@ export class TileDecoder {
     this.workerPool = new WorkerPool(remotes)
   }
 
-  public async processTiles(
-    tileList: PromiseSettledResult<FetchResult<Blob>>[],
-    settings: Settings,
-    mapType: MapType,
-    pixelsPerTile: number,
-    tileCount: number,
-    elevations: Float32Array,
-    progressCallback: (data: ProgressData) => void,
-  ) {
-    const decodingPromises = tileList.map(async (tile, index) => {
-      if (tile.status === 'fulfilled' && tile.value.status === 'success' && tile.value.data) {
-        try {
-          const blob = tile.value.data
-          const arrBuffer = await blob.arrayBuffer()
+  public async decodeTile(
+    arrBuffer: ArrayBuffer, useMapbox: boolean, mapType: MapType,
+  ): Promise<Float32Array> {
+    const worker = await this.workerPool.getWorker()
 
-          const worker = await this.workerPool.getWorker()
-          const useMapbox = settings.useMapbox
-          const elevs = await worker.decodeTile(Comlink.transfer(
-            {
-              arrBuffer,
-              useMapbox,
-              mapType,
-            },
-            [arrBuffer],
-          ))
+    try {
+      const decodedElevationData = await worker.decodeTile(Comlink.transfer(
+        { arrBuffer, useMapbox, mapType },
+        [arrBuffer],
+      ))
+      return decodedElevationData
+    } catch (error) {
+      console.error('Error decoding tile:', error)
+      throw error
+    } finally {
+      this.workerPool.releaseWorker(worker)
+    }
+  }
 
-          const dy = Math.floor(index / tileCount) * pixelsPerTile
-          const dx = (index % tileCount) * pixelsPerTile
+  public async subdivideTile(data: Float32Array, count: number, margin: number, enhance: number, damping: number): Promise<Float32Array> {
+    const worker = await this.workerPool.getWorker()
 
-          // copy decoded elevation data to the main elevation array
-          for (let y = 0; y < pixelsPerTile; y++) {
-            for (let x = 0; x < pixelsPerTile; x++) {
-              elevations[(dy + y) * (tileCount * pixelsPerTile) + (dx + x)] = elevs[y * pixelsPerTile + x]
-            }
-          }
+    try {
+      const subdividedElevationData = await worker.subdivideTile(
+        Comlink.transfer(data, [data.buffer]), count, margin, enhance, damping,
+      )
 
-          this.workerPool.releaseWorker(worker)
-          progressCallback({ type: 'progress' })
-        } catch (error) {
-          console.error(`Error processing tile at index #${index}:`, error)
-          throw error
-        }
-      }
-    })
-
-    await Promise.all(decodingPromises)
-    return elevations
+      return subdividedElevationData
+    } catch (error) {
+      console.error('Subdivision error:', error)
+      throw error
+    } finally {
+      this.workerPool.releaseWorker(worker)
+    }
   }
 
   public async terminate() {
-    const terminationPromises = this.workers.map(async ({ remote, worker }) => {
+    await Promise.all(this.workers.map(async ({ remote, worker }) => {
       try {
         await remote.cleanup()
       } catch (error) {
         console.error('Error during decode worker cleanup:', error)
-      } finally {
-        remote[Comlink.releaseProxy]()
-        worker.terminate()
       }
-    })
+      remote[Comlink.releaseProxy]()
+      worker.terminate()
+    }))
 
-    await Promise.all(terminationPromises)
     this.workers = []
   }
 }
