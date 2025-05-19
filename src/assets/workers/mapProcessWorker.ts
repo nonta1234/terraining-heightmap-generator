@@ -1,24 +1,18 @@
 import * as Comlink from 'comlink'
-import { PIXELS_PER_TILE } from '~/utils/const'
-import type { SingleMapOption, MapOption, ProgressData } from '~/types/types'
-import { mixArray, getMinMaxHeight } from '~/utils/elevation'
-import { splitTile, scaleUpBicubic, blendMapsWithFeathering } from '~/utils/tileProcess'
-import { getHeightmap } from '~/utils/getHeightmap'
-import { getWaterMap } from '~/utils/getWaterMap'
-import { getWaterDepthCorrectionMap } from '~/utils/getWaterDepthCorrectionMap'
-import { gaussianBlur, unsharpMask, noise } from '~/utils/effects'
+import type { ProgressData } from '~/types/types'
 
 class MapProcessWorker {
   private index: number | undefined
   private progressCallback: ((data: ProgressData) => void) | undefined
 
-  private validateCallback() {
-    if (!this.progressCallback) {
-      throw new Error('MapProcessWorker: Setting a callback function is required.')
-    }
+  private isTransferable(value: any): boolean {
+    return value instanceof ArrayBuffer
+      || value instanceof ImageBitmap
+      || value instanceof OffscreenCanvas
+      || ArrayBuffer.isView(value)
   }
 
-  public async initialize(index: number, progressCallback: (data: ProgressData) => void) {
+  public initialize(index: number, progressCallback: (data: ProgressData) => void) {
     this.index = index
     this.progressCallback = progressCallback
   }
@@ -27,197 +21,34 @@ class MapProcessWorker {
     return this.index
   }
 
-  public async getMapData(option: SingleMapOption) {
-    this.validateCallback()
+  private async processWithTransfer<T>(fn: () => Promise<T>): Promise<T> {
+    const result = await fn()
+    const transferables: Transferable[] = []
 
-    try {
-      const {
-        settings,
-        rasterExtent,
-        vectorExtent,
-        oceanExtent,
-        mapPixels,
-        rasterPixels,
-        unitSize,
-        subdivision,
-        isDebug,
-      } = option
-
-      const vectorPixels = 4096
-
-      const [heightmap, oceanMap, { waterMap, waterWayMap, waterMapImage, waterWayMapImage }, weterDepthMap] = settings.actualSeafloor
-        ? await Promise.all([
-          getHeightmap(settings.gridInfo, settings, rasterExtent, mapPixels, rasterPixels, subdivision,
-            data => this.progressCallback!(data),
-          ),
-          getHeightmap('ocean', settings, oceanExtent, mapPixels, PIXELS_PER_TILE, false,
-            data => this.progressCallback!(data),
-          ),
-          getWaterMap(settings, vectorExtent, mapPixels, unitSize, false, vectorPixels, isDebug,
-            data => this.progressCallback!(data),
-          ),
-          getWaterDepthCorrectionMap(settings, mapPixels),
-        ])
-        : await Promise.all([
-          getHeightmap(settings.gridInfo, settings, rasterExtent, mapPixels, rasterPixels, subdivision,
-            data => this.progressCallback!(data),
-          ),
-          undefined,
-          getWaterMap(settings, vectorExtent, mapPixels, unitSize, true, vectorPixels, isDebug,
-            data => this.progressCallback!(data),
-          ),
-          getWaterDepthCorrectionMap(settings, mapPixels),
-        ])
-
-      const resultHeightmap = oceanMap ? mixArray(heightmap, oceanMap) : heightmap
-
-      const transferables: (ArrayBufferLike | ImageBitmap)[] = [resultHeightmap.buffer, waterMap.buffer, waterWayMap.buffer]
-
-      if (weterDepthMap) {
-        transferables.push(weterDepthMap.buffer)
+    if (result instanceof Float32Array || result instanceof Uint8Array) {
+      transferables.push(result.buffer)
+    } else if (result instanceof ArrayBuffer || result instanceof ImageBitmap || result instanceof OffscreenCanvas) {
+      transferables.push(result)
+    } else if (typeof result === 'object' && result !== null) {
+      for (const key in result) {
+        if (this.isTransferable(result[key])) {
+          if (result[key] instanceof Float32Array || result[key] instanceof Uint8Array) {
+            transferables.push(result[key].buffer)
+          } else {
+            transferables.push(result[key] as Transferable)
+          }
+        }
       }
-
-      if (waterMapImage) {
-        transferables.push(waterMapImage)
-      }
-
-      if (waterWayMapImage) {
-        transferables.push(waterWayMapImage)
-      }
-
-      return Comlink.transfer(
-        {
-          heightmap: resultHeightmap,
-          waterMap,
-          waterWayMap,
-          weterDepthMap,
-          waterMapImage,
-          waterWayMapImage,
-        },
-        transferables,
-      )
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  public async applyEffects(mapData: Float32Array, option: MapOption) {
-    this.validateCallback()
-
-    try {
-      this.progressCallback!({ type: 'phase', data: `Processing effects (#${this.index})` })
-
-      const { settings, smoothRadius, sharpenRadius, unitSize } = option
-
-      const blurredMap = settings.smoothing > 0
-        ? await gaussianBlur(mapData, smoothRadius, settings.smoothing / 100, settings.smthThres, settings.smthFade) ?? mapData
-        : mapData
-
-      const effectedMap = settings.sharpen > 0
-        ? await unsharpMask(blurredMap, settings.sharpen / 100, sharpenRadius, settings.shrpThres, settings.shrpFade) ?? blurredMap
-        : blurredMap
-
-      const noiseMap = settings.noise > 0
-        ? await noise(effectedMap, settings.noise, settings.noiseThres, unitSize, settings.shrpThres, settings.shrpFade)
-        : undefined
-
-      const transferables: (ArrayBufferLike | ImageBitmap)[] = [effectedMap.buffer]
-
-      if (noiseMap) {
-        transferables.push(noiseMap.buffer)
-      }
-
-      return Comlink.transfer(
-        {
-          effectedMap,
-          noiseMap,
-        },
-        transferables,
-      )
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  public async splitTile(data: Float32Array, divisions: number, padding: number) {
-    this.validateCallback()
-    this.progressCallback!({ type: 'phase', data: `Splitting map tile for segmentation. (#${this.index})` })
-    const results = await splitTile(data, divisions, padding)
-    const transferables = results.map(tile => tile.buffer)
-
-    return Comlink.transfer(
-      results,
-      transferables,
-    )
-  }
-
-  public async scaleUpBicubic(data: Float32Array) {
-    this.validateCallback()
-    this.progressCallback!({ type: 'phase', data: `Making world map high resolution. (#${this.index})` })
-
-    const result = await scaleUpBicubic(data)
-
-    return Comlink.transfer(
-      result,
-      [result!.buffer],
-    )
-  }
-
-  public async blendMapsWithFeathering(worldMap: Float32Array, heightmap: Float32Array, featherSize: number) {
-    this.validateCallback()
-    this.progressCallback!({ type: 'phase', data: `Blending maps. (#${this.index})` })
-
-    const result = await blendMapsWithFeathering(worldMap, heightmap, featherSize)
-
-    return Comlink.transfer(
-      result,
-      [result.buffer],
-    )
-  }
-
-  public async combineMap(
-    heightmap: Float32Array,
-    noiseMap: Float32Array | undefined,
-    waterMap: Float32Array,
-    waterWayMap: Float32Array,
-    waterDepthMap: Float32Array,
-    option: MapOption,
-    getMinMax: boolean,
-  ) {
-    this.validateCallback()
-    this.progressCallback!({ type: 'phase', data: `Combining map data (#${this.index})` })
-
-    const { depth, streamDepth } = option.settings
-    const result = new Float32Array(heightmap.length)
-
-    for (let i = 0; i < heightmap.length; i++) {
-      const landArea = waterMap[i] * waterWayMap[i] === 1 ? 1 : 0
-      const waterDepth = Math.max((1 - waterMap[i]) * (depth + waterDepthMap[i]), (1 - waterWayMap[i]) * (streamDepth + waterDepthMap[i]))
-      const noise = noiseMap ? noiseMap[i] : 0
-      result[i] = heightmap[i] + landArea * noise - waterDepth
     }
 
-    const { min, max } = getMinMax ? await getMinMaxHeight(result, 100) : { min: 0, max: 0 }
-
-    return Comlink.transfer(
-      {
-        result,
-        min,
-        max,
-      },
-      [result.buffer],
-    )
+    return transferables.length > 0 ? Comlink.transfer(result, transferables) : result
   }
 
-  public async extractMap(data: Float32Array, startX: number, startY: number, cropSize: number) {
-    const imageSize = Math.sqrt(data.length)
-    const result = new Float32Array(cropSize * cropSize)
-    for (let y = 0; y < cropSize; y++) {
-      const originalStartIndex = (startY + y) * imageSize + startX
-      const cropStartIndex = y * cropSize
-      result.set(data.subarray(originalStartIndex, originalStartIndex + cropSize), cropStartIndex)
-    }
-    return Comlink.transfer(result, [result.buffer])
+  public async executeProcess<T extends (...args: any[]) => any>(
+    processFn: Comlink.ProxyMarked & T,
+    ...args: Parameters<T>
+  ): Promise<ReturnType<T>> {
+    return this.processWithTransfer(() => processFn(...args))
   }
 }
 
