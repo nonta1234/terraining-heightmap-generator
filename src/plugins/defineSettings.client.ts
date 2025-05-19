@@ -1,6 +1,7 @@
 import type { Settings } from '~/types/types'
+import { initialValue } from '~/utils/const'
 
-function filterSettings(raw: any): Partial<Settings> {
+const filterSettings = (raw: any): Partial<Settings> => {
   const filtered: Partial<Settings> = {}
 
   for (const key in raw) {
@@ -28,6 +29,7 @@ export default defineNuxtPlugin(() => {
   return {
     provide: {
       defineSettings,
+      filterSettings,
       resetSettings,
     },
   }
