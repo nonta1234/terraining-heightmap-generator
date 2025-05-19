@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { settingsSchema, type Settings } from '~/types/types'
+import { initialValue } from '~/utils/const'
+
 const mapbox = useMapbox()
 const device = useDevice()
 const visibillity = ref(false)
@@ -32,14 +34,19 @@ async function importSettingsFromFile(file: File): Promise<Settings | null> {
 
   try {
     const importedData = JSON.parse(fileContent)
-    const parsedSettings = settingsSchema.safeParse(importedData)
+
+    const { $filterSettings } = useNuxtApp()
+    const filteredData = $filterSettings(importedData)
+    const mergedSettings = structuredClone({ ...initialValue, ...filteredData })
+
+    const parsedSettings = settingsSchema.safeParse(mergedSettings)
 
     if (parsedSettings.success) {
       const settings: Partial<Settings> = parsedSettings.data
       const currentSettings: Settings = mapbox.value.settings
-      settings.userStyleURL = settings.userStyleURL ?? currentSettings.userStyleURL
-      settings.accessToken = settings.accessToken ?? currentSettings.accessToken
-      settings.accessTokenMT = settings.accessTokenMT ?? currentSettings.accessTokenMT
+      settings.userStyleURL = settings.userStyleURL || currentSettings.userStyleURL
+      settings.accessToken = settings.accessToken || currentSettings.accessToken
+      settings.accessTokenMT = settings.accessTokenMT || currentSettings.accessTokenMT
       return { ...currentSettings, ...settings }
     } else {
       console.error('Validation failed:', parsedSettings.error)
@@ -167,9 +174,41 @@ onMounted(() => {
 
 <template>
   <div id="config-tab">
-    <div class="checkbox">
+    <div class="single">
       <label class="label" for="original-preview">Preview at original resolution&#8202;:&nbsp;&nbsp;</label>
       <ToggleSwitch v-model="mapbox.settings.originalPreview" :name="'original-preview'" :disabled="device.isMobile" />
+    </div>
+    <hr>
+    <div calss="interpolation">
+      <h4>Interpolation</h4>
+      <label for="cubic-family">Cubic Family&#8202;:</label>
+      <SelectMenu id="cubic-family" v-model="mapbox.settings.cubicFamily"
+        :options="[
+          { value: 'bSpline', label: 'B-spline' },
+          { value: 'mitchell', label: 'Mitchell-Netravali' },
+          { value: 'catmull', label: 'Catmull-Rom' },
+          { value: 'hermite', label: 'Hermite' },
+        ]"
+      />
+      <label for="lanczos-window-size">Lanczos Window Size&#8202;:</label>
+      <SelectMenu id="lanczos-window-size" v-model="mapbox.settings.lanczosWindowSize"
+        :options="[
+          { value: 2, label: '2' },
+          { value: 3, label: '3 (Default)' },
+          { value: 4, label: '4' },
+        ]"
+      />
+    </div>
+    <hr>
+    <div class="single">
+      <label class="label" for="oversampling">Oversampling&#8202;:</label>
+      <SelectMenu id="oversampling" v-model="mapbox.settings.oversampling"
+        :options="[
+          { value: 1, label: 'None' },
+          { value: 2, label: '2x' },
+          { value: 4, label: '4x' },
+        ]"
+      />
     </div>
     <hr>
     <div class="subdivision">
@@ -182,18 +221,18 @@ onMounted(() => {
         <label for="subdivision-count">Detail Level&#8202;:</label>
         <SelectMenu id="subdivision-count" v-model="mapbox.settings.subdivisionCount" class="gap"
           :options="[
-            { value: 1, label: 'x2' },
-            { value: 2, label: 'x4' },
+            { value: 0, label: 'Auto' },
+            { value: 1, label: '2x' },
+            { value: 2, label: '4x' },
+            { value: 3, label: '8x' },
           ]"
         />
-        <label for="edge-sensitivity">Mode&#8202;:</label>
-        <SelectMenu id="edge-sensitivity" v-model="mapbox.settings.kernelNumber"
-          :options="[
-            { value: 4, label: 'Soft' },
-            { value: 16, label: 'Balanced' },
-            { value: 64, label: 'Sharp' },
-          ]"
-        />
+        <label for="subdivision-margin">Margin&#8202;:</label>
+        <NumberInput id="subdivision-margin" v-model="mapbox.settings.subdivisionMargin" :max="100" :min="0" :step="1" unit="%" />
+        <label for="subdivision-enhance">Enhance&#8202;:</label>
+        <NumberInput id="subdivision-enhance" v-model="mapbox.settings.subdivisionEnhance" :max="1000" :min="0" :step="1" unit="%" class="gap" />
+        <label for="subdivision-damping">Damping&#8202;:</label>
+        <NumberInput id="subdivision-damping" v-model="mapbox.settings.subdivisionDamping" :max="100" :min="0" :step="1" unit="%" />
       </div>
     </div>
     <hr>
@@ -206,7 +245,7 @@ onMounted(() => {
       </button>
     </div>
     <hr>
-    <div class="checkbox gap0">
+    <div class="single gap0">
       <label class="label flexible-line-height" for="use-mapbox">Use mapbox for heightmap source&#8202;:&nbsp;&nbsp;</label>
       <ToggleSwitch v-model="mapbox.settings.useMapbox" :name="'use-mapbox'" />
     </div>
@@ -234,7 +273,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.checkbox {
+.single {
   display: flex;
 }
 
@@ -307,6 +346,13 @@ onMounted(() => {
   margin: auto 0 auto auto;
 }
 
+
+h4 {
+  font-size: 1rem;
+  font-weight: 400;
+  padding-top: .125rem;
+}
+
 hr {
   background-color: $borderColor;
   height: 2px;
@@ -354,14 +400,6 @@ hr {
 
 .io-button {
   @include common-button;
-}
-
-.subdivision {
-  h4 {
-    font-size: 1rem;
-    font-weight: 400;
-    padding-top: .125rem;
-  }
 }
 
 .subdivision-controls {
