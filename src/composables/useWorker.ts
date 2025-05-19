@@ -13,11 +13,15 @@ export const initializeWorker = async () => {
           case 'total':
             useEvent('message:total', data.data as number)
             break
-
+          case 'subdividingTotal':
+            useEvent('message:subdividingTotal', data.data as number)
+            break
           case 'progress':
             useEvent('message:progress')
             break
-
+          case 'subdividingProgress':
+            useEvent('message:subdividingProgress')
+            break
           case 'phase':
             useEvent('message:phase', data.data?.toString() || '')
             break
