@@ -62,6 +62,7 @@ export const renderDepthCanvas = (
 
   clear(gl, { color: [0, 0, 0, 0], depth: true })
   triangleModel.draw()
+  triangleModel.delete()
 
   if (linePositions) {
     const lineAttributes = {
@@ -79,8 +80,6 @@ export const renderDepthCanvas = (
     lineModel.draw()
     lineModel.delete()
   }
-
-  triangleModel.delete()
 }
 
 export const getDepthCorrectionData = (
