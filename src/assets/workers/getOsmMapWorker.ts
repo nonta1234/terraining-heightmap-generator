@@ -1,11 +1,11 @@
 import * as turf from '@turf/turf'
-import type { Feature, Polygon, MultiPolygon, FeatureCollection, GeoJsonProperties } from 'geojson'
+import { getGeom } from '@turf/invariant'
 import { geojson2osm } from 'geojson2osm'
 import osm2geojson from 'osm2geojson-lite'
-import { getGeom } from '@turf/invariant'
+import type { Feature, Polygon, MultiPolygon, FeatureCollection, GeoJsonProperties } from 'geojson'
+import type { GenerateMapOption } from '~/types/types'
 import { getExtent } from '~/utils/getExtent'
 import booleanContains from '~/utils/contains'
-import type { GenerateMapOption } from '~/types/types'
 
 function clip(clippingData: Feature<Polygon, GeoJsonProperties>, inputData: turf.AllGeoJSON) {
   const output: FeatureCollection = {
