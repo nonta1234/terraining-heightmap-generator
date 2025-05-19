@@ -1,6 +1,6 @@
 import type { Settings } from '~/types/types'
-import { mapSpec } from '~/utils/const'
 import Delaunator from 'delaunator'
+import { mapSpec } from '~/utils/const'
 import { getDepthCorrectionData } from '~/utils/depthCanvasRender'
 
 export const getWaterDepthCorrectionMap = (
