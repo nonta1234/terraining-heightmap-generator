@@ -1,13 +1,12 @@
-import type { Settings, Extent, ProgressData } from '~/types/types'
-import type { FetchError } from 'ofetch'
 import * as turf from '@turf/turf'
-import type { Geometry, Position } from 'geojson'
 import { VectorTile, Point } from 'mapbox-vector-tile'
+import RBush, { type BBox } from 'rbush'
+import type { Settings, Extent, ProgressData, FetchResult } from '~/types/types'
+import type { Geometry, Position } from 'geojson'
 import { createSlopeTexture, createRadialTexture } from '~/utils/createTexture'
-import { useFetchVectorTiles } from '~/composables/useFetchTiles'
 import { mapSpec } from '~/utils/const'
 import booleanContains from '~/utils/contains'
-import RBush from 'rbush'
+import { useFetchVectorTiles, limitedParallelFetch } from '~/composables/useFetchTiles'
 
 /**
  * When drawing a slope, if a line segment from another feature overlaps,
@@ -16,12 +15,7 @@ import RBush from 'rbush'
 
 /** */
 
-type T = {
-  data: Blob | undefined
-  error: FetchError<any> | undefined
-}
-
-interface BBoxItem extends RBush.BBox {
+interface BBoxItem extends BBox {
   minX: number
   minY: number
   maxX: number
@@ -253,7 +247,7 @@ export const getWaterMap = async (
 
     const side = Math.sqrt((extent.topright.x - extent.bottomleft.x) ** 2 + (extent.topright.y - extent.bottomleft.y) ** 2) / Math.SQRT2
 
-    const zoom = Math.ceil(Math.log2(mapPixels / side)) + settings.waterside
+    const zoom = Math.min(Math.ceil(Math.log2(mapPixels / side)) + settings.waterside, 15)
     const scale = mapPixels / (side * (2 ** zoom))
 
     const minX = Math.min(extent.topleft.x, extent.topright.x, extent.bottomleft.x, extent.bottomright.x)
@@ -270,8 +264,9 @@ export const getWaterMap = async (
     const _centerX = extent.centerX * (2 ** zoom)
     const _centerY = extent.centerY * (2 ** zoom)
 
-    const offsetX = _centerX - tileX0 * pixelsPerTile
-    const offsetY = _centerY - tileY0 * pixelsPerTile
+    const offsetCorrection = mapSpec[settings.gridInfo].correction === 1 ? 0.5 : 0
+    const offsetX = _centerX - tileX0 * pixelsPerTile - offsetCorrection
+    const offsetY = _centerY - tileY0 * pixelsPerTile - offsetCorrection
 
     // input padding is 220 but output padding is 200
     // for FFT processing, the output size must be an even number
@@ -280,7 +275,7 @@ export const getWaterMap = async (
 
     const tileCount = Math.max(tileX1 - tileX0 + 1, tileY1 - tileY0 + 1)
     const maxTileX = 2 ** zoom - 1
-    const halfMapSize = px / 2
+    const halfMapSize = (mapPixels - 20) / 2
     const theta = -settings.angle * Math.PI / 180
 
     // setup waterCtx
@@ -329,113 +324,129 @@ export const getWaterMap = async (
 
     const totalTiles = tileCount * tileCount
     progressCallback({ type: 'total', data: totalTiles })
-    const tiles = new Array<Promise<T>>(totalTiles)
-    // fetch tiles
+
+    const fetchTileTasks: (() => Promise<{
+      tileX: number
+      tileY: number
+      result: FetchResult<Blob>
+    } | null>)[] = []
+
     for (let y = 0; y < tileCount; y++) {
+      const tileY = tileY0 + y
+
       for (let x = 0; x < tileCount; x++) {
         const tileX = (tileX0 + x + maxTileX + 1) & maxTileX
-        const tileY = tileY0 + y
-        tiles[y * tileCount + x] = useFetchVectorTiles(zoom, tileX, tileY, settings.accessTokenMT!)
+
+        fetchTileTasks.push(async () => {
+          try {
+            const res = await useFetchVectorTiles(zoom, tileX, tileY, settings.accessTokenMT!)
+            return res.status === 'success' ? { tileX, tileY, result: res } : null
+          } catch (e) {
+            console.warn(`Tile fetch failed at (${tileX}, ${tileY})`, e)
+            return null
+          }
+        })
       }
     }
-    const tileList = await Promise.allSettled(tiles)
 
-    const processTiles = async (list: PromiseSettledResult<T>[]) => {
-      const tilePromises = list.map(async (tileResult, index) => {
-        if (tileResult.status === 'fulfilled') {
-          const arrayBuffer = await tileResult.value.data?.arrayBuffer()
-          if (arrayBuffer) {
-            // set position of tiles
-            const tile = new VectorTile(new Uint8Array(arrayBuffer))
-            const transX = Math.floor(index % tileCount) * pixelsPerTile
-            const transY = Math.floor(index / tileCount) * pixelsPerTile
-            waterCtx.save()
-            waterCtx.translate(transX, transY)
-            waterCtx.beginPath()
-            waterCtx.rect(-2, -2, pixelsPerTile + 4, pixelsPerTile + 4)
-            waterCtx.clip()
-            waterSideCtx.save()
-            waterSideCtx.translate(transX, transY)
-            waterWayCtx.save()
-            waterWayCtx.translate(transX, transY)
-            waterWayCtx.beginPath()
-            waterWayCtx.rect(-2, -2, pixelsPerTile + 4, pixelsPerTile + 4)
-            waterWayCtx.clip()
-            const waterTree = getWaterTree(tile)
-            // draw start
-            if (tile.layers.water) {
-              for (let i = 0; i < tile.layers.water.length; i++) {
-                const feature = tile.layers.water.feature(i)
-                const geo = feature.asPolygons() as Point[][][]
-                const _id = (feature.properties.id ?? 0) as number
-                // draw water area & inner lands
-                if (feature.properties.class !== 'ocean' || includeOcean) {
-                  for (let j = 0; j < geo.length; j++) {
-                    waterCtx.fillStyle = '#000000'
-                    const outerPath = geo[j][0]
-                    drawPath(waterCtx, outerPath).fill()
-                    waterCtx.fillStyle = '#FFFFFF'
-                    for (let m = 1; m < geo[j].length; m++) {
-                      const innerPath = geo[j][m]
-                      drawPath(waterCtx, innerPath).fill()
-                    }
-                  }
-                }
-                if (feature.properties.class === 'ocean' && includeOcean) {
-                // draw littoral
-                  for (let j = 0; j < geo.length; j++) {
-                    for (let m = 0; m < geo[j].length; m++) {
-                      const path = []
-                      for (let n = 0; n < geo[j][m].length; n++) {
-                        const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
-                        path.push(point)
-                      }
-                      drawSlope(littCtx, waterSideCtx, littCornerCtx, waterSideCtx, waterCtx, _id, path, waterTree)
-                    }
-                  }
-                } else {
-                // draw riparian
-                  for (let j = 0; j < geo.length; j++) {
-                    for (let m = 0; m < geo[j].length; m++) {
-                      const path = []
-                      for (let n = 0; n < geo[j][m].length; n++) {
-                        const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
-                        path.push(point)
-                      }
-                      drawSlope(ripaCtx, waterSideCtx, ripaCornerCtx, waterSideCtx, waterCtx, _id, path, waterTree)
-                    }
-                  }
-                }
+    const tileResults = await limitedParallelFetch(fetchTileTasks)
+
+    for (const entry of tileResults) {
+      if (!entry || entry.result.status === 'error') continue
+      const { tileX, tileY, result } = entry
+      const arrayBuffer = await result.data.arrayBuffer()
+      if (!arrayBuffer) continue
+
+      // set position of tiles
+      const tile = new VectorTile(new Uint8Array(arrayBuffer))
+      const transX = (tileX - tileX0) * pixelsPerTile
+      const transY = (tileY - tileY0) * pixelsPerTile
+      waterCtx.save()
+      waterCtx.translate(transX, transY)
+      waterCtx.beginPath()
+      waterCtx.rect(-2, -2, pixelsPerTile + 4, pixelsPerTile + 4)
+      waterCtx.clip()
+      waterSideCtx.save()
+      waterSideCtx.translate(transX, transY)
+      waterWayCtx.save()
+      waterWayCtx.translate(transX, transY)
+      waterWayCtx.beginPath()
+      waterWayCtx.rect(-2, -2, pixelsPerTile + 4, pixelsPerTile + 4)
+      waterWayCtx.clip()
+      const waterTree = getWaterTree(tile)
+      // draw start
+      if (tile.layers.water) {
+        for (let i = 0; i < tile.layers.water.length; i++) {
+          const feature = tile.layers.water.feature(i)
+          const geo = feature.asPolygons() as Point[][][]
+          const _id = (feature.properties.id ?? 0) as number
+          // draw water area & inner lands
+          if (feature.properties.class !== 'ocean' || includeOcean) {
+            for (let j = 0; j < geo.length; j++) {
+              waterCtx.fillStyle = '#000000'
+              const outerPath = geo[j][0]
+              drawPath(waterCtx, outerPath).fill()
+              waterCtx.fillStyle = '#FFFFFF'
+
+              for (let m = 1; m < geo[j].length; m++) {
+                const innerPath = geo[j][m]
+                drawPath(waterCtx, innerPath).fill()
               }
             }
-            // draw water way
-            if (tile.layers.waterway) {
-              waterWayCtx.filter = 'blur(1px)'
-              waterWayCtx.lineWidth = Math.max(settings.streamWidth / (unitSize * 1000) / scale, 1)
-              waterWayCtx.strokeStyle = '#000000'
-              for (let i = 0; i < tile.layers.waterway.length; i++) {
-                const feature = tile.layers.waterway.feature(i)
-                const geo = feature.loadGeometry()
-                for (let m = 0; m < geo.length; m++) {
-                  waterWayCtx.beginPath()
-                  waterWayCtx.moveTo(geo[m][0].x, geo[m][0].y)
-                  for (let n = 1; n < geo[m].length; n++) {
-                    waterWayCtx.lineTo(geo[m][n].x, geo[m][n].y)
-                  }
-                  waterWayCtx.stroke()
+          }
+          if (feature.properties.class === 'ocean' && includeOcean) {
+            // draw littoral
+            for (let j = 0; j < geo.length; j++) {
+              for (let m = 0; m < geo[j].length; m++) {
+                const path = []
+                for (let n = 0; n < geo[j][m].length; n++) {
+                  const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
+                  path.push(point)
                 }
+                drawSlope(littCtx, waterSideCtx, littCornerCtx, waterSideCtx, waterCtx, _id, path, waterTree)
               }
             }
-            waterCtx.restore()
-            waterSideCtx.restore()
-            waterWayCtx.restore()
-            progressCallback({ type: 'progress' })
+          } else {
+            // draw riparian
+            for (let j = 0; j < geo.length; j++) {
+              for (let m = 0; m < geo[j].length; m++) {
+                const path = []
+                for (let n = 0; n < geo[j][m].length; n++) {
+                  const point = new Point(geo[j][m][n].x, geo[j][m][n].y)
+                  path.push(point)
+                }
+                drawSlope(ripaCtx, waterSideCtx, ripaCornerCtx, waterSideCtx, waterCtx, _id, path, waterTree)
+              }
+            }
           }
         }
-      })
-      await Promise.all(tilePromises)
+      }
+      // draw water way
+      if (tile.layers.waterway) {
+        const path2d = new Path2D()
+        waterWayCtx.filter = 'blur(1px)'
+        waterWayCtx.lineWidth = Math.max(settings.streamWidth / (unitSize * 1000) / scale, 1)
+        waterWayCtx.strokeStyle = '#000000'
+
+        for (let i = 0; i < tile.layers.waterway.length; i++) {
+          const feature = tile.layers.waterway.feature(i)
+          const geo = feature.loadGeometry()
+          for (let m = 0; m < geo.length; m++) {
+            waterWayCtx.beginPath()
+            path2d.moveTo(geo[m][0].x, geo[m][0].y)
+            for (let n = 1; n < geo[m].length; n++) {
+              path2d.lineTo(geo[m][n].x, geo[m][n].y)
+            }
+          }
+        }
+        waterWayCtx.stroke(path2d)
+      }
+
+      waterCtx.restore()
+      waterSideCtx.restore()
+      waterWayCtx.restore()
+      progressCallback({ type: 'progress' })
     }
-    await processTiles(tileList)
 
     const resultWaterCtx = new OffscreenCanvas(resultPixels, resultPixels).getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
     resultWaterCtx.drawImage(waterCtx.canvas, 0, 0)
