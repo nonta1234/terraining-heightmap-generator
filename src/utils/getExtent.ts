@@ -46,7 +46,7 @@ export const rotateExtent = (extent: Extent, angle: number, centerX: number, cen
  * Returns the coordinates of each point in any km square.
  * @param lng Center longitude
  * @param lat Center latitude
- * @param size km
+ * @param size Side length in kilometers
  * @param offset Inward offset (0 - 0.5)
  * @returns Coordinate of each point
  */
@@ -92,12 +92,12 @@ export const getExtent = (lng: number, lat: number, size: number, offset = 0) =>
 }
 
 /**
- * Returns the world pixel coordinates of each side in any km square.
+ * Returns the world pixel coordinates of the square extent in a given km range.
  * @param lng Center longitude
  * @param lat Center latitude
- * @param size km
+ * @param size Side length in kilometers
  * @param offset Inward offset (0 - 0.5)
- * @param pixelsPerTile default 256, Mapbox Terrain-DEM v1 \@2x is 512
+ * @param pixelsPerTile Number of pixels per tile at zoom level 0 (default: 256). Use 512 for Mapbox Terrain-DEM v1 \@2x.
  * @returns World pixel coordinates
  */
 export const getExtentInWorldCoords = (lng: number, lat: number, size: number, offset = 0, pixelsPerTile = 256): Extent => {
