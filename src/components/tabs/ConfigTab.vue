@@ -37,8 +37,10 @@ async function importSettingsFromFile(file: File): Promise<Settings | null> {
 
     const { $filterSettings } = useNuxtApp()
     const filteredData = $filterSettings(importedData)
-    const mergedSettings = structuredClone({ ...initialValue, ...filteredData })
-
+    const mergedSettings = {
+      ...structuredClone(initialValue),
+      ...structuredClone(filteredData),
+    }
     const parsedSettings = settingsSchema.safeParse(mergedSettings)
 
     if (parsedSettings.success) {
@@ -179,30 +181,32 @@ onMounted(() => {
       <ToggleSwitch v-model="mapbox.settings.originalPreview" :name="'original-preview'" :disabled="device.isMobile" />
     </div>
     <hr>
-    <div calss="interpolation">
-      <h4>Interpolation</h4>
-      <label for="cubic-family">Cubic Family&#8202;:</label>
-      <SelectMenu id="cubic-family" v-model="mapbox.settings.cubicFamily"
-        :options="[
-          { value: 'bSpline', label: 'B-spline' },
-          { value: 'mitchell', label: 'Mitchell-Netravali' },
-          { value: 'catmull', label: 'Catmull-Rom' },
-          { value: 'hermite', label: 'Hermite' },
-        ]"
-      />
-      <label for="lanczos-window-size">Lanczos Window Size&#8202;:</label>
-      <SelectMenu id="lanczos-window-size" v-model="mapbox.settings.lanczosWindowSize"
-        :options="[
-          { value: 2, label: '2' },
-          { value: 3, label: '3 (Default)' },
-          { value: 4, label: '4' },
-        ]"
-      />
+    <div class="interpolation">
+      <h4>Interpolation Option</h4>
+      <div class="interpolation-controls">
+        <label for="cubic-family">Cubic Family&#8202;:</label>
+        <SelectMenu id="cubic-family" v-model="mapbox.settings.cubicFamily"
+          :options="[
+            { value: 'bSpline', label: 'B-Spline' },
+            { value: 'mitchell', label: 'Mitchell-Netravali' },
+            { value: 'catmull', label: 'Catmull-Rom' },
+            { value: 'hermite', label: 'Hermite' },
+          ]"
+        />
+        <label for="lanczos-window-size">Lanczos Window Size&#8202;:</label>
+        <SelectMenu id="lanczos-window-size" v-model="mapbox.settings.lanczosWindowSize"
+          :options="[
+            { value: 2, label: '2' },
+            { value: 3, label: '3 (Default)' },
+            { value: 4, label: '4' },
+          ]"
+        />
+      </div>
     </div>
     <hr>
-    <div class="single">
+    <div class="single gap2 top-gap">
       <label class="label" for="oversampling">Oversampling&#8202;:</label>
-      <SelectMenu id="oversampling" v-model="mapbox.settings.oversampling"
+      <SelectMenu id="oversampling" v-model="mapbox.settings.oversampling" class="oversampling"
         :options="[
           { value: 1, label: 'None' },
           { value: 2, label: '2x' },
@@ -275,6 +279,7 @@ onMounted(() => {
 <style lang="scss" scoped>
 .single {
   display: flex;
+  justify-content: space-between;
 }
 
 .label {
@@ -336,6 +341,10 @@ onMounted(() => {
   margin-bottom: 1.125rem;
 }
 
+.top-gap {
+  padding-top: .375rem;
+}
+
 .required {
   color: $textAlt;
   font-size: .75rem;
@@ -345,7 +354,6 @@ onMounted(() => {
 :deep(.toggle-switch) {
   margin: auto 0 auto auto;
 }
-
 
 h4 {
   font-size: 1rem;
@@ -402,14 +410,30 @@ hr {
   @include common-button;
 }
 
+:deep(.oversampling) {
+  width: 10rem !important;
+}
+
 .subdivision-controls {
   display: grid;
   width: 100%;
   gap: .75rem 0;
   grid-template-columns: 6.25rem 7.25rem 6.25rem 6.25rem;
   line-height: 1.875;
-  margin: .25rem 0 1.125rem;
+  margin: .5rem 0 1.125rem;
 
+  @media screen and (max-width: 524px) {
+    grid-template-columns: 1fr 7rem;
+  }
+}
+
+.interpolation-controls {
+  display: grid;
+  width: 100%;
+  gap: .75rem 0;
+  grid-template-columns: auto 10rem;
+  line-height: 1.875;
+  margin: .5rem 0 1.125rem;
 
   @media screen and (max-width: 524px) {
     grid-template-columns: 1fr 7rem;
