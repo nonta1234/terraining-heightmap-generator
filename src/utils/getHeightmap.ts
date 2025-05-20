@@ -181,8 +181,9 @@ export const getHeightmap = async (
               throw new Error(`Fetch error: ${tileRes.error.message}`)
             }
 
-            const arrBuffer = await tileRes.data.arrayBuffer()
+            let arrBuffer: ArrayBuffer | null = await tileRes.data.arrayBuffer()
             elevations[y][x] = await decoder.decodeTile(arrBuffer, settings.useMapbox, mapType)
+            arrBuffer = null
 
             progressCallback({ type: 'progress' })
           } catch (error) {

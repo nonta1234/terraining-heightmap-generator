@@ -354,7 +354,7 @@ export const getWaterMap = async (
     for (const entry of tileResults) {
       if (!entry || entry.result.status === 'error') continue
       const { tileX, tileY, result } = entry
-      const arrayBuffer = await result.data.arrayBuffer()
+      let arrayBuffer: ArrayBuffer | null = await result.data.arrayBuffer()
       if (!arrayBuffer) continue
 
       // set position of tiles
@@ -441,6 +441,8 @@ export const getWaterMap = async (
         }
         waterWayCtx.stroke(path2d)
       }
+
+      arrayBuffer = null
 
       waterCtx.restore()
       waterSideCtx.restore()
