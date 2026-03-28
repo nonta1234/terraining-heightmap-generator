@@ -7,28 +7,28 @@ export const rotateExtent = (extent: Extent, angle: number, centerX: number, cen
   const cosTheta = Math.cos(-angle * Math.PI / 180)
   const sinTheta = Math.sin(-angle * Math.PI / 180)
 
-  const _offset = ({ x, y }: { x: number, y: number }) => {
+  const offset = ({ x, y }: { x: number, y: number }) => {
     return { x: x - centerX, y: y - centerY }
   }
 
-  const _rotate = ({ x, y }: { x: number, y: number }) => {
+  const rotate = ({ x, y }: { x: number, y: number }) => {
     return {
       x: (x * cosTheta + y * sinTheta) + centerX,
       y: (y * cosTheta - x * sinTheta) + centerY,
     }
   }
 
-  const offsetTopleft = _offset(extent.topleft)
-  const offsetTopright = _offset(extent.topright)
-  const offsetBottomleft = _offset(extent.bottomleft)
-  const offsetBottomright = _offset(extent.bottomright)
+  const offsetTopleft = offset(extent.topleft)
+  const offsetTopright = offset(extent.topright)
+  const offsetBottomleft = offset(extent.bottomleft)
+  const offsetBottomright = offset(extent.bottomright)
   const offsetCX = extent.centerX - centerX
   const offsetCY = extent.centerY - centerY
 
-  const resultTopleft = _rotate(offsetTopleft)
-  const resultTopright = _rotate(offsetTopright)
-  const resultBottomleft = _rotate(offsetBottomleft)
-  const resultBottomright = _rotate(offsetBottomright)
+  const resultTopleft = rotate(offsetTopleft)
+  const resultTopright = rotate(offsetTopright)
+  const resultBottomleft = rotate(offsetBottomleft)
+  const resultBottomright = rotate(offsetBottomright)
   const resultCX = (offsetCX * cosTheta + offsetCY * sinTheta) + centerX
   const resultCY = (offsetCY * cosTheta - offsetCX * sinTheta) + centerY
 

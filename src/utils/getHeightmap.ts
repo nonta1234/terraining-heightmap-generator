@@ -1,6 +1,6 @@
 import type { MapType, Settings, Extent, ProgressData } from '~/types/types'
 import { useFetchTerrainTiles, useFetchOceanTiles, limitedParallelFetch } from '~/composables/useFetchTiles'
-import { mapSpec, cubicFamily, PIXELS_PER_TILE } from '~/utils/const'
+import { mapSpec, cubicFamily, PIXELS_PER_TILE, SUBDIVIDE_PADDING } from '~/utils/const'
 import { TileDecoder } from '~/utils/tileDecoder'
 import { lanczos } from './interpolation/lanczos'
 import { bicubic } from './interpolation/bicubic'
@@ -202,7 +202,6 @@ export const getHeightmap = async (
       progressCallback({ type: 'subdividingTotal', data: (tileCountY - 2) * (tileCountX - 2) })
 
       const subdividePromise: Promise<void>[] = []
-      const padding = 4
 
       for (let y = 0; y < tileCountY - 2; y++) {
         for (let x = 0; x < tileCountX - 2; x++) {
@@ -216,7 +215,7 @@ export const getHeightmap = async (
                 subdividedElevations!,
                 x,
                 y,
-                padding,
+                SUBDIVIDE_PADDING,
                 subdivisionCount,
                 settings.subdivisionMargin / 100,
                 settings.subdivisionEnhance / 100,

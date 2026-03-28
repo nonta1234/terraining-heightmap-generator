@@ -1,4 +1,5 @@
 import { normalizedRandom } from '~/utils/normalizedRandom'
+import { SUBDIVIDE_PADDING } from '~/utils/const'
 
 const calculateGradient = (data: Float32Array, size: number, x: number, y: number): { gradX: number, gradY: number } => {
   const index = (y + 1) * size + x + 1
@@ -8,7 +9,7 @@ const calculateGradient = (data: Float32Array, size: number, x: number, y: numbe
 }
 
 const subdivideData = (data: Float32Array, padOutput: boolean, margin: number, noise: number) => {
-  const padding = 4
+  const padding = SUBDIVIDE_PADDING
   const size = Math.sqrt(data.length)
   const coreSize = size - padding * 2
   const verticesSize = coreSize + 5

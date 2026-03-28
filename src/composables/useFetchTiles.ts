@@ -4,7 +4,7 @@ import { $fetch, type FetchError } from 'ofetch'
 const fetchTile = async (url: string): Promise<FetchResult<Blob>> => {
   try {
     const data = await $fetch<Blob>(url, {
-      timeout: 5000,
+      timeout: 15000,
       retry: 3,
       retryDelay: 2000,
     })
@@ -19,6 +19,7 @@ const fetchTileWithRetry = async (url: string, retries = 3): Promise<FetchResult
   if (result.status === 'success') {
     return result
   } else {
+    // return { status: 'error', error: result.error }
     return { status: 'error', error: new Error(`Failed to fetch tile after ${retries} attempts`) }
   }
 }
@@ -41,7 +42,7 @@ export const useFetchOceanTiles = async (zoom: number, x: number, y: number, tok
   return await fetchTileWithRetry(url)
 }
 
-const MAX_CONCURRENT_REQUESTS = 100
+const MAX_CONCURRENT_REQUESTS = 16
 
 export const limitedParallelFetch = async <T>(
   tasks: (() => Promise<T>)[],

@@ -9,6 +9,8 @@ export const BUILD_NUMBER = 1
 export const PIXELS_PER_TILE = 512
 export const PIXELS_PER_VECTOR_TILE = 4096
 
+export const SUBDIVIDE_PADDING = 4
+
 export const mapStyle = {
   streets: 'mapbox://styles/mapbox/streets-v12?optimize=true',
   outdoors: 'mapbox://styles/mapbox/outdoors-v12?optimize=true',

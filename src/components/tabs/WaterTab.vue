@@ -16,7 +16,7 @@ const onLittoralSlopeToggle = () => {
     </details>
     <hr>
     <div class="controls">
-      <label for="waterside">Detail&#8202;:</label>
+      <label for="waterside">Detail Level&#8202;:</label>
       <SelectMenu id="waterside" v-model="mapbox.settings.waterside" class="gap"
         :options="[
           { value: 2, label: 'High' },

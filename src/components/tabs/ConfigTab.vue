@@ -205,7 +205,7 @@ onMounted(() => {
     </div>
     <hr>
     <div class="single gap2 top-gap">
-      <label class="label" for="oversampling">Oversampling&#8202;:</label>
+      <label class="label" for="oversampling">Heightmap Oversampling&#8202;:</label>
       <SelectMenu id="oversampling" v-model="mapbox.settings.oversampling" class="oversampling"
         :options="[
           { value: 1, label: 'None' },
